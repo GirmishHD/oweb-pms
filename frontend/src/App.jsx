@@ -950,7 +950,12 @@ const App = () => {
             funding_source: project.fundingSource,
             status: project.status,
             creator: project.creator
-        }).catch(e => console.warn('Backend createProject sync:', e));
+        }).then(() => {
+            setToastMessage(`Project "${project.name}" registered successfully.`);
+        }).catch(e => {
+            console.error('Backend createProject sync error:', e);
+            setToastMessage(`Project saved locally. Warning: Backend sync failed: ${e.message || 'Network error'}`);
+        });
         if (newDocs.length > 0) {
             setDocuments(prevDocs => [...prevDocs, ...newDocs]);
             newDocs.forEach(doc => logActivity('Uploaded Document', { targetType: 'Document', targetId: doc.id, details: `File: ${doc.fileName}` }));
@@ -991,7 +996,12 @@ const App = () => {
             actual_start_date: updatedProject.actualStartDate,
             actual_completion_date: updatedProject.actualCompletionDate,
             phase_costs: updatedProject.phaseCosts,
-        }).catch(err => console.warn('Project update sync:', err));
+        }).then(() => {
+            setToastMessage(`Project "${updatedProject.name}" updated successfully.`);
+        }).catch(err => {
+            console.error('Project update sync error:', err);
+            setToastMessage(`Project updated locally. Warning: Backend sync failed: ${err.message || 'Network error'}`);
+        });
     }, [projects, logActivity, sendAppNotification]);
     const handleAddProcurement = useCallback((procurement) => {
         setProcurements(prev => [...prev, procurement]);
@@ -1072,7 +1082,12 @@ const App = () => {
             payments: contract.payments,
             variations: contract.variations,
             claims: contract.claims,
-        }).catch(err => console.warn('Contract create sync:', err));
+        }).then(() => {
+            setToastMessage(`Contract ${contract.id} created successfully.`);
+        }).catch(err => {
+            console.error('Contract create sync error:', err);
+            setToastMessage(`Warning: Contract saved locally but sync failed: ${err.message || 'Network error'}`);
+        });
         logActivity('Created Contract', { targetType: 'Contract', targetId: contract.id, details: `For Project ${contract.projectId}` });
         sendAppNotification({ username: contract.contractManager }, `You have been assigned as Contract Manager for contract ${contract.id}.`, NotificationType.INFO, { moduleId: 'contract', itemId: contract.id });
         sendAppNotification({ username: contract.supervisor }, `You have been assigned as Supervisor for contract ${contract.id}.`, NotificationType.INFO, { moduleId: 'contract', itemId: contract.id });
@@ -1109,7 +1124,12 @@ const App = () => {
             payments: updatedContract.payments,
             variations: updatedContract.variations,
             claims: updatedContract.claims,
-        }).catch(err => console.warn('Contract update sync:', err));
+        }).then(() => {
+            setToastMessage(`Contract ${updatedContract.id} updated successfully.`);
+        }).catch(err => {
+            console.error('Contract update sync error:', err);
+            setToastMessage(`Warning: Contract updated locally but sync failed: ${err.message || 'Network error'}`);
+        });
         logActivity('Updated Contract', { targetType: 'Contract', targetId: updatedContract.id });
         // Run automated 30-day deadline audit
         flagContractsNearDeadline(updatedContracts);

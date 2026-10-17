@@ -61,7 +61,13 @@ class ApiClient {
                 catch (e) {
                     errorData = { detail: response.statusText };
                 }
-                throw new Error(errorData.detail || errorData.message || `API error: ${response.status}`);
+                let message = errorData.detail || errorData.message;
+                if (!message && typeof errorData === 'object' && errorData !== null) {
+                    message = Object.entries(errorData)
+                        .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+                        .join('; ');
+                }
+                throw new Error(message || `API error: ${response.status}`);
             }
             if (response.status === 204) {
                 return null;
