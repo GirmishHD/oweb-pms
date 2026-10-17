@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Role, ProjectStatus, UserStatus, NotificationType, DocumentCategory } from './types';
-import { NAVIGATION_ITEMS, ICONS, ROLE_PERMISSIONS, INITIAL_INSPECTIONS } from './constants';
+import { NAVIGATION_ITEMS, ICONS, ROLE_PERMISSIONS } from './constants';
 import { initialUsers } from './services/authService';
 import { loadRoleDefinitions, saveRoleDefinitions, getUserEffectiveScope, filterProjectsByScope, filterContractsByScope, filterProcurementsByScope, filterInspectionsByScope, filterDocumentsByScope } from './services/accessControlService';
 import { loadWeeklyPlans, saveWeeklyPlans, loadWeeklyReports, saveWeeklyReports, filterWeeklyPlansByScope, filterWeeklyReportsByScope } from './services/weeklyTrackingService';
@@ -45,8 +45,8 @@ const App = () => {
     const [simulatedRole, setSimulatedRole] = useState(null);
     const [originalUser, setOriginalUser] = useState(null);
     const [activeModule, setActiveModule] = useState('dashboard');
-    // Data states
-    const [users, setUsers] = useState(initialUsers);
+    // Data states backed by PostgreSQL & Django REST Framework
+    const [users, setUsers] = useState([]);
     const [projects, setProjects] = useState(initialProjects);
     const [procurements, setProcurements] = useState(initialProcurements);
     const [contracts, setContracts] = useState(initialContracts);
@@ -54,7 +54,7 @@ const App = () => {
     const [documents, setDocuments] = useState([]);
     const [activityLogs, setActivityLogs] = useState([]);
     const [masterData, setMasterData] = useState(() => loadMasterData());
-    const [fieldInspections, setFieldInspections] = useState(INITIAL_INSPECTIONS);
+    const [fieldInspections, setFieldInspections] = useState([]);
     const [weeklyPlans, setWeeklyPlans] = useState(() => loadWeeklyPlans());
     const [weeklyReports, setWeeklyReports] = useState(() => loadWeeklyReports());
     const [staffList, setStaffList] = useState(() => loadStaff());
@@ -602,6 +602,26 @@ const App = () => {
                     timestamp: n.created_at
                 })));
             }
+            // Fetch Master Data Catalog from PostgreSQL
+            try {
+                const remoteMaster = await apiClient.getMasterData();
+                if (remoteMaster && (remoteMaster.catalogCategories?.length > 0 || remoteMaster.regions?.length > 0)) {
+                    setMasterData(prev => ({
+                        ...prev,
+                        ...remoteMaster,
+                        catalogCategories: remoteMaster.catalogCategories || prev.catalogCategories,
+                        catalogItems: remoteMaster.catalogItems || prev.catalogItems,
+                        systemConfigurations: remoteMaster.systemConfigurations || prev.systemConfigurations,
+                        workflowSteps: remoteMaster.workflowSteps || prev.workflowSteps,
+                        approvalThresholds: remoteMaster.approvalThresholds || prev.approvalThresholds,
+                        regions: remoteMaster.regions || prev.regions,
+                        woredas: remoteMaster.woredas || prev.woredas,
+                        kebeles: remoteMaster.kebeles || prev.kebeles,
+                    }));
+                }
+            } catch (mErr) {
+                console.warn('Backend master data sync check:', mErr?.message);
+            }
         }
         catch (err) {
             console.warn('Backend connection initial sync check:', err);
@@ -730,7 +750,7 @@ const App = () => {
         if (!cleanInput) {
             return "Please enter your username or bureau email address.";
         }
-        // 1. Try real Django REST API authentication first
+        // 1. Authenticate against Django REST Framework SimpleJWT endpoint
         try {
             const apiRes = await apiClient.login(cleanInput, cleanPass);
             if (apiRes && apiRes.user) {
@@ -760,42 +780,47 @@ const App = () => {
         }
         catch (apiErr) {
             console.warn("Backend auth attempt response:", apiErr?.message);
+            return apiErr?.message || "Invalid credentials. Please verify your username and password.";
         }
-        // 2. Fallback to synchronized users list
-        const user = users.find(u => {
-            const matchesUsername = u.username.toLowerCase() === cleanInput.toLowerCase();
-            const matchesEmail = u.email && u.email.toLowerCase() === cleanInput.toLowerCase();
-            return matchesUsername || matchesEmail;
-        });
-        if (user) {
-            const isPasswordValid = user.password === password ||
-                user.password === cleanPass ||
-                cleanPass === 'password' ||
-                cleanPass === 'admin';
-            if (!isPasswordValid) {
-                return "Incorrect password. (Hint: default password is 'password')";
-            }
-            if (user.status === UserStatus.INACTIVE || user.status === 'Inactive') {
-                return "This account is currently marked Inactive. Please contact an administrator to reactivate your access.";
-            }
-            if (user.status === UserStatus.SUSPENDED || user.status === 'Suspended') {
-                return "This account is currently Suspended due to administrative or security review.";
-            }
-            const updatedLastLogin = new Date().toISOString();
-            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, lastLogin: updatedLastLogin } : u));
-            const { password: _p, ...userWithoutPassword } = { ...user, lastLogin: updatedLastLogin };
-            logActivity('User Logged In', { user: userWithoutPassword });
-            handleLoginSuccess(userWithoutPassword);
-            return null; // No error
-        }
-        return "User not found. Try 'admin', 'testuser', 'supervisor', or 'gworku3654@gmail.com'.";
+        return "Authentication could not be completed. Please check your credentials.";
     };
     const handleRegisterUser = async (newUser) => {
-        setUsers(prev => [newUser, ...prev]);
-        const { password, ...userWithoutPassword } = newUser;
-        logActivity('New Staff Account Registered', { user: userWithoutPassword });
-        handleLoginSuccess(userWithoutPassword);
-        return true;
+        try {
+            await apiClient.createUser({
+                username: newUser.username,
+                password: newUser.password,
+                full_name: newUser.fullName,
+                email: newUser.email,
+                phone: newUser.phone,
+                role: newUser.role,
+                department: newUser.department,
+                organization: newUser.organization,
+                assigned_zone: newUser.assignedZone,
+                assigned_program: newUser.assignedProgram,
+                status: 'Active'
+            });
+            const loginRes = await apiClient.login(newUser.username, newUser.password);
+            if (loginRes && loginRes.user) {
+                const u = loginRes.user;
+                const authenticatedUserData = {
+                    ...u,
+                    id: String(u.id),
+                    fullName: u.full_name || u.fullName,
+                    secondaryRoles: u.secondary_roles || u.secondaryRoles,
+                    assignedTeam: u.assigned_team || u.assignedTeam,
+                    assignedZone: u.assigned_zone || u.assignedZone,
+                    assignedWoreda: u.assigned_woreda || u.assignedWoreda,
+                    assignedProgram: u.assigned_program || u.assignedProgram,
+                    lastLogin: new Date().toISOString(),
+                };
+                handleLoginSuccess(authenticatedUserData);
+                return true;
+            }
+            return true;
+        } catch (err) {
+            console.error('Registration failed:', err);
+            return err.message || 'Registration failed';
+        }
     };
     const handleLoginSuccess = (user) => {
         setAuthenticatedUser(user);
@@ -1338,7 +1363,7 @@ const App = () => {
         if (isExternalPortalOpen) {
             return (<ExternalPortal projects={projects} contracts={contracts} procurements={procurements} inspections={fieldInspections} weeklyPlans={weeklyPlans} onOpenLogin={() => setIsExternalPortalOpen(false)} isLoggedIn={false}/>);
         }
-        return <Login onLogin={handleLogin} onRegisterUser={handleRegisterUser} onOpenExternalPortal={() => setIsExternalPortalOpen(true)}/>;
+        return <Login onLogin={handleLogin} onRegisterUser={handleRegisterUser} users={users} onOpenExternalPortal={() => setIsExternalPortalOpen(true)}/>;
     }
     if (isExternalPortalOpen) {
         return (<ExternalPortal projects={accessibleProjects} contracts={accessibleContracts} procurements={accessibleProcurements} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans} onOpenLogin={() => setIsExternalPortalOpen(false)} isLoggedIn={true} onReturnToApp={() => setIsExternalPortalOpen(false)} onSelectProject={(pId) => {

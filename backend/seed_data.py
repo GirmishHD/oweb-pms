@@ -974,6 +974,86 @@ def seed_inspections():
             'recommended_actions': 'Proceed with backfilling of tested sector.',
             'signed_off_by': 'Eng. Kebede Tadesse & Regional Supervisor',
             'status': 'Approved by Bureau Lead'
+        },
+        {
+            'inspection_id': 'INSP-2025-002',
+            'project_id': 'OWEB-WAT-2024-0018',
+            'project_name': 'Borena Drought Resilience Solar Borehole Scheme',
+            'program': 'Borena Resilient Program',
+            'zone': 'Borena',
+            'woreda': 'Yabelo',
+            'inspection_date': '2025-04-12',
+            'inspector_name': 'Eng. Gemechu Desta',
+            'inspector_role': 'Borena Field Unit Supervisor',
+            'visit_stage': 'Electromechanical Installation',
+            'overall_physical_progress_pct': 78.0,
+            'workmanship_rating': 'Exceptional',
+            'site_cleanliness_and_safety': 'Satisfactory',
+            'environmental_compliance': 'Compliant',
+            'water_quality_test': {
+                'testDate': '2025-04-12',
+                'testedBy': 'Southern Oromia Mobile Field Unit',
+                'laboratory': 'Yabelo Zonal Testing Facility',
+                'ph': 7.8,
+                'turbidityNTU': 0.9,
+                'tdsMgL': 520,
+                'residualChlorineMgL': 0.35,
+                'fluorideMgL': 1.3,
+                'ecoliCFU': 0,
+                'complianceStatus': 'Compliant',
+                'notes': 'High yield groundwater source (28 L/s) with fluoride safely within 1.5 mg/L threshold.'
+            },
+            'defects': [
+                {
+                    'id': 'DEF-002',
+                    'itemDescription': 'Solar array grounding rod resistance measured at 14 Ohms (exceeds < 5 Ohms lightning protection limit).',
+                    'category': 'Electromechanical',
+                    'severity': 'Major',
+                    'identifiedDate': '2025-04-12',
+                    'targetRectificationDate': '2025-04-22',
+                    'rectifiedDate': '2025-04-20',
+                    'status': 'Verified & Closed',
+                    'responsibleParty': 'Contractor',
+                    'remedialAction': 'Installed 2 additional chemical-earth copper electrodes; resistance successfully dropped to 3.8 Ohms.'
+                }
+            ],
+            'supervisor_remarks': 'Solar PV mounting structures and Grundfos SP submersible pumps installed at 320m depth. Inverter output test validated 38kW continuous power under solar radiation.',
+            'recommended_actions': 'Finalize animal watering trough perimeter fencing and hand over operational checklist to local WASHCO.',
+            'signed_off_by': 'Eng. Gemechu Desta',
+            'status': 'Approved by Bureau Lead'
+        },
+        {
+            'inspection_id': 'INSP-2025-003',
+            'project_id': 'OWEB-SAN-2024-0015',
+            'project_name': 'Adama Town Public Sanitation & Sludge Facility',
+            'program': 'Second Urban (UWSSP-II)',
+            'zone': 'East Shewa',
+            'woreda': 'Adama',
+            'inspection_date': '2025-05-05',
+            'inspector_name': 'Fatuma Aliyi',
+            'inspector_role': 'Urban Sanitation QA/QC Officer',
+            'visit_stage': 'Civil Works & Construction',
+            'overall_physical_progress_pct': 54.0,
+            'workmanship_rating': 'Satisfactory',
+            'site_cleanliness_and_safety': 'Satisfactory',
+            'environmental_compliance': 'Compliant',
+            'defects': [
+                {
+                    'id': 'DEF-003',
+                    'itemDescription': 'Drying bed filter sand grading curve slightly coarse compared to design D10 specification.',
+                    'category': 'Civil Works',
+                    'severity': 'Minor',
+                    'identifiedDate': '2025-05-05',
+                    'targetRectificationDate': '2025-05-20',
+                    'status': 'Open',
+                    'responsibleParty': 'Contractor',
+                    'remedialAction': 'Contractor sourcing graded silica sand batch from certified quarry in Mojo.'
+                }
+            ],
+            'supervisor_remarks': 'Anaerobic pond excavation and HDPE lining completed. Sludge drying beds concrete retaining walls undergoing curing test.',
+            'recommended_actions': 'Verify filter sand sieve test before approving sand bed placement.',
+            'signed_off_by': 'Fatuma Aliyi',
+            'status': 'Submitted'
         }
     ]
     for i in inspections:
@@ -1015,15 +1095,153 @@ def seed_weekly_tracking():
         WeeklyWorkPlan.objects.get_or_create(plan_id=pl['plan_id'], defaults=pl)
     print(f"Weekly work plans seeded: {WeeklyWorkPlan.objects.count()}")
 
+    reports = [
+        {
+            'report_id': 'REP-2025-W34-001',
+            'project_id': 'OWEB-WAT-2025-0001',
+            'project_name': 'Shashamane Town Water Expansion',
+            'work_plan_id': 'WP-2025-W34-001',
+            'weekly_plan_id': 'WP-2025-W34-001',
+            'zone': 'West Arsi',
+            'woreda': 'Shashamane',
+            'week_number': 34,
+            'start_date': '2025-08-18',
+            'end_date': '2025-08-24',
+            'submitted_date': '2025-08-24',
+            'report_date': '2025-08-24',
+            'submitted_by_user_id': 'testuser',
+            'submitted_by_name': 'Tolasa Bekele',
+            'previous_physical_progress_pct': 58.5,
+            'this_week_physical_progress_pct': 3.5,
+            'cumulative_physical_progress_pct': 62.0,
+            'planned_progress_pct': 63.5,
+            'progress_variance_pct': -1.5,
+            'status': 'Approved',
+            'reviewed_by_user_id': 'team_leader_tigist',
+            'reviewed_by_name': 'Eng. Tigist Mengistu',
+            'review_date': '2025-08-25',
+            'supervisor_feedback': 'Good recovery on sector B trenching. Keep monitoring contractor pipe joint fusing quality.',
+            'site_labor_count': 42,
+            'weather_conditions': 'Sunny, dry conditions optimal for earthworks',
+            'activity_executions': [
+                {
+                    'id': 'exec-1',
+                    'activityName': 'Trench excavation for DN250 HDPE transmission main (Ch 4+200 to 6+700)',
+                    'unit': 'meters',
+                    'plannedQuantity': 2500,
+                    'actualQuantity': 2200,
+                    'progressPct': 88,
+                    'notes': 'Rocky strata at Ch 5+100 required pneumatic breaker excavation.'
+                }
+            ],
+            'site_challenges': [
+                {
+                    'id': 'ch-1',
+                    'description': 'Hard rock outcrop slowed trenching by 24 hours at Ch 5+100',
+                    'severity': 'Medium',
+                    'remedialAction': 'Mobilized second compressor and team'
+                }
+            ],
+            'materials_on_site': [
+                { 'name': 'DN250 PE100 PN16 Pipes', 'quantity': 180, 'unit': 'pipes (12m)', 'status': 'Delivered & Tested' },
+                { 'name': 'Electrofusion couplers', 'quantity': 65, 'unit': 'pcs', 'status': 'Adequate' }
+            ],
+            'manpower_on_site': [
+                { 'category': 'Certified Butt-welding Technicians', 'count': 4 },
+                { 'category': 'Surveyors & Site Engineers', 'count': 3 },
+                { 'category': 'Daily Laborers', 'count': 35 }
+            ],
+            'equipment_on_site': [
+                { 'equipmentName': 'Hydraulic Butt-Fusion Machine', 'count': 2, 'status': 'Operational' },
+                { 'equipmentName': 'Wheeled Excavator 20-Ton', 'count': 1, 'status': 'Operational' }
+            ]
+        }
+    ]
+    for rep in reports:
+        WeeklyProgressReport.objects.get_or_create(report_id=rep['report_id'], defaults=rep)
+    print(f"Weekly progress reports seeded: {WeeklyProgressReport.objects.count()}")
+
 def seed_master_data():
     print("Seeding Master Data...")
-    if not MasterDataStore.objects.exists():
-        MasterDataStore.objects.create(
-            version='2.0.0',
-            last_pushed_by='admin',
-            change_notes='Production initialization from OWEB constants catalog.'
-        )
-    print(f"MasterDataStore initialized: {MasterDataStore.objects.count()}")
+    from apps.programs.models import Program
+    existing = MasterDataStore.objects.last()
+    if not existing or not existing.catalog_categories:
+        # Populate rich master data store
+        programs_list = [
+            {'id': p.prog_id, 'name': p.name, 'code': p.code, 'donor': p.funding_source, 'status': p.status}
+            for p in Program.objects.all()
+        ]
+        categories = [
+            {'id': 'cat-pipes', 'name': 'Pipes & Fittings (HDPE, DCI, uPVC, Steel)', 'code': 'CAT-01', 'itemCount': 42},
+            {'id': 'cat-pumps', 'name': 'Submersible & Centrifugal Water Pumps', 'code': 'CAT-02', 'itemCount': 28},
+            {'id': 'cat-solar', 'name': 'Solar PV Generation & Hybrid Inverters', 'code': 'CAT-03', 'itemCount': 19},
+            {'id': 'cat-valves', 'name': 'Control Valves, PRVs & Bulk Flow Meters', 'code': 'CAT-04', 'itemCount': 35},
+            {'id': 'cat-civil', 'name': 'Masonry, RC Reservoirs & Spring Catchment', 'code': 'CAT-05', 'itemCount': 50},
+            {'id': 'cat-drilling', 'name': 'Deep Well Drilling Consumables & Casing', 'code': 'CAT-06', 'itemCount': 22},
+            {'id': 'cat-water-quality', 'name': 'Water Quality Testing Kits & Disinfectants', 'code': 'CAT-07', 'itemCount': 18},
+        ]
+        configs = [
+            {'key': 'ALLOW_PARALLEL_APPROVALS', 'name': 'Allow Parallel Multi-Directorate Approvals', 'value': 'true', 'category': 'Workflow'},
+            {'key': 'MAX_VARIATION_WITHOUT_BUREAU_HEAD', 'name': 'Maximum Variation % Without Bureau Head Sign-off', 'value': '15', 'category': 'Procurement'},
+            {'key': 'AUTO_NOTIFY_CONTRACTOR_EXPIRY_DAYS', 'name': 'Notification Lead Time for Performance Bond Expiry (Days)', 'value': '30', 'category': 'Contracts'},
+            {'key': 'INSPECTION_MIN_PHOTOS_REQUIRED', 'name': 'Minimum Geo-Tagged Photos per Inspection Log', 'value': '2', 'category': 'Field Inspection'},
+            {'key': 'S_CURVE_VARIANCE_CRITICAL_THRESHOLD', 'name': 'S-Curve Physical Variance Critical Warning %', 'value': '-10.0', 'category': 'Monitoring & Evaluation'}
+        ]
+        workflow_steps = [
+            {'id': 'ws-1', 'stepName': 'Initial Feasibility & Desk Verification', 'roleRequired': 'Engineer', 'slaDays': 5},
+            {'id': 'ws-2', 'stepName': 'Multi-Disciplinary Technical Screening', 'roleRequired': 'Team Leader', 'slaDays': 7},
+            {'id': 'ws-3', 'stepName': 'Budget & Environmental Clearance', 'roleRequired': 'Reviewer', 'slaDays': 5},
+            {'id': 'ws-4', 'stepName': 'Directorate Strategic Endorsement', 'roleRequired': 'Director', 'slaDays': 4},
+            {'id': 'ws-5', 'stepName': 'Bureau Final Capital Authorization', 'roleRequired': 'Admin', 'slaDays': 3}
+        ]
+        approval_thresholds = [
+            {'id': 'th-1', 'category': 'Standard Rural Water Supply', 'minAmount': 0, 'maxAmount': 5000000, 'approverRole': 'Team Leader'},
+            {'id': 'th-2', 'category': 'Medium Scale Water Infrastructure', 'minAmount': 5000001, 'maxAmount': 25000000, 'approverRole': 'Director'},
+            {'id': 'th-3', 'category': 'Large Multi-Village / Urban Scheme', 'minAmount': 25000001, 'maxAmount': 500000000, 'approverRole': 'Admin'}
+        ]
+        regions = [
+            {'id': 'reg-oromia', 'code': 'REG_OROMIA', 'name': 'Oromia National Regional State', 'localName': 'Mootummaa Naannoo Oromiyaa', 'status': 'Active'},
+            {'id': 'reg-amhara', 'code': 'REG_AMHARA', 'name': 'Amhara Region', 'status': 'Active'},
+            {'id': 'reg-somali', 'code': 'REG_SOMALI', 'name': 'Somali Region', 'status': 'Active'},
+            {'id': 'reg-sidama', 'code': 'REG_SIDAMA', 'name': 'Sidama Region', 'status': 'Active'}
+        ]
+        woredas = [
+            {'id': 'wor-shashamane', 'regionId': 'reg-oromia', 'name': 'Shashamane', 'zone': 'West Arsi', 'status': 'Active'},
+            {'id': 'wor-yabelo', 'regionId': 'reg-oromia', 'name': 'Yabelo', 'zone': 'Borena', 'status': 'Active'},
+            {'id': 'wor-adama', 'regionId': 'reg-oromia', 'name': 'Adama', 'zone': 'East Shewa', 'status': 'Active'},
+            {'id': 'wor-amaye', 'regionId': 'reg-oromia', 'name': 'Amaye', 'zone': 'Southwest Shewa', 'status': 'Active'},
+            {'id': 'wor-waliso', 'regionId': 'reg-oromia', 'name': 'Waliso', 'zone': 'Southwest Shewa', 'status': 'Active'}
+        ]
+        kebeles = [
+            {'id': 'keb-01', 'woredaId': 'wor-shashamane', 'name': 'Awasho 01', 'status': 'Active'},
+            {'id': 'keb-02', 'woredaId': 'wor-shashamane', 'name': 'Dida Boke', 'status': 'Active'},
+            {'id': 'keb-03', 'woredaId': 'wor-yabelo', 'name': 'Dharito', 'status': 'Active'},
+            {'id': 'keb-04', 'woredaId': 'wor-adama', 'name': 'Bole Sub-city Kebele 02', 'status': 'Active'}
+        ]
+
+        if existing:
+            existing.catalog_categories = categories
+            existing.system_configurations = configs
+            existing.workflow_steps = workflow_steps
+            existing.approval_thresholds = approval_thresholds
+            existing.regions = regions
+            existing.woredas = woredas
+            existing.kebeles = kebeles
+            existing.save()
+        else:
+            MasterDataStore.objects.create(
+                version='2.0.0',
+                last_pushed_by='admin',
+                change_notes='Production initialization with complete OWEB enterprise master data.',
+                catalog_categories=categories,
+                system_configurations=configs,
+                workflow_steps=workflow_steps,
+                approval_thresholds=approval_thresholds,
+                regions=regions,
+                woredas=woredas,
+                kebeles=kebeles
+            )
+    print(f"MasterDataStore ready in PostgreSQL: {MasterDataStore.objects.count()}")
 
 if __name__ == '__main__':
     seed_users()

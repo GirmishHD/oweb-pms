@@ -9,6 +9,13 @@ from .serializers import UserSerializer, RoleDefinitionSerializer, NotificationS
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        username_or_email = attrs.get('username')
+        if username_or_email:
+            # Check if user passed an email address instead of username
+            user_obj = User.objects.filter(email__iexact=username_or_email).first()
+            if user_obj:
+                attrs['username'] = user_obj.username
+
         data = super().validate(attrs)
         user_data = UserSerializer(self.user).data
         data['user'] = user_data

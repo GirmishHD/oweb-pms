@@ -34,7 +34,7 @@ export class GeminiOrLocalChat {
         const weeklyPlans = Array.isArray(allData.weeklyPlans) ? allData.weeklyPlans : [];
         const user = allData.user;
         // 1. Attempt Gemini 2.5 Flash streaming when API key is configured
-        if (apiKey && apiKey !== 'MOCK_API_KEY') {
+        if (apiKey) {
             try {
                 const ai = new GoogleGenAI({ apiKey });
                 const contextSummary = `
@@ -365,7 +365,7 @@ STRICT REQUIREMENTS:
 1. Provide exactly ONE well-written, continuous paragraph (no bullet points, no multiple paragraphs, no intro/outro labels).
 2. Directly incorporate the Project Name, Scope (technical sizing and beneficiary coverage), Project Type, and Budget.
 3. Use a formal, objective, public sector engineering tone suitable for bureau executives and funding partners.`;
-    if (apiKey && apiKey !== 'MOCK_API_KEY') {
+    if (apiKey) {
         try {
             const ai = new GoogleGenAI({ apiKey });
             const response = await ai.models.generateContent({
@@ -395,7 +395,7 @@ export const generateRiskAssessment = async (project) => {
             landOwnershipCleared: project.landOwnershipCleared
         })
     };
-    if (apiKey && apiKey !== "MOCK_API_KEY") {
+    if (apiKey) {
         try {
             const ai = new GoogleGenAI({ apiKey });
             const response = await ai.models.generateContent({
@@ -454,14 +454,13 @@ export const createChatSession = (allData) => {
     const username = allData?.user?.username || 'User';
     const role = allData?.user?.role || Role.USER;
     const systemInstruction = `You are a helpful AI assistant for the OWEB Program-Based Project Management System. You can answer questions about projects, contracts, and procurement. Use the provided data to answer user queries. Be concise and professional. The current user is ${username} with the role of ${role}. When providing actionable items, embed them in the text using the format [ACTION:{"type":"navigate","moduleId":"some_module","itemId":"some_id"}].`;
-    return new MockChat({
+    return new GeminiOrLocalChat({
         model: 'gemini-2.5-flash',
         systemInstruction,
         allData
     });
 };
 export const generateDashboardInsights = async (projects = [], contracts = [], procurements = []) => {
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
     const insights = [];
     const safeProjects = Array.isArray(projects) ? projects : [];
     const safeContracts = Array.isArray(contracts) ? contracts : [];

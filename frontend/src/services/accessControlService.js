@@ -522,32 +522,40 @@ export const DEFAULT_ROLE_DEFINITIONS = [
         color: '#2563eb',
     }
 ];
-// Local storage key for custom & modified roles
-const ROLES_STORAGE_KEY = 'oweb_rbac_role_definitions_v1';
+// In-memory cache for role definitions backed by PostgreSQL
+let cachedRoleDefinitions = DEFAULT_ROLE_DEFINITIONS;
 export const loadRoleDefinitions = () => {
+    return cachedRoleDefinitions;
+};
+export const fetchRoleDefinitionsFromApi = async () => {
     try {
-        const raw = localStorage.getItem(ROLES_STORAGE_KEY);
-        if (!raw)
-            return DEFAULT_ROLE_DEFINITIONS;
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-            // Ensure all system roles exist
-            const existingCodes = new Set(parsed.map(r => r.code));
-            const missingSystemRoles = DEFAULT_ROLE_DEFINITIONS.filter(sr => !existingCodes.has(sr.code));
-            return [...parsed, ...missingSystemRoles];
+        const remoteRoles = await apiClient.getRoles();
+        if (Array.isArray(remoteRoles) && remoteRoles.length > 0) {
+            const mapped = remoteRoles.map(r => ({
+                id: String(r.id),
+                code: r.code,
+                name: r.name,
+                description: r.description,
+                permissions: r.permissions || [],
+                defaultDataScope: r.default_data_scope || r.defaultDataScope || 'ALL',
+                organizationScope: r.organization_scope || r.organizationScope || '',
+                isSystem: r.is_system !== undefined ? r.is_system : r.isSystem,
+                color: r.color || ''
+            }));
+            cachedRoleDefinitions = mapped;
+            return mapped;
         }
-        return DEFAULT_ROLE_DEFINITIONS;
     }
     catch (err) {
-        console.error('Failed to load role definitions, returning defaults:', err);
-        return DEFAULT_ROLE_DEFINITIONS;
+        console.warn('Failed to fetch role definitions from API:', err);
     }
+    return cachedRoleDefinitions;
 };
-export const saveRoleDefinitions = (roles) => {
-    try {
-        localStorage.setItem(ROLES_STORAGE_KEY, JSON.stringify(roles));
-        roles.forEach(r => {
-            apiClient.saveRole({
+export const saveRoleDefinitions = async (roles) => {
+    cachedRoleDefinitions = roles;
+    for (const r of roles) {
+        try {
+            await apiClient.saveRole({
                 code: r.code,
                 name: r.name,
                 description: r.description,
@@ -556,13 +564,11 @@ export const saveRoleDefinitions = (roles) => {
                 organization_scope: r.organizationScope,
                 is_system: r.isSystem,
                 color: r.color,
-            }).catch(err => {
-                console.error('Failed to sync role with backend:', err);
             });
-        });
-    }
-    catch (err) {
-        console.error('Failed to persist role definitions to localStorage:', err);
+        }
+        catch (err) {
+            console.error('Failed to sync role with backend:', err);
+        }
     }
 };
 // Match User.role (e.g. Role.ADMIN, Role.ENGINEER) to a RoleDefinition

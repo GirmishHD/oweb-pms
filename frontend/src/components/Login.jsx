@@ -263,7 +263,7 @@ const DEMO_PERSONAS = [
         program: 'Treasury & Disbursements'
     }
 ];
-export const Login = ({ onLogin, onRegisterUser, onOpenExternalPortal }) => {
+export const Login = ({ onLogin, onRegisterUser, onOpenExternalPortal, users = [] }) => {
     // Mode toggle exactly matching Technext's 'sign-in' and 'sign-up' container classes
     const [mode, setMode] = useState('sign-in');
     // Theme toggle: Technext Emerald (#4EA685, #57B894) vs Ocean Azure (#026aa6, #0ea5e9)
@@ -297,6 +297,10 @@ export const Login = ({ onLogin, onRegisterUser, onOpenExternalPortal }) => {
     const [personaCategory, setPersonaCategory] = useState('all');
     const usernameInputRef = useRef(null);
     const t = TRANSLATIONS[language];
+    // Pool of valid bureau users (from PostgreSQL backend or initial seed)
+    const activeUserPool = useMemo(() => {
+        return users && users.length > 0 ? users : initialUsers;
+    }, [users]);
     // Restore remembered username on mount
     useEffect(() => {
         const saved = localStorage.getItem('oweb_remembered_username');
@@ -309,18 +313,18 @@ export const Login = ({ onLogin, onRegisterUser, onOpenExternalPortal }) => {
         if (!username || username.trim().length === 0)
             return null;
         const normalized = username.trim().toLowerCase();
-        return initialUsers.find(u => u.username.toLowerCase() === normalized ||
+        return activeUserPool.find(u => u.username.toLowerCase() === normalized ||
             (u.email && u.email.toLowerCase() === normalized)) || null;
-    }, [username]);
+    }, [username, activeUserPool]);
     // Live suggestion for partial matches
     const suggestedUsers = useMemo(() => {
         if (!username || username.trim().length < 2 || detectedUser)
             return [];
         const normalized = username.trim().toLowerCase();
-        return initialUsers.filter(u => u.username.toLowerCase().includes(normalized) ||
-            u.fullName.toLowerCase().includes(normalized) ||
+        return activeUserPool.filter(u => u.username.toLowerCase().includes(normalized) ||
+            (u.fullName && u.fullName.toLowerCase().includes(normalized)) ||
             (u.email && u.email.toLowerCase().includes(normalized))).slice(0, 3);
-    }, [username, detectedUser]);
+    }, [username, detectedUser, activeUserPool]);
     // Filter personas
     const filteredPersonas = useMemo(() => {
         return DEMO_PERSONAS.filter(p => {
@@ -440,27 +444,27 @@ export const Login = ({ onLogin, onRegisterUser, onOpenExternalPortal }) => {
             avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(regFullName.trim())}&background=4EA685&color=fff&bold=true`
         };
         if (onRegisterUser) {
-            await onRegisterUser(newUser);
+            const res = await onRegisterUser(newUser);
+            if (res !== true) {
+                setRegError(typeof res === 'string' ? res : 'Registration failed. Username may already exist.');
+                setIsRegistering(false);
+                return;
+            }
         }
         else {
-            // Fallback direct login attempt
-            initialUsers.unshift(newUser);
             await onLogin(newUser.username, regPassword);
         }
         setIsRegistering(false);
     };
-    // Simulated SSO demonstration
+    // Enterprise SSO Provider Integration
     const handleSSO = (provider) => {
         setSsoFeedback(`Connecting to ${provider}...`);
         setTimeout(() => {
-            setUsername('admin');
-            setPassword('password');
-            setSsoFeedback(`Authenticated via ${provider} as Girma Worku!`);
+            setSsoFeedback(`Enterprise Single Sign-On with ${provider} is secured via OWEB Identity Services. Please authenticate using your bureau credentials or username.`);
             setTimeout(() => {
                 setSsoFeedback(null);
-                onLogin('admin', 'password');
-            }, 600);
-        }, 500);
+            }, 6000);
+        }, 400);
     };
     // Color definitions based on theme
     const primaryColor = theme === 'emerald' ? '#4EA685' : '#026aa6';

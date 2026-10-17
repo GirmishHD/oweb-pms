@@ -1193,66 +1193,40 @@ export const INITIAL_MASTER_DATA = {
         }
     ]
 };
-const MASTER_DATA_STORAGE_KEY = 'oweb_master_data_v2';
+// In-memory cache for master data backed by PostgreSQL
+let cachedMasterData = INITIAL_MASTER_DATA;
 export const loadMasterData = () => {
+    return cachedMasterData;
+};
+export const fetchMasterDataFromApi = async () => {
     try {
-        const stored = localStorage.getItem(MASTER_DATA_STORAGE_KEY) || localStorage.getItem('oweb_master_data_v1');
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed && parsed.geographicHierarchy && parsed.fundingSources) {
-                // Ensure new catalog structure exists even on upgrade from v1
-                if (!parsed.catalogCategories || parsed.catalogCategories.length === 0) {
-                    parsed.catalogCategories = INITIAL_CATALOG_CATEGORIES;
-                }
-                if (!parsed.catalogItems || parsed.catalogItems.length === 0) {
-                    parsed.catalogItems = buildInitialCatalogItems();
-                }
-                if (!parsed.systemConfigurations || parsed.systemConfigurations.length === 0) {
-                    parsed.systemConfigurations = INITIAL_SYSTEM_CONFIGURATIONS;
-                }
-                if (!parsed.workflowDefinitions || parsed.workflowDefinitions.length === 0) {
-                    parsed.workflowDefinitions = INITIAL_WORKFLOW_DEFINITIONS;
-                }
-                if (!parsed.workflowSteps || parsed.workflowSteps.length === 0) {
-                    parsed.workflowSteps = INITIAL_WORKFLOW_STEPS;
-                }
-                if (!parsed.approvalThresholds || parsed.approvalThresholds.length === 0) {
-                    parsed.approvalThresholds = INITIAL_APPROVAL_THRESHOLDS;
-                }
-                if (!parsed.historyEntries) {
-                    parsed.historyEntries = INITIAL_MASTER_DATA.historyEntries;
-                }
-                if (!parsed.programs || parsed.programs.length === 0) {
-                    parsed.programs = INITIAL_PROGRAMS;
-                }
-                if (!parsed.regions || parsed.regions.length === 0) {
-                    parsed.regions = INITIAL_REGIONS;
-                }
-                if (!parsed.woredas || parsed.woredas.length === 0) {
-                    parsed.woredas = INITIAL_WOREDAS;
-                }
-                if (!parsed.kebeles || parsed.kebeles.length === 0) {
-                    parsed.kebeles = INITIAL_KEBELES;
-                }
-                return parsed;
-            }
+        const remote = await apiClient.getMasterData();
+        if (remote && (remote.catalogCategories?.length > 0 || remote.regions?.length > 0)) {
+            cachedMasterData = {
+                ...INITIAL_MASTER_DATA,
+                ...remote,
+                catalogCategories: remote.catalogCategories || INITIAL_MASTER_DATA.catalogCategories,
+                catalogItems: remote.catalogItems || INITIAL_MASTER_DATA.catalogItems,
+                systemConfigurations: remote.systemConfigurations || INITIAL_MASTER_DATA.systemConfigurations,
+                workflowSteps: remote.workflowSteps || INITIAL_MASTER_DATA.workflowSteps,
+                approvalThresholds: remote.approvalThresholds || INITIAL_MASTER_DATA.approvalThresholds,
+                regions: remote.regions || INITIAL_MASTER_DATA.regions,
+                woredas: remote.woredas || INITIAL_MASTER_DATA.woredas,
+                kebeles: remote.kebeles || INITIAL_MASTER_DATA.kebeles,
+            };
+            return cachedMasterData;
         }
     }
-    catch (e) {
-        console.warn('Failed to load stored master data, using default baseline:', e);
+    catch (err) {
+        console.warn('Failed to fetch master data from API:', err);
     }
-    return INITIAL_MASTER_DATA;
+    return cachedMasterData;
 };
 export const saveMasterData = (data) => {
-    try {
-        localStorage.setItem(MASTER_DATA_STORAGE_KEY, JSON.stringify(data));
-        apiClient.saveMasterData(data).catch(err => {
-            console.error('Failed to sync master data with backend:', err);
-        });
-    }
-    catch (e) {
-        console.error('Failed to persist master data to local storage:', e);
-    }
+    cachedMasterData = data;
+    apiClient.saveMasterData(data).catch(err => {
+        console.error('Failed to sync master data with backend:', err);
+    });
 };
 export const calculateTotalMasterDataItems = (data) => {
     let count = (data.catalogItems || []).length;

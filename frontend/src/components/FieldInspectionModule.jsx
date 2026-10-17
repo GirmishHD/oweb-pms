@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Role } from '../types';
-import { ZONES, PROGRAMS, INITIAL_INSPECTIONS, ICONS } from '../constants';
+import { ZONES, PROGRAMS, ICONS } from '../constants';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,10 +22,13 @@ const RATING_BADGES = {
 const FieldInspectionModule = ({ projects = [], user, inspections: propsInspections, onAddInspection, onUpdateInspection, onNavigate, weeklyPlans = [], weeklyReports = [], onAddWeeklyPlan, onUpdateWeeklyPlan, onAddWeeklyReport, onUpdateWeeklyReport, }) => {
     const safeProjects = useMemo(() => Array.isArray(projects) ? projects : [], [projects]);
     const [activeSection, setActiveSection] = useState('inspections');
-    // Local state for inspections if not fully handled upstream
-    const [inspectionList, setInspectionList] = useState(() => {
-        return propsInspections && propsInspections.length > 0 ? propsInspections : INITIAL_INSPECTIONS;
-    });
+    // Live database-backed inspections synchronized with backend API
+    const [inspectionList, setInspectionList] = useState(propsInspections || []);
+    React.useEffect(() => {
+        if (propsInspections) {
+            setInspectionList(propsInspections);
+        }
+    }, [propsInspections]);
     // Filters
     const [selectedProgram, setSelectedProgram] = useState(() => {
         return user.assignedProgram && user.assignedProgram !== 'All Programs (Bureau Level)' ? user.assignedProgram : '';
