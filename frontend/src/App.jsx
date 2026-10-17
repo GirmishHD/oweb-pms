@@ -33,8 +33,9 @@ import { UserProfileModal } from './components/UserProfileModal';
 import { ExternalPortal } from './components/ExternalPortal';
 import { blobToBase64, base64ToBlob } from './services/dataService';
 import { loadMasterData, saveMasterData, pushMasterDataToAllModules } from './services/masterDataService';
-import { flagContractsWithin30Days } from './utils/contractNotificationHelper';
 import { apiClient } from './services/apiClient';
+import MetisLayout from './components/layout/MetisLayout';
+import MetisPageHeader from './components/layout/MetisPageHeader';
 const BACKUP_VERSION = '1.0';
 const initialProjects = [];
 const initialProcurements = [];
@@ -73,6 +74,27 @@ export const getModuleTitle = (mod) => {
         case 'masterdata': return 'Master Data & Administrative Registry';
         case 'dashboard': return 'Executive Intelligence Dashboard';
         default: return (mod || 'Dashboard').charAt(0).toUpperCase() + (mod || 'Dashboard').slice(1);
+    }
+};
+export const getModuleSubtitle = (mod) => {
+    switch (mod) {
+        case 'usermanagement': return 'Role-Based Access Control (RBAC), user directory, permissions matrix, and audit logs';
+        case 'programs': return 'Multilateral donor and sovereign program portfolios (One WaSH, Climate Resilient, UNICEF)';
+        case 'ngos': return 'Authorized non-governmental organizations and implementing partners registry';
+        case 'staff': return 'Bureau zonal hydraulic engineers, resident supervisors, and project staff roster';
+        case 'contract': return 'Binding contract agreements, performance securities, milestone payments, and variations';
+        case 'planning': return 'Technical scheme initiation, hydrological feasibility parameters, and pipeline proposals';
+        case 'review': return 'Zonal engineering appraisal, technical scoring, and executive approval workflow';
+        case 'procurement': return 'Tender packages, competitive bidding stages, evaluation committees, and award notices';
+        case 'gisMap': return 'Spatial GIS distribution, GPS coordinates, and water quality telemetry across 21 zones';
+        case 'inspection': return 'QA/QC & Field Inspection Logbooks, water quality compliance, and defect tracking';
+        case 'performance': return 'Earned Value Management (EVM), Cost Performance Index (CPI), and Schedule Variance (SV)';
+        case 'documents': return 'Central cryptographic project document vault, technical drawings, and legal deeds';
+        case 'reporting': return 'Executive analytical summaries, regional disaggregations, and database backups';
+        case 'training': return 'Capacity building curriculum, standard operating procedures, and technical documentation';
+        case 'masterdata': return 'Master data catalog, administrative registry, and institutional workflow rules';
+        case 'dashboard': return 'Real-time regional water resource & infrastructure portfolio across 21 zones';
+        default: return 'OWEB Regional Water & Energy Program Management System';
     }
 };
 const App = () => {
@@ -1489,385 +1511,107 @@ const App = () => {
         }
         return moduleComponent || (<Dashboard user={authenticatedUser} projects={accessibleProjects} procurements={accessibleProcurements} contracts={accessibleContracts} onSelectContract={handleSelectContract} onNavigate={handleNavigate} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans}/>);
     };
-    return (<div className="flex h-screen bg-elevare-pattern font-sans antialiased text-slate-800 overflow-hidden">
-            {/* Mobile Backdrop Overlay */}
-            {isMobileMenuOpen && (<div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-[#031d38]/75 backdrop-blur-xs z-40 lg:hidden transition-opacity" aria-hidden="true"/>)}
-
-            {/* ELEVARE LUMINOUS HYDRO-OCEANIC SIDEBAR */}
-            <aside className={`
-                fixed inset-y-0 left-0 z-50 lg:static flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out border-r border-cyan-500/25 shadow-2xl shadow-sky-950/25 no-print
-                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                ${isSidebarCollapsed ? 'lg:w-20' : 'w-72'}
-                bg-gradient-to-b from-[#05284b] via-[#073c6b] to-[#031e38] text-sky-100
-            `}>
-                {/* Brand Header */}
-                <div className="h-20 flex items-center justify-between px-5 border-b border-cyan-500/25 bg-[#05284b]/95 backdrop-blur-md">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 bg-gradient-to-br from-cyan-500 via-sky-600 to-blue-700 rounded-xl border border-cyan-300/40 shadow-lg shadow-sky-950/40 text-white flex-shrink-0 ring-1 ring-white/20">
-                            <Logo className="h-6 w-6 text-white"/>
-                        </div>
-                        {(!isSidebarCollapsed || isMobileMenuOpen) && (<div className="min-w-0">
-                                <h1 className="font-black text-base tracking-tight leading-none text-white truncate font-display">OWEB PB-PMS</h1>
-                                <p className="text-[10px] text-cyan-200 font-semibold tracking-wide mt-1 truncate">Oromia Water Bureau · Ledger</p>
-                            </div>)}
-                    </div>
-                    <div className="flex items-center gap-1">
-                        {/* Mobile close button */}
-                        <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden p-1.5 rounded-lg text-sky-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer" title="Close Menu">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+    return (
+        <MetisLayout
+            user={authenticatedUser}
+            originalUser={originalUser}
+            simulatedRole={simulatedRole}
+            activeModule={activeModule}
+            onSelectModule={(mod) => {
+                setActiveModule(mod);
+                setIsMobileMenuOpen(false);
+            }}
+            navGroups={navGroups}
+            navBadges={navBadges}
+            unreadCount={unreadCount}
+            onToggleNotifications={() => setShowNotifications(!showNotifications)}
+            showNotifications={showNotifications}
+            notificationRef={notificationRef}
+            NotificationPanelComponent={
+                showNotifications && (
+                    <NotificationPanel
+                        notifications={filteredNotifications}
+                        onMarkAsRead={handleMarkAsRead}
+                        onMarkAllAsRead={handleMarkAllAsRead}
+                        onNotificationClick={handleNotificationClick}
+                    />
+                )
+            }
+            onOpenProfile={() => setIsUserProfileModalOpen(true)}
+            onLogout={handleLogout}
+            onSwitchPersona={handleSwitchPersona}
+            onExitRoleSimulation={handleExitRoleSimulation}
+            onOpenSearch={() => setIsCommandPaletteOpen(true)}
+            onAuditDeadlines={() => flagContractsNearDeadline(undefined, true)}
+            accessibleProjectsCount={accessibleProjects.length}
+            onOpenExternalPortal={() => setIsExternalPortalOpen(true)}
+            activeModuleTitle={getModuleTitle(activeModule)}
+        >
+            <MetisPageHeader
+                title={getModuleTitle(activeModule)}
+                subtitle={getModuleSubtitle(activeModule)}
+                breadcrumb={[getModuleTitle(activeModule)]}
+                actions={
+                    ROLE_PERMISSIONS.canViewPlanning.includes(authenticatedUser.role) && activeModule === 'dashboard' ? (
+                        <button
+                            type="button"
+                            onClick={() => setActiveModule('planning')}
+                            className="metis-btn metis-btn-primary"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                             </svg>
+                            <span>+ New Scheme</span>
                         </button>
+                    ) : null
+                }
+            />
 
-                        {/* Desktop collapse toggle */}
-                        <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block p-1.5 rounded-lg text-sky-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer" title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}>
-                            <svg className={`w-4 h-4 transform transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Quick Search Trigger Pill */}
-                <div className="px-3.5 pt-4 pb-2">
-                    <button onClick={() => setIsCommandPaletteOpen(true)} className={`w-full bg-[#07325b]/80 hover:bg-[#093d6e] text-sky-200 hover:text-white border border-sky-500/30 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer shadow-xs ${isSidebarCollapsed ? 'p-2.5 justify-center' : 'px-3.5 py-2 justify-between text-xs'}`} title="Open Quick Search & Commands (⌘K)">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <svg className="w-4 h-4 text-cyan-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            {!isSidebarCollapsed && <span className="font-medium truncate">Quick Search...</span>}
-                        </div>
-                        {!isSidebarCollapsed && (<kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-[#031d36] text-cyan-200 border border-sky-600/40 rounded shadow-2xs">
-                                ⌘K
-                            </kbd>)}
-                    </button>
-                </div>
-
-                {/* Public External Portal Quick Launch */}
-                <div className="px-3.5 pb-2">
-                    <button onClick={() => setIsExternalPortalOpen(true)} className={`w-full bg-gradient-to-r from-cyan-400/20 via-sky-500/15 to-transparent hover:from-cyan-400/30 hover:via-sky-500/25 text-cyan-200 hover:text-white border border-cyan-400/40 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-xs ${isSidebarCollapsed ? 'p-2.5 justify-center' : 'px-3 py-2 justify-between text-xs'}`} title="Open Public External Transparency Portal (Elevare Template)">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-sm">🌐</span>
-                            {!isSidebarCollapsed && (<span className="font-bold font-display truncate">Public Portal</span>)}
-                        </div>
-                        {!isSidebarCollapsed && (<span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-cyan-400 to-sky-400 text-slate-950 font-display shadow-xs">
-                                Live
-                            </span>)}
-                    </button>
-                </div>
-
-                {/* Navigation Sections */}
-                <nav className="flex-1 px-3 py-2 space-y-5 overflow-y-auto custom-scrollbar">
-                    {navGroups.map((group, gIdx) => group.items.length > 0 && (<div key={gIdx} className="space-y-1">
-                            {!isSidebarCollapsed && (<h3 className="px-3 text-[9px] font-black tracking-widest uppercase text-cyan-300/90 mb-1.5 flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"/>
-                                    {group.title}
-                                </h3>)}
-                            <div className="space-y-0.5">
-                                {group.items.map(item => {
-                const badge = navBadges[item.id];
-                const isActive = activeModule === item.id;
-                return (<button key={item.id} onClick={() => {
-                        setActiveModule(item.id);
-                        setIsMobileMenuOpen(false);
-                    }} className={`w-full flex items-center rounded-xl transition-all duration-150 cursor-pointer relative group ${isSidebarCollapsed && !isMobileMenuOpen ? 'p-2.5 justify-center' : 'px-3.5 py-2.5 justify-between text-xs font-semibold'} ${isActive
-                        ? 'bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-600/15 text-white shadow-md shadow-cyan-950/25 ring-1 ring-cyan-400/40 font-bold backdrop-blur-xs'
-                        : 'text-sky-100/80 hover:bg-white/[0.08] hover:text-white'}`} title={isSidebarCollapsed ? item.label : undefined}>
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <span className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-105 ${isActive ? 'text-cyan-300' : 'text-sky-300/70 group-hover:text-cyan-200'}`}>
-                                                    {item.icon}
-                                                </span>
-                                                {!isSidebarCollapsed && (<span className="truncate">{item.label}</span>)}
-                                            </div>
-
-                                            {/* Badge count */}
-                                            {badge && (<span className={`rounded font-extrabold flex items-center justify-center flex-shrink-0 ${badge.color} ${isSidebarCollapsed ? 'absolute -top-1 -right-1 w-4 h-4 text-[9px]' : 'px-1.5 py-0.5 text-[10px]'}`}>
-                                                    {badge.label}
-                                                </span>)}
-
-                                            {/* Active indicator dot */}
-                                            {isActive && !isSidebarCollapsed && (<span className="w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-xs shadow-cyan-300"/>)}
-                                        </button>);
-            })}
-                            </div>
-                        </div>))}
-                </nav>
-
-                {/* Sidebar Footer User Card */}
-                <div className="p-3 border-t border-cyan-500/20 bg-[#031d38]/95">
-                    <button onClick={() => setIsUserProfileModalOpen(true)} className={`w-full rounded-xl transition-all flex items-center gap-3 cursor-pointer p-2 hover:bg-white/[0.08] border border-sky-600/30 ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`} title="View Profile & Settings">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="relative flex-shrink-0">
-                                <img src={authenticatedUser.avatar} alt={authenticatedUser.username} className="h-9 w-9 rounded-xl object-cover ring-1 ring-cyan-300/40 bg-[#06284d]"/>
-                                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-[#031d38]"/>
-                            </div>
-                            {!isSidebarCollapsed && (<div className="text-left min-w-0">
-                                    <p className="font-bold text-xs text-white truncate leading-tight font-display">{authenticatedUser.username}</p>
-                                    <p className="text-[10px] text-cyan-200 font-medium truncate mt-0.5">{authenticatedUser.role}</p>
-                                </div>)}
-                        </div>
-                        {!isSidebarCollapsed && (<svg className="w-4 h-4 text-sky-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                            </svg>)}
-                    </button>
-                </div>
-            </aside>
-
-            {/* MAIN CONTENT WORKSPACE */}
-            <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-                {/* ROLE SIMULATION BANNER */}
-                {simulatedRole && (<div className="bg-gradient-to-r from-cyan-700 via-sky-700 to-blue-800 text-white px-6 py-2.5 flex items-center justify-between text-xs font-semibold shadow-md no-print z-20 border-b border-cyan-500/30">
-                        <div className="flex items-center gap-2.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-cyan-300 animate-ping"/>
-                            <span>ROLE SIMULATION ACTIVE: Viewing OWEB PB-PMS as <strong>{simulatedRole}</strong>.</span>
-                        </div>
-                        <button onClick={handleExitRoleSimulation} className="px-3 py-1 bg-white text-cyan-900 rounded-xl font-bold hover:bg-cyan-50 transition-colors shadow-xs cursor-pointer text-xs">
-                            Exit Simulation &amp; Restore Admin
-                        </button>
-                    </div>)}
-
-                {/* ELEVARE INSTITUTIONAL TOP STATUS RIBBON */}
-                <div className="bg-gradient-to-r from-[#042444] via-[#073a68] to-[#03213d] text-sky-100 text-[11px] px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between border-b border-sky-500/30 no-print flex-shrink-0 z-20 shadow-xs">
-                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                        <span className="font-extrabold text-cyan-300 flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-display flex-shrink-0">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse"/>
-                            <span>OWEB INSTITUTIONAL WATER LEDGER</span>
-                        </span>
-                        <span className="text-sky-700 hidden sm:inline">|</span>
-                        <span className="text-sky-200/90 truncate hidden sm:inline text-[11px]">
-                            Capital &amp; Regional Water Infrastructure Portfolio · FY 2026/27
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-3.5 text-[10px] font-mono flex-shrink-0">
-                        <span className="text-sky-200 hidden md:inline">
-                            CAPITAL ALLOCATED: <strong className="text-white">ETB 482.5M</strong>
-                        </span>
-                        <span className="text-sky-700 hidden md:inline">|</span>
-                        <span className="text-emerald-300 font-semibold hidden sm:flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"/>
-                            <span>ISO 9001 · WHO/CES COMPLIANT</span>
-                        </span>
-                        <span className="text-sky-700 hidden sm:inline">|</span>
-                        <button onClick={() => setIsExternalPortalOpen(true)} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 hover:text-white transition-all cursor-pointer border border-cyan-400/40 font-sans font-bold text-[10.5px] shadow-xs" title="Launch Elevare Public External Portal">
-                            <span>🌐</span>
-                            <span>Public Portal →</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* ELEVARE EXECUTIVE HEADER BAR */}
-                <header className="h-20 bg-white/95 backdrop-blur-md border-b border-sky-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 flex-shrink-0 no-print z-10 shadow-xs shadow-sky-950/5">
-                    {/* Left: Mobile Toggle, Breadcrumbs & Module Title */}
-                    <div className="flex items-center gap-3 min-w-0">
-                        <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden p-2 text-sky-800 hover:text-sky-950 hover:bg-sky-50 rounded-xl transition-colors cursor-pointer" aria-label="Open Navigation Menu">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/>
-                            </svg>
-                        </button>
-
-                        <div>
-                            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400">
-                                <span className="text-sky-900 font-bold font-display">OWEB Ledger</span>
-                                <span className="text-slate-300">/</span>
-                                <span className="text-cyan-700 font-semibold">{getModuleTitle(activeModule)}</span>
-                            </div>
-                            <h2 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight truncate leading-tight font-display">
-                                {getModuleTitle(activeModule)}
-                            </h2>
-                        </div>
-                    </div>
-
-                    {/* Center / Right: Persona Switcher, Omnisearch, Status, Actions, Notifications & Profile */}
-                    <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-                        {/* Interactive Persona & Access Scope Switcher */}
-                        <div ref={personaMenuRef} className="relative">
-                            <button onClick={() => setIsPersonaMenuOpen(!isPersonaMenuOpen)} className="flex items-center gap-2 px-3 py-1.5 bg-sky-50/80 hover:bg-sky-100/80 border border-sky-200/80 text-sky-950 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer" title="Quick Role & Access Scope Switcher">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
-                                <span className="font-bold text-slate-900 font-display">{authenticatedUser.role}</span>
-                                <span className="text-[11px] text-cyan-700 hidden sm:inline">· {accessibleProjects.length} Schemes</span>
-                                <svg className={`w-3.5 h-3.5 text-sky-500 transition-transform ${isPersonaMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-
-                            {isPersonaMenuOpen && (<div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-2.5 z-50 animate-slide-in">
-                                    <div className="px-2.5 py-1.5 border-b border-slate-100 mb-1">
-                                        <p className="text-xs font-extrabold text-slate-900 font-display">Institutional Perspective &amp; Scope</p>
-                                        <p className="text-[10px] text-slate-500">Test role-scoped permissions and portfolio filtering</p>
-                                    </div>
-
-                                    <div className="space-y-1 max-h-[380px] overflow-y-auto pr-0.5 custom-scrollbar">
-                                        <button onClick={() => handleSwitchPersona('testuser')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'testuser' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>👷</span>
-                                                    <span>Tolasa Bekele (Field Engineer)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: Assigned Schemes (Siree &amp; Dodola)</p>
-                                            </div>
-                                            {authenticatedUser.username === 'testuser' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-
-                                        <button onClick={() => handleSwitchPersona('engineer_dawit')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'engineer_dawit' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>📐</span>
-                                                    <span>Eng. Dawit Alemu (Zonal Engineer)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: West Arsi Zone Schemes</p>
-                                            </div>
-                                            {authenticatedUser.username === 'engineer_dawit' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-
-                                        <button onClick={() => handleSwitchPersona('supervisor')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'supervisor' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>📋</span>
-                                                    <span>Eng. Hawi Kebede (Supervisor)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: Supervised Team &amp; Bale Zone</p>
-                                            </div>
-                                            {authenticatedUser.username === 'supervisor' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-
-                                        <button onClick={() => handleSwitchPersona('team_leader_tigist')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'team_leader_tigist' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>📑</span>
-                                                    <span>Eng. Tigist Mengistu (Team Leader)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: Team A (East Shewa &amp; Arsi)</p>
-                                            </div>
-                                            {authenticatedUser.username === 'team_leader_tigist' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-
-                                        <button onClick={() => handleSwitchPersona('coordinator_kenenisa')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'coordinator_kenenisa' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>🏛️</span>
-                                                    <span>Kenenisa Bekele (Coordinator)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: Bureau-wide (All 14 Water Schemes)</p>
-                                            </div>
-                                            {authenticatedUser.username === 'coordinator_kenenisa' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-
-                                        <button onClick={() => handleSwitchPersona('auditor')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'auditor' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>🛡️</span>
-                                                    <span>Merga Feyisa (Senior Auditor)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: Global Read-Only &amp; Audit Oversight</p>
-                                            </div>
-                                            {authenticatedUser.username === 'auditor' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-
-                                        <button onClick={() => handleSwitchPersona('finance_tadesse')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'finance_tadesse' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>💰</span>
-                                                    <span>Fikadu Tadesse (Finance Officer)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: Budget &amp; IPC Payment Records</p>
-                                            </div>
-                                            {authenticatedUser.username === 'finance_tadesse' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-
-                                        <button onClick={() => handleSwitchPersona('admin')} className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${authenticatedUser.username === 'admin' ? 'bg-amber-50/70 border border-elevareGold-400/50 text-slate-900 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                                                    <span>👑</span>
-                                                    <span>Girma Worku (System Admin)</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-500">Scope: Full Bureau Root Access</p>
-                                            </div>
-                                            {authenticatedUser.username === 'admin' && <span className="text-elevareGold-600 font-bold text-xs">Active</span>}
-                                        </button>
-                                    </div>
-
-                                    {simulatedRole && (<div className="mt-2 pt-2 border-t border-slate-100">
-                                            <button onClick={handleExitRoleSimulation} className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition-colors cursor-pointer text-center font-display">
-                                                Restore Primary Account
-                                            </button>
-                                        </div>)}
-                                </div>)}
-                        </div>
-
-                        {/* Omnisearch Trigger in Header */}
-                        <button onClick={() => setIsCommandPaletteOpen(true)} className="hidden md:flex items-center gap-2.5 px-4 py-2 bg-sky-50/80 hover:bg-sky-100/90 border border-sky-200/80 text-sky-900 rounded-xl text-xs font-medium transition-all shadow-2xs cursor-pointer">
-                            <svg className="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            <span>Search schemes, contracts...</span>
-                            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white text-sky-700 border border-sky-200 rounded shadow-2xs">
-                                ⌘K
-                            </kbd>
-                        </button>
-
-                        {/* Quick Audit Deadlines Button */}
-                        <button onClick={() => flagContractsNearDeadline(undefined, true)} className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-semibold border border-sky-200 transition-colors cursor-pointer" title="Audit 30-day performance bond expiries and completion deadlines">
-                            <span className="w-3.5 h-3.5 text-cyan-700">{ICONS.clock}</span>
-                            <span>Audit Deadlines</span>
-                        </button>
-
-                        {/* Elevare Quick Action Button: New Scheme */}
-                        {ROLE_PERMISSIONS.canViewPlanning.includes(authenticatedUser.role) && (<button onClick={() => setActiveModule('planning')} className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:from-cyan-500 hover:to-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-sky-900/15 cursor-pointer border border-cyan-400/30">
-                                <svg className="w-4 h-4 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"/>
-                                </svg>
-                                <span className="font-display">New Scheme</span>
-                            </button>)}
-
-                        {/* Notifications Bell */}
-                        <div ref={notificationRef} className="relative">
-                            <button onClick={() => setShowNotifications(!showNotifications)} className="p-2.5 text-sky-800 hover:text-sky-950 hover:bg-sky-50 rounded-xl transition-all relative cursor-pointer" title="System Notifications">
-                                <span className="w-5 h-5 block">{ICONS.bell}</span>
-                                {unreadCount > 0 && (<span className="absolute top-1 right-1 h-4 min-w-[16px] px-1 bg-cyan-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse shadow-xs">
-                                        {unreadCount}
-                                    </span>)}
-                            </button>
-                            {showNotifications && (<NotificationPanel notifications={filteredNotifications} onMarkAsRead={handleMarkAsRead} onMarkAllAsRead={handleMarkAllAsRead} onNotificationClick={handleNotificationClick}/>)}
-                        </div>
-
-                        {/* User Profile Header Trigger */}
-                        <button onClick={() => setIsUserProfileModalOpen(true)} className="flex items-center gap-2.5 p-1.5 pl-2 rounded-2xl hover:bg-sky-50 transition-all border border-transparent hover:border-sky-200 cursor-pointer">
-                            <img src={authenticatedUser.avatar} alt={authenticatedUser.username} className="h-9 w-9 rounded-xl object-cover ring-1 ring-cyan-300 shadow-xs bg-sky-100"/>
-                            <div className="hidden xl:block text-left">
-                                <p className="font-bold text-xs text-slate-900 leading-tight font-display">{authenticatedUser.fullName || authenticatedUser.username}</p>
-                                <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500">
-                                    <span className="font-bold text-sky-900">{authenticatedUser.role}</span>
-                                    <span aria-hidden="true" className="text-slate-300">·</span>
-                                    <span className="font-medium text-slate-600" title={`Effective Data Scope: ${userEffectiveScope}`}>
-                                        {userEffectiveScope} ({accessibleProjects.length} schemes)
-                                    </span>
-                                </div>
-                            </div>
-                        </button>
-                    </div>
-                </header>
-
-                {/* PRIMARY MODULE CONTENT CONTAINER */}
-                <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-elevare-pattern">
-                    <div key={activeModule} className="animate-slide-in max-w-7xl mx-auto space-y-6">
-                        {renderModule()}
-                    </div>
-                </main>
+            <div key={activeModule} className="fade-in">
+                {renderModule()}
             </div>
 
             {/* SMART COMMAND PALETTE (⌘K / Ctrl+K) */}
-            <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} projects={accessibleProjects} contracts={accessibleContracts} procurements={accessibleProcurements} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans} onNavigate={handleNavigate} onTriggerAction={(actionId) => {
-            if (actionId === 'audit-contract-deadlines') {
-                flagContractsNearDeadline(undefined, true);
-            }
-        }} currentRole={authenticatedUser.role}/>
+            <CommandPalette
+                isOpen={isCommandPaletteOpen}
+                onClose={() => setIsCommandPaletteOpen(false)}
+                projects={accessibleProjects}
+                contracts={accessibleContracts}
+                procurements={accessibleProcurements}
+                inspections={accessibleInspections}
+                weeklyPlans={accessibleWeeklyPlans}
+                onNavigate={handleNavigate}
+                onTriggerAction={(actionId) => {
+                    if (actionId === 'audit-contract-deadlines') {
+                        flagContractsNearDeadline(undefined, true);
+                    }
+                }}
+                currentRole={authenticatedUser.role}
+            />
 
             {/* USER PROFILE & SETTINGS MODAL */}
-            <UserProfileModal isOpen={isUserProfileModalOpen} onClose={() => setIsUserProfileModalOpen(false)} user={authenticatedUser} onLogout={handleLogout} onSimulateRole={handleSimulateRole} originalUser={originalUser} projects={accessibleProjects}/>
+            <UserProfileModal
+                isOpen={isUserProfileModalOpen}
+                onClose={() => setIsUserProfileModalOpen(false)}
+                user={authenticatedUser}
+                onLogout={handleLogout}
+                onSimulateRole={handleSimulateRole}
+                originalUser={originalUser}
+                projects={accessibleProjects}
+            />
 
             {/* AI ASSISTANT & TOAST ALERTS */}
-            <AIChatAssistant projects={accessibleProjects} contracts={accessibleContracts} procurements={accessibleProcurements} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans} user={authenticatedUser} onNavigate={handleNavigate}/>
-            <Toast message={toastMessage} onClose={() => setToastMessage(null)}/>
-        </div>);
+            <AIChatAssistant
+                projects={accessibleProjects}
+                contracts={accessibleContracts}
+                procurements={accessibleProcurements}
+                inspections={accessibleInspections}
+                weeklyPlans={accessibleWeeklyPlans}
+                user={authenticatedUser}
+                onNavigate={handleNavigate}
+            />
+            <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+        </MetisLayout>
+    );
 };
 export default App;

@@ -7,6 +7,8 @@ import GanttTimelineChart from './GanttTimelineChart';
 import { loadPrograms } from '../services/programService';
 import { loadNgos } from '../services/ngoService';
 import { loadStaff } from '../services/staffService';
+import MetisStatsCard from './metis/MetisStatsCard';
+import MetisCard from './metis/MetisCard';
 const STATUS_UI = {
     [ProjectStatus.APPROVED]: { color: 'bg-success-100 text-success-700', icon: ICONS.checkCircle },
     [ProjectStatus.COMPLETED]: { color: 'bg-success-100 text-success-700', icon: ICONS.checkCircle },
@@ -25,27 +27,34 @@ const STATUS_COLORS_HEX = {
     [ProjectStatus.UNDER_REVIEW]: '#b45309',
     [ProjectStatus.DRAFT]: '#475569',
 };
-const Card = ({ title, value, icon, iconBg, trend, trendUp }) => (<div className="bg-white p-5 rounded-xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between">
-        <div className="flex items-center space-x-4 min-w-0">
-            <div className={`p-3 rounded-xl shadow-xs ${iconBg} flex-shrink-0 ring-1 ring-black/5`}>
-                {React.cloneElement(icon, { className: "w-5 h-5 text-white" })}
-            </div>
-            <div className="min-w-0">
-                <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">{title}</h3>
-                <p className="text-2xl font-black text-slate-900 tracking-tight mt-0.5 font-display tabular-nums">{value}</p>
-            </div>
-        </div>
-        {trend && (<span className={`text-xs font-bold ${trendUp ? 'text-emerald-700' : 'text-slate-500'}`}>
-                {trend}
-            </span>)}
-    </div>);
-const ChartContainer = ({ title, children, className, action }) => (<div className={`bg-white p-6 rounded-xl border border-slate-200/90 shadow-xs hover:shadow-sm transition-all duration-300 ${className || ''}`}>
-        <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-            <h3 className="text-base font-bold text-slate-900 tracking-tight font-display">{title}</h3>
-            {action}
-        </div>
+const Card = ({ title, value, icon, iconBg, trend, trendUp, variant }) => {
+    let resolvedVariant = variant || 'primary';
+    if (!variant) {
+        if (iconBg && (iconBg.includes('warning') || iconBg.includes('amber'))) resolvedVariant = 'warning';
+        else if (iconBg && (iconBg.includes('success') || iconBg.includes('emerald'))) resolvedVariant = 'success';
+        else if (iconBg && (iconBg.includes('danger') || iconBg.includes('rose'))) resolvedVariant = 'danger';
+        else if (iconBg && (iconBg.includes('info') || iconBg.includes('cyan') || iconBg.includes('sky'))) resolvedVariant = 'info';
+    }
+    return (
+        <MetisStatsCard
+            title={title}
+            value={value}
+            icon={icon}
+            variant={resolvedVariant}
+            trend={trend}
+            trendType={trendUp ? 'up' : 'neutral'}
+        />
+    );
+};
+const ChartContainer = ({ title, children, className, action }) => (
+    <MetisCard
+        title={title}
+        actions={action}
+        className={className || ''}
+    >
         {children}
-    </div>);
+    </MetisCard>
+);
 const AIInsights = ({ insights, isLoading, onNavigate, onRefresh }) => {
     const INSIGHT_STYLES = {
         [InsightLevel.INFO]: { icon: ICONS.lightbulb, bg: 'bg-primary-50/70', badgeBg: 'bg-primary-100 text-primary-800', border: 'border-primary-200', text: 'text-primary-700' },
@@ -189,132 +198,120 @@ const ProjectLocationMap = ({ data }) => {
             </ResponsiveContainer>
         </ChartContainer>);
 };
-const ProjectTable = ({ title, projects, onNavigate }) => (<div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden col-span-1 lg:col-span-3 transition-all duration-300 hover:shadow-md">
-        <div className="px-6 py-4.5 bg-gradient-to-r from-slate-50 via-white to-slate-50/50 border-b border-slate-200/80 flex items-center justify-between">
+const ProjectTable = ({ title, projects, onNavigate }) => (<div className="metis-card col-span-1 lg:col-span-3">
+        <div className="metis-card-header d-flex justify-content-between align-items-center">
             <div>
-                <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 rounded-full bg-elevare-gold ring-4 ring-elevare-gold/20"/>
-                    <h3 className="text-base font-black font-display tracking-tight text-slate-900">{title}</h3>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">Click any portfolio entry to inspect technical blueprints & financial disbursement details</p>
+                <h3 className="metis-card-title">{title}</h3>
+                <p className="metis-card-subtitle">Click any portfolio entry to inspect technical blueprints & financial disbursement details</p>
             </div>
-            <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200 font-mono">
+            <div className="d-flex align-items-center gap-2">
+                <span className="badge bg-secondary font-monospace">
                     {projects.length} SCHEMES
                 </span>
             </div>
         </div>
-        <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-                <thead className="bg-sky-50/80 text-sky-900 text-[11px] uppercase font-bold tracking-wider border-b border-sky-100">
-                    <tr>
-                        <th className="px-6 py-3.5">Scheme Identification</th>
-                        <th className="px-5 py-3.5">Program Framework</th>
-                        <th className="px-5 py-3.5">Jurisdiction / Zone</th>
-                        <th className="px-5 py-3.5">Audit Status</th>
-                        <th className="px-6 py-3.5 text-right">Committed Capital (ETB)</th>
-                        <th className="px-5 py-3.5 text-center">Protocol</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                    {projects.map((p) => {
+        <div className="metis-card-body p-0">
+            <div className="metis-table-responsive">
+                <table className="metis-table">
+                    <thead>
+                        <tr>
+                            <th>Scheme Identification</th>
+                            <th>Program Framework</th>
+                            <th>Jurisdiction / Zone</th>
+                            <th>Audit Status</th>
+                            <th className="text-end">Committed Capital (ETB)</th>
+                            <th className="text-center">Protocol</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {projects.map((p) => {
         const statusBadge = p.status === ProjectStatus.APPROVED || p.status === ProjectStatus.COMPLETED
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+            ? 'badge bg-success'
             : p.status === ProjectStatus.UNDER_REVIEW
-                ? 'bg-amber-50 text-amber-700 border-amber-200/80'
+                ? 'badge bg-warning'
                 : p.status === ProjectStatus.SUBMITTED
-                    ? 'bg-blue-50 text-blue-700 border-blue-200/80'
+                    ? 'badge bg-primary'
                     : p.status === ProjectStatus.REJECTED || p.status === ProjectStatus.CANCELLED
-                        ? 'bg-rose-50 text-rose-700 border-rose-200/80'
-                        : 'bg-slate-100 text-slate-600 border-slate-200';
-        const statusDotColor = p.status === ProjectStatus.APPROVED || p.status === ProjectStatus.COMPLETED ? 'bg-emerald-500' :
-            p.status === ProjectStatus.UNDER_REVIEW ? 'bg-amber-500' :
-                p.status === ProjectStatus.SUBMITTED ? 'bg-blue-500' :
-                    p.status === ProjectStatus.REJECTED || p.status === ProjectStatus.CANCELLED ? 'bg-rose-500' : 'bg-slate-400';
-        return (<tr key={p.id} onClick={() => onNavigate && onNavigate('planning', p.id)} className="hover:bg-slate-50/80 transition-all cursor-pointer group">
-                                <td className="px-6 py-4 font-bold text-slate-900 whitespace-nowrap group-hover:text-blue-700 transition-colors">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-[13.5px]">{p.name}</span>
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-mono font-medium tracking-wide mt-0.5 block">{p.id}</span>
+                        ? 'badge bg-danger'
+                        : 'badge bg-secondary';
+        return (<tr key={p.id} onClick={() => onNavigate && onNavigate('planning', p.id)} style={{ cursor: 'pointer' }}>
+                                <td className="fw-bold">
+                                    <div>{p.name}</div>
+                                    <small className="text-muted font-monospace">{p.id}</small>
                                 </td>
-                                <td className="px-5 py-4">
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200/70">
+                                <td>
+                                    <span className="badge bg-secondary">
                                         {p.program || 'ONE WaSH'}
                                     </span>
                                 </td>
-                                <td className="px-5 py-4 text-slate-600 text-xs">
-                                    <span className="font-semibold text-slate-800">{p.zone}</span>
-                                    {p.woreda && <span className="text-slate-400 font-normal"> · {p.woreda}</span>}
+                                <td>
+                                    <span className="fw-semibold">{p.zone}</span>
+                                    {p.woreda && <small className="text-muted"> · {p.woreda}</small>}
                                 </td>
-                                <td className="px-5 py-4 whitespace-nowrap">
-                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusBadge}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${statusDotColor}`}/>
-                                        <span>{p.status}</span>
+                                <td>
+                                    <span className={statusBadge}>
+                                        {p.status}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-slate-900 text-right font-mono text-[13px] font-bold whitespace-nowrap">
-                                    {p.estimatedBudget.toLocaleString()} <span className="text-[10px] text-slate-400 font-sans">ETB</span>
+                                <td className="text-end font-monospace fw-bold">
+                                    {p.estimatedBudget.toLocaleString()} <small className="text-muted">ETB</small>
                                 </td>
-                                <td className="px-5 py-4 text-center">
-                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 group-hover:text-blue-800 group-hover:translate-x-0.5 transition-all">
+                                <td className="text-center">
+                                    <span className="text-primary fw-bold small">
                                         Open Record →
                                     </span>
                                 </td>
                             </tr>);
     })}
-                    {projects.length === 0 && (<tr>
-                            <td colSpan={6} className="text-center py-14 text-slate-400 text-sm">
-                                No water projects match the current scope or filter criteria.
-                            </td>
-                        </tr>)}
-                </tbody>
-            </table>
+                        {projects.length === 0 && (<tr>
+                                <td colSpan={6} className="text-center py-4 text-muted">
+                                    No water projects match the current scope or filter criteria.
+                                </td>
+                            </tr>)}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>);
-const ContractTable = ({ title, contracts, onSelectContract }) => (<div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden col-span-1 lg:col-span-3 transition-all duration-300 hover:shadow-md">
-        <div className="px-6 py-4.5 bg-gradient-to-r from-slate-50 via-white to-slate-50/50 border-b border-slate-200/80 flex items-center justify-between">
+const ContractTable = ({ title, contracts, onSelectContract }) => (<div className="metis-card col-span-1 lg:col-span-3">
+        <div className="metis-card-header d-flex justify-content-between align-items-center">
             <div>
-                <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 rounded-full bg-blue-600 ring-4 ring-blue-600/20"/>
-                    <h3 className="text-base font-black font-display tracking-tight text-slate-900">{title}</h3>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">Procurement, legal milestone schedules and vendor performance status</p>
+                <h3 className="metis-card-title">{title}</h3>
+                <p className="metis-card-subtitle">Procurement, legal milestone schedules and vendor performance status</p>
             </div>
-            <span className="text-[11px] font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200 font-mono">
+            <span className="badge bg-secondary font-monospace">
                 {contracts.length} CONTRACTS
             </span>
         </div>
-        <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-                <thead className="bg-sky-50/80 text-sky-900 text-[11px] uppercase font-bold tracking-wider border-b border-sky-100">
-                    <tr>
-                        <th className="px-6 py-3.5">Contract Reference</th>
-                        <th className="px-5 py-3.5">Scheme Project ID</th>
-                        <th className="px-5 py-3.5">Lead Contract Officer</th>
-                        <th className="px-6 py-3.5 text-right">Execution Status</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                    {contracts.length > 0 ? contracts.map((c) => (<tr key={c.id} onClick={() => onSelectContract(c)} className="hover:bg-slate-50/80 transition-colors cursor-pointer group">
-                            <td className="px-6 py-4 font-mono font-bold text-blue-700 text-xs group-hover:underline">{c.id}</td>
-                            <td className="px-5 py-4 text-slate-600 text-xs font-mono">{c.projectId}</td>
-                            <td className="px-5 py-4 text-slate-800 text-xs font-semibold">{c.contractManager}</td>
-                            <td className="px-6 py-4 text-right whitespace-nowrap">
-                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${c.completionDate
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${c.completionDate ? 'bg-emerald-500' : 'bg-blue-500'}`}/>
-                                    <span>{c.completionDate ? 'Completed' : 'Active In-Progress'}</span>
-                                </span>
-                            </td>
-                        </tr>)) : (<tr>
-                            <td colSpan={4} className="text-center py-14 text-slate-400 text-sm">
-                                No contracts to display in this view.
-                            </td>
-                        </tr>)}
-                </tbody>
-            </table>
+        <div className="metis-card-body p-0">
+            <div className="metis-table-responsive">
+                <table className="metis-table">
+                    <thead>
+                        <tr>
+                            <th>Contract Reference</th>
+                            <th>Scheme Project ID</th>
+                            <th>Lead Contract Officer</th>
+                            <th className="text-end">Execution Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {contracts.length > 0 ? contracts.map((c) => (<tr key={c.id} onClick={() => onSelectContract(c)} style={{ cursor: 'pointer' }}>
+                                <td className="font-monospace fw-bold text-primary">{c.id}</td>
+                                <td className="text-muted font-monospace">{c.projectId}</td>
+                                <td className="fw-semibold">{c.contractManager}</td>
+                                <td className="text-end">
+                                    <span className={`badge ${c.completionDate ? 'bg-success' : 'bg-primary'}`}>
+                                        {c.completionDate ? 'Completed' : 'Active In-Progress'}
+                                    </span>
+                                </td>
+                            </tr>)) : (<tr>
+                                <td colSpan={4} className="text-center py-4 text-muted">
+                                    No contracts to display in this view.
+                                </td>
+                            </tr>)}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>);
 const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onSelectContract, onNavigate, inspections = [], weeklyPlans = [] }) => {
