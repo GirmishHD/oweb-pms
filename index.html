@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWEB Program-Based Project Management System</title>
+    <meta name="description" content="A comprehensive system for managing OWEB projects from planning and feasibility study through to procurement, contract management, GIS regional geospatial asset mapping, and field quality assurance (QA/QC) inspection logbooks with water quality testing and defect punch lists." />
+    <meta property="og:title" content="OWEB Program-Based Project Management System" />
+    <meta property="og:description" content="A comprehensive system for managing OWEB projects from planning and feasibility study through to procurement, contract management, GIS regional geospatial asset mapping, and field quality assurance (QA/QC) inspection logbooks with water quality testing and defect punch lists." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #f0f7fc;
+      }
+      .font-mono, .tabular-nums {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+      .font-display {
+        font-family: 'Outfit', sans-serif;
+      }
+      @media print {
+        body {
+          background-color: white !important;
+        }
+        #root > div > aside, 
+        #root > div > div > header,
+        #root > div > div > footer {
+          display: none !important;
+        }
+        main {
+          padding: 0 !important;
+          overflow: visible !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-fade-in {
+        animation: fade-in 0.3s ease-out forwards;
+      }
+      @keyframes slide-in {
+        0% {
+          opacity: 0;
+          transform: translateY(10px) scale(0.996);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .animate-slide-in {
+        animation: slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes fade-in-up {
+          0% {
+              opacity: 0;
+              transform: translateY(10px);
+          }
+          100% {
+              opacity: 1;
+              transform: translateY(0);
+          }
+      }
+      .animate-fade-in-up {
+          animation: fade-in-up 0.5s ease-out forwards;
+      }
+      @keyframes scale-in {
+          0% {
+              opacity: 0;
+              transform: scale(0.95);
+          }
+          100% {
+              opacity: 1;
+              transform: scale(1);
+          }
+      }
+      .animate-scale-in {
+          animation: scale-in 0.3s ease-out forwards;
+      }
+      .animate-fade-in-down {
+        animation: fade-in-down 0.3s ease-out forwards;
+      }
+      @keyframes fade-in-down {
+        0% {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Outfit', 'Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+              display: ['Outfit', 'sans-serif'],
+              mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+            },
+            colors: {
+              // Oceanic Hydro-Sapphire Palette (Vibrant Rich Water instead of Pitch Black)
+              midnight: {
+                950: '#03203e',
+                900: '#042d54',
+                850: '#073d70',
+                800: '#0a4b86',
+                700: '#0d60aa',
+                600: '#1379d4',
+                500: '#2196f3',
+              },
+              // Elevare Champagne Gold & Sunlit Water Accents
+              elevareGold: {
+                50: '#fefce8',
+                100: '#fef9c3',
+                200: '#fef08a',
+                300: '#fde047',
+                400: '#eab308',
+                500: '#ca8a04',
+                600: '#a16207',
+                700: '#854d0e',
+                800: '#713f12',
+                900: '#422006',
+              },
+              // Primary Water / Azure Palette
+              primary: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0284c7',
+                600: '#0369a1',
+                700: '#075985',
+                800: '#0c4a6e',
+                900: '#042d54',
+                950: '#021e3b'
+              },
+              // Deep Ocean & Marine Blue (Vibrant Oceanic Water - No Dull Pitch Black)
+              ocean: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bce1fc',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#074e8c',
+                850: '#063f73',
+                900: '#05315b',
+                950: '#032446',
+                deep: '#042749',
+                abyss: '#021c35'
+              },
+              // Aquatic Cyan & Hydro Waters
+              hydro: {
+                50: '#ecfeff',
+                100: '#cffafe',
+                200: '#a5f3fc',
+                300: '#67e8f9',
+                400: '#22d3ee',
+                500: '#06b6d4',
+                600: '#0891b2',
+                700: '#0e7490',
+                800: '#155e75',
+                900: '#164e63',
+                950: '#083344'
+              },
+              // River Teal & Clean Fresh Water
+              teal: {
+                50: '#f0fdfa',
+                100: '#ccfbf1',
+                200: '#99f6e4',
+                300: '#5eead4',
+                400: '#2dd4bf',
+                500: '#14b8a6',
+                600: '#0d9488',
+                700: '#0f766e',
+                800: '#115e59',
+                900: '#134e4a',
+                950: '#042f2e'
+              },
+              slate: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                300: '#cbd5e1',
+                400: '#94a3b8',
+                500: '#64748b',
+                600: '#475569',
+                700: '#334155',
+                800: '#1e293b',
+                900: '#0f172a',
+                950: '#020617'
+              },
+              success: {
+                50: '#f0fdf4',
+                100: '#dcfce7',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857'
+              },
+              danger: {
+                50: '#fff1f2',
+                100: '#ffe4e6',
+                500: '#f43f5e',
+                600: '#e11d48',
+                700: '#be123c'
+              },
+              warning: {
+                50: '#fffbeb',
+                100: '#fef3c7',
+                500: '#f59e0b',
+                600: '#d97706',
+                700: '#b45309'
+              },
+            },
+            boxShadow: {
+              'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+              'DEFAULT': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+              'md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+              'lg': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+              'xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+            },
+            animation: {
+              'fade-in': 'fade-in 0.3s ease-out forwards',
+              'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+              'scale-in': 'scale-in 0.3s ease-out forwards',
+              'fade-in-down': 'fade-in-down 0.3s ease-out forwards',
+            },
+            keyframes: {
+              'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+              'fade-in-up': { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+              'scale-in': { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+              'fade-in-down': { '0%': { opacity: '0', transform: 'translateY(-10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+            },
+          },
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "recharts": "https://esm.sh/recharts@^3.1.0",
+    "xlsx": "https://esm.sh/xlsx@0.18.5",
+    "jspdf": "https://esm.sh/jspdf@2.5.1",
+    "jspdf-autotable": "https://esm.sh/jspdf-autotable@3.8.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-slate-100 text-slate-700">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

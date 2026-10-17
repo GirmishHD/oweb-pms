@@ -1,0 +1,230 @@
+/* Global Design System & Custom Water-Themed UI/UX Styles for OWEB PB-PMS */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Oceanic Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f9ff;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bae6fd;
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0ea5e9;
+}
+
+/* Custom dark oceanic scrollbars */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(6, 41, 66, 0.4);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.35);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
+}
+
+/* Glassmorphism surfaces with Hydro Water Accents */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(186, 230, 253, 0.6);
+}
+
+.glass-panel-dark {
+  background: rgba(4, 26, 48, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(14, 116, 144, 0.4);
+}
+
+.glass-water {
+  background: linear-gradient(135deg, rgba(240, 249, 255, 0.9) 0%, rgba(224, 242, 254, 0.75) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+/* Oceanic Hover Transitions */
+.card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -5px rgba(2, 132, 199, 0.14), 0 8px 12px -6px rgba(2, 132, 199, 0.08);
+}
+
+/* Subtle Water Ripple & Shimmer Animations */
+@keyframes water-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-water-shimmer {
+  background-size: 200% 200%;
+  animation: water-shimmer 6s ease infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(0.97); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s infinite ease-in-out;
+}
+
+/* Subtle Workspace Slide-In Transition */
+@keyframes slide-in-workspace {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.996);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slide-in-side {
+  0% {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in-workspace 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-slide-in-side {
+  animation: slide-in-side 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-fade-in {
+  animation: slide-in-workspace 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Focus styles for enhanced accessibility */
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline: none;
+}
+
+/* Surface Depth Gradients for Hydrological Dashboard */
+/* Elevare Banking & Finance Design System Utilities - Luminous Water Theme */
+.bg-elevare-pattern {
+  background-color: #f0f7fc;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.12) 0px, transparent 40%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 40%),
+    radial-gradient(at 50% 100%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
+    linear-gradient(to right, rgba(186, 230, 253, 0.55) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(186, 230, 253, 0.55) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+}
+
+.bg-elevare-dark-pattern {
+  background-color: #032b50;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.45) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.4) 0px, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(3, 105, 161, 0.45) 0px, transparent 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+.elevare-card {
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  box-shadow: 0 2px 6px 0 rgba(2, 132, 199, 0.06), 0 1px 2px -1px rgba(2, 132, 199, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.elevare-card:hover {
+  border-color: #7dd3fc;
+  box-shadow: 0 12px 28px -4px rgba(2, 132, 199, 0.12), 0 4px 10px -2px rgba(6, 182, 212, 0.06);
+}
+
+.elevare-card-interactive {
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  box-shadow: 0 2px 6px 0 rgba(2, 132, 199, 0.06);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.elevare-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+  box-shadow: 0 16px 32px -5px rgba(2, 132, 199, 0.15), 0 6px 14px -2px rgba(6, 182, 212, 0.1);
+}
+
+.elevare-gold-gradient {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #06b6d4 100%);
+}
+
+.elevare-midnight-gradient {
+  background: linear-gradient(145deg, #042749 0%, #073f73 50%, #03213d 100%);
+}
+
+.elevare-water-sidebar {
+  background: linear-gradient(180deg, #05284b 0%, #083c6c 50%, #031e38 100%);
+}
+
+.elevare-hero-badge {
+  background: rgba(14, 165, 233, 0.15);
+  border: 1px solid rgba(14, 165, 233, 0.4);
+  color: #bae6fd;
+}
+
+.elevare-table th {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  color: #0369a1;
+  background-color: #f0f7fc;
+}
+
+.elevare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Water glass reflection */
+.water-glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(186, 230, 253, 0.85);
+  box-shadow: 0 8px 30px -4px rgba(2, 132, 199, 0.08);
+}
+

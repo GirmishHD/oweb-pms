@@ -1,0 +1,11 @@
+{
+  "name": "OWEB Program-Based Project Management System",
+  "description": "A comprehensive system for managing OWEB projects from planning and feasibility study through to procurement, contract management, GIS regional geospatial asset mapping, and field quality assurance (QA/QC) inspection logbooks with water quality testing and defect punch lists.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "prompt": "",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
