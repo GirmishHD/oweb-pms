@@ -17,30 +17,30 @@ if %ERRORLEVEL% equ 0 (
     net start postgresql-x64-16 >nul 2>&1
 )
 
-:: 2. Launch Django Backend
-echo [2/3] Launching Django REST Framework backend on http://localhost:8000 ...
-start "OWEB PMS - Backend Server" cmd /k "cd /d %~dp0backend && title OWEB PMS Backend (Port 8000) && color 0A && echo Starting Django REST API... && python manage.py runserver 8000"
+:: 2. Launch Django Backend on Port 8001
+echo [2/3] Launching Django REST Framework backend on http://localhost:8001 ...
+start "OWEB PMS - Backend Server (8001)" cmd /k "cd /d %~dp0backend && title OWEB PMS Backend (Port 8001) && color 0A && echo Starting Django REST API on Port 8001... && python manage.py runserver 8001"
 
 :: Wait 3 seconds for backend to initialize
 timeout /t 3 /nobreak >nul
 
-:: 3. Launch React Frontend
-echo [3/3] Launching React Vite Frontend on http://localhost:5173 ...
-start "OWEB PMS - Frontend UI" cmd /k "cd /d %~dp0frontend && title OWEB PMS Frontend (Port 5173) && color 0E && echo Starting React Vite UI... && npm run dev"
+:: 3. Launch React Frontend on Port 3002
+echo [3/3] Launching React Vite Frontend on http://localhost:3002 ...
+start "OWEB PMS - Frontend UI (3002)" cmd /k "cd /d %~dp0frontend && title OWEB PMS Frontend (Port 3002) && color 0E && echo Starting React Vite UI on Port 3002... && npm run dev -- --port 3002 --host 0.0.0.0"
 
 :: Wait 4 seconds for frontend dev server
 timeout /t 4 /nobreak >nul
 
 :: Open default browser to the system
 echo Opening application in your default browser...
-start http://localhost:5173
+start http://localhost:3002
 
 echo.
 echo ===============================================================================
 echo  OWEB PMS is now running!
-echo  - Frontend URL : http://localhost:5173
-echo  - Backend API  : http://localhost:8000/api/
-echo  - Swagger Docs : http://localhost:8000/api/docs/
+echo  - Frontend URL : http://localhost:3002
+echo  - Backend API  : http://localhost:8001/api/
+echo  - Swagger Docs : http://localhost:8001/api/docs/
 echo.
 echo  Default Credentials:
 echo    Username: admin

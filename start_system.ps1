@@ -17,28 +17,28 @@ if ($pgService -and $pgService.Status -ne 'Running') {
 }
 Write-Host "[OK] PostgreSQL ready." -ForegroundColor Green
 
-# 2. Launch Backend
-Write-Host "[2/3] Launching Django REST backend on http://localhost:8000..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$rootPath\backend'; `$Host.UI.RawUI.WindowTitle = 'OWEB PMS Backend Server'; Write-Host 'Running Django REST Framework on Port 8000...' -ForegroundColor Green; python manage.py runserver 8000"
+# 2. Launch Backend on Port 8001
+Write-Host "[2/3] Launching Django REST backend on http://localhost:8001..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$rootPath\backend'; `$Host.UI.RawUI.WindowTitle = 'OWEB PMS Backend Server (Port 8001)'; Write-Host 'Running Django REST Framework on Port 8001...' -ForegroundColor Green; python manage.py runserver 8001"
 
 Start-Sleep -Seconds 3
 
-# 3. Launch Frontend
-Write-Host "[3/3] Launching React Vite Frontend on http://localhost:5173..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$rootPath\frontend'; `$Host.UI.RawUI.WindowTitle = 'OWEB PMS Frontend Server'; Write-Host 'Running React Vite UI on Port 5173...' -ForegroundColor Yellow; npm run dev"
+# 3. Launch Frontend on Port 3002
+Write-Host "[3/3] Launching React Vite Frontend on http://localhost:3002..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$rootPath\frontend'; `$Host.UI.RawUI.WindowTitle = 'OWEB PMS Frontend Server (Port 3002)'; Write-Host 'Running React Vite UI on Port 3002...' -ForegroundColor Yellow; npm run dev -- --port 3002 --host 0.0.0.0"
 
 Start-Sleep -Seconds 4
 
 # Open Browser
-Write-Host "Opening browser to http://localhost:5173..." -ForegroundColor Cyan
-Start-Process "http://localhost:5173"
+Write-Host "Opening browser to http://localhost:3002..." -ForegroundColor Cyan
+Start-Process "http://localhost:3002"
 
 Write-Host ""
 Write-Host "===============================================================================" -ForegroundColor Green
-Write-Host " System running successfully!" -ForegroundColor Green
-Write-Host " - Frontend UI: http://localhost:5173" -ForegroundColor White
-Write-Host " - Backend API: http://localhost:8000/api/" -ForegroundColor White
-Write-Host " - Swagger UI : http://localhost:8000/api/docs/" -ForegroundColor White
+Write-Host " System running successfully on dedicated ports!" -ForegroundColor Green
+Write-Host " - Frontend UI: http://localhost:3002" -ForegroundColor White
+Write-Host " - Backend API: http://localhost:8001/api/" -ForegroundColor White
+Write-Host " - Swagger UI : http://localhost:8001/api/docs/" -ForegroundColor White
 Write-Host ""
 Write-Host " Credentials:" -ForegroundColor White
 Write-Host "   Username: admin" -ForegroundColor Gray

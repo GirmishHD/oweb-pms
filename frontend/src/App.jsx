@@ -40,11 +40,46 @@ const initialProjects = [];
 const initialProcurements = [];
 const initialContracts = [];
 const initialNotifications = [];
+const VALID_MODULES = [
+    'dashboard', 'programs', 'ngos', 'staff', 'gisMap', 'inspection',
+    'planning', 'review', 'procurement', 'contract', 'performance',
+    'documents', 'reporting', 'usermanagement', 'masterdata', 'training'
+];
+const getInitialModuleFromHash = () => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+        const hash = window.location.hash.replace('#/', '').replace('#', '').split('?')[0].split('/')[0];
+        if (VALID_MODULES.includes(hash)) {
+            return hash;
+        }
+    }
+    return 'dashboard';
+};
+export const getModuleTitle = (mod) => {
+    switch (mod) {
+        case 'usermanagement': return 'Users & Permissions Management';
+        case 'programs': return 'Programs & Multi-Program Portfolios';
+        case 'ngos': return 'NGOs & Implementing Partners Registry';
+        case 'staff': return 'Staff Management & Program Classifications';
+        case 'contract': return 'Contract Administration & Delivery';
+        case 'planning': return 'Planning & Project Formulation';
+        case 'review': return 'Technical Review & EIA Compliance';
+        case 'procurement': return 'Procurement & Tenders';
+        case 'gisMap': return 'GIS & Regional Asset Map';
+        case 'inspection': return 'QA/QC & Field Inspection Logbooks';
+        case 'performance': return 'Performance & Overruns Dashboard';
+        case 'documents': return 'Document Repository & Vault';
+        case 'reporting': return 'Executive Reports & Analytics';
+        case 'training': return 'Capacity Building & Training Center';
+        case 'masterdata': return 'Master Data & Administrative Registry';
+        case 'dashboard': return 'Executive Intelligence Dashboard';
+        default: return (mod || 'Dashboard').charAt(0).toUpperCase() + (mod || 'Dashboard').slice(1);
+    }
+};
 const App = () => {
     const [authenticatedUser, setAuthenticatedUser] = useState(null);
     const [simulatedRole, setSimulatedRole] = useState(null);
     const [originalUser, setOriginalUser] = useState(null);
-    const [activeModule, setActiveModule] = useState('dashboard');
+    const [activeModule, setActiveModule] = useState(getInitialModuleFromHash);
     // Data states backed by PostgreSQL & Django REST Framework
     const [users, setUsers] = useState([]);
     const [projects, setProjects] = useState(initialProjects);
@@ -634,7 +669,28 @@ const App = () => {
         if (activeModule !== 'contract') {
             setSelectedContract(null);
         }
+        // Update browser URL hash without full reload
+        const currentHash = window.location.hash.replace('#/', '').replace('#', '');
+        if (currentHash !== activeModule) {
+            window.location.hash = `#/${activeModule}`;
+        }
+        // Update document title dynamically
+        document.title = `${getModuleTitle(activeModule)} | OWEB Program Management System`;
     }, [activeModule]);
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.replace('#/', '').replace('#', '').split('?')[0].split('/')[0];
+            if (VALID_MODULES.includes(hash)) {
+                setActiveModule(hash);
+            }
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        window.addEventListener('popstate', handleHashChange);
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange);
+            window.removeEventListener('popstate', handleHashChange);
+        };
+    }, []);
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (notificationRef.current && !notificationRef.current.contains(event.target)) {
@@ -1412,28 +1468,6 @@ const App = () => {
             return <div className="p-8"><h4 className="text-xl font-bold text-danger-700">Access Denied</h4><p className="text-slate-600">You do not have permission to view this module.</p></div>;
         }
         return moduleComponent || (<Dashboard user={authenticatedUser} projects={accessibleProjects} procurements={accessibleProcurements} contracts={accessibleContracts} onSelectContract={handleSelectContract} onNavigate={handleNavigate} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans}/>);
-    };
-    // Module name map for breadcrumbs
-    const getModuleTitle = (mod) => {
-        switch (mod) {
-            case 'usermanagement': return 'Users & Permissions Management';
-            case 'programs': return 'Programs & Multi-Program Portfolios';
-            case 'ngos': return 'NGOs & Implementing Partners Registry';
-            case 'staff': return 'Staff Management & Program Classifications';
-            case 'contract': return 'Contract Administration & Delivery';
-            case 'planning': return 'Planning & Project Formulation';
-            case 'review': return 'Technical Review & EIA Compliance';
-            case 'procurement': return 'Procurement & Tenders';
-            case 'gisMap': return 'GIS & Regional Asset Map';
-            case 'inspection': return 'QA/QC & Field Inspection Logbooks';
-            case 'performance': return 'Performance & Overruns Dashboard';
-            case 'documents': return 'Document Repository & Vault';
-            case 'reporting': return 'Executive Reports & Analytics';
-            case 'training': return 'Capacity Building & Training Center';
-            case 'masterdata': return 'Master Data & Administrative Registry';
-            case 'dashboard': return 'Executive Intelligence Dashboard';
-            default: return mod.charAt(0).toUpperCase() + mod.slice(1);
-        }
     };
     return (<div className="flex h-screen bg-elevare-pattern font-sans antialiased text-slate-800 overflow-hidden">
             {/* Mobile Backdrop Overlay */}
