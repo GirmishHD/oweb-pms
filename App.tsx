@@ -53,6 +53,7 @@ import { ExternalPortal } from './components/ExternalPortal';
 import { blobToBase64, base64ToBlob } from './services/dataService';
 import { loadMasterData, saveMasterData, pushMasterDataToAllModules } from './services/masterDataService';
 import { flagContractsWithin30Days, evaluateContractDeadlines, ContractDeadlineStatus } from './utils/contractNotificationHelper';
+import { apiClient } from './services/apiClient';
 
 const BACKUP_VERSION = '1.0';
 
@@ -1426,6 +1427,237 @@ const App: React.FC = () => {
         setDocuments(initialDocs);
     }, []);
 
+    // Load live records from Django REST Framework & PostgreSQL on initial mount
+    useEffect(() => {
+        const fetchInitialBackendData = async () => {
+            try {
+                // Fetch users
+                const remoteUsers = await apiClient.getUsers();
+                if (remoteUsers && Array.isArray(remoteUsers) && remoteUsers.length > 0) {
+                    setUsers(remoteUsers.map((u: any) => ({
+                        ...u,
+                        id: String(u.id),
+                        fullName: u.full_name || u.fullName,
+                        secondaryRoles: u.secondary_roles || u.secondaryRoles,
+                        customRoleIds: u.custom_role_ids || u.customRoleIds,
+                        customPermissions: u.custom_permissions || u.customPermissions,
+                        assignedTeam: u.assigned_team || u.assignedTeam,
+                        assignedZone: u.assigned_zone || u.assignedZone,
+                        assignedWoreda: u.assigned_woreda || u.assignedWoreda,
+                        assignedProgram: u.assigned_program || u.assignedProgram,
+                        assignedPrograms: u.assigned_programs || u.assignedPrograms,
+                        assignedNgoId: u.assigned_ngo_id || u.assignedNgoId,
+                        assignedNgoName: u.assigned_ngo_name || u.assignedNgoName,
+                        staffProfileId: u.staff_profile_id || u.staffProfileId,
+                        assignedProjectIds: u.assigned_project_ids || u.assignedProjectIds,
+                        dataScopeOverride: u.data_scope_override || u.dataScopeOverride,
+                        lastLogin: u.last_login || u.lastLogin,
+                        createdAt: u.created_at || u.createdAt,
+                    })));
+                }
+
+                // Fetch projects
+                const remoteProjects = await apiClient.getProjects();
+                if (remoteProjects && Array.isArray(remoteProjects) && remoteProjects.length > 0) {
+                    setProjects(remoteProjects.map((p: any) => ({
+                        ...p,
+                        id: p.project_id || p.id,
+                        projectCode: p.project_code || p.projectCode,
+                        programId: p.program_id || p.programId,
+                        programComponent: p.program_component || p.programComponent,
+                        implementingNgoId: p.implementing_ngo_id || p.implementingNgoId,
+                        implementingNgoName: p.implementing_ngo_name || p.implementingNgoName,
+                        projectManager: p.project_manager || p.projectManager,
+                        assignedStaffIds: p.assigned_staff_ids || p.assignedStaffIds,
+                        assignedStaffNames: p.assigned_staff_names || p.assignedStaffNames,
+                        gpsCoordinates: p.gps_coordinates || p.gpsCoordinates || { lat: 8.5, long: 39.2 },
+                        projectType: p.project_type || p.projectType,
+                        projectSubType: p.project_sub_type || p.projectSubType,
+                        sourceOfWater: p.source_of_water || p.sourceOfWater,
+                        energySource: p.energy_source || p.energySource,
+                        typeOfIntervention: p.type_of_intervention || p.typeOfIntervention,
+                        populationCoverage: p.population_coverage || p.populationCoverage || 0,
+                        dailyDemandEstimate: p.daily_demand_estimate || p.dailyDemandEstimate || 0,
+                        storageRequirement: p.storage_requirement || p.storageRequirement || 0,
+                        pipeLengthEstimation: p.pipe_length_estimation || p.pipeLengthEstimation || 0,
+                        implementingBody: p.implementing_body || p.implementingBody,
+                        washcoExists: p.washco_exists !== undefined ? p.washco_exists : p.washcoExists,
+                        washcoDetails: p.washco_details || p.washcoDetails,
+                        landOwnershipCleared: p.land_ownership_cleared !== undefined ? p.land_ownership_cleared : p.landOwnershipCleared,
+                        landOwnershipComment: p.land_ownership_comment || p.landOwnershipComment,
+                        powerSourceAvailable: p.power_source_available !== undefined ? p.power_source_available : p.powerSourceAvailable,
+                        skilledOperatorsAvailable: p.skilled_operators_available !== undefined ? p.skilled_operators_available : p.skilledOperatorsAvailable,
+                        estimatedBudget: Number(p.estimated_budget || p.estimatedBudget || 0),
+                        phaseCosts: p.phase_costs || p.phaseCosts,
+                        fundingSource: p.funding_source || p.fundingSource,
+                        communityContribution: p.community_contribution || p.communityContribution,
+                        environmentalRiskLevel: p.environmental_risk_level || p.environmentalRiskLevel,
+                        sourceReliability: p.source_reliability || p.sourceReliability,
+                        conflictOverSource: p.conflict_over_source !== undefined ? p.conflict_over_source : p.conflictOverSource,
+                        feasibilityStudyConducted: p.feasibility_study_conducted !== undefined ? p.feasibility_study_conducted : p.feasibilityStudyConducted,
+                        feasibilityConsultant: p.feasibility_consultant || p.feasibilityConsultant,
+                        feasibilityStudyDate: p.feasibility_study_date || p.feasibilityStudyDate,
+                        eiaConducted: p.eia_conducted !== undefined ? p.eia_conducted : p.eiaConducted,
+                        eiaConsultant: p.eia_consultant || p.eiaConsultant,
+                        eiaApprovalDate: p.eia_approval_date || p.eiaApprovalDate,
+                        plannedStartDate: p.planned_start_date || p.plannedStartDate,
+                        plannedCompletionDate: p.planned_completion_date || p.plannedCompletionDate,
+                        actualStartDate: p.actual_start_date || p.actualStartDate,
+                        actualCompletionDate: p.actual_completion_date || p.actualCompletionDate,
+                        assignedEngineerId: p.assigned_engineer_id || p.assignedEngineerId,
+                        assignedEngineerName: p.assigned_engineer_name || p.assignedEngineerName,
+                        assignedSupervisorId: p.assigned_supervisor_id || p.assignedSupervisorId,
+                        assignedSupervisorName: p.assigned_supervisor_name || p.assignedSupervisorName,
+                        assignedTeamLeaderId: p.assigned_team_leader_id || p.assignedTeamLeaderId,
+                        assignedTeam: p.assigned_team || p.assignedTeam,
+                        partnerOrganization: p.partner_organization || p.partnerOrganization,
+                    })));
+                }
+
+                // Fetch programs
+                const remotePrograms = await apiClient.getPrograms();
+                if (remotePrograms && Array.isArray(remotePrograms) && remotePrograms.length > 0) {
+                    setMasterData(prev => ({
+                        ...prev,
+                        programs: remotePrograms.map((pr: any) => ({
+                            id: pr.prog_id || pr.id,
+                            name: pr.name,
+                            code: pr.code,
+                            leadAgency: pr.funding_source || '',
+                            focusArea: pr.focus_area || '',
+                            color: '#0284c7',
+                            badgeBg: 'bg-sky-50 border-sky-200',
+                            badgeText: 'text-sky-700',
+                            accentBorder: 'border-sky-500',
+                            description: pr.description,
+                            active: pr.status === 'Active',
+                            totalBudgetETB: Number(pr.budget_etb || 0),
+                            targetBeneficiaries: Number(pr.target_beneficiaries || 0)
+                        }))
+                    }));
+                }
+
+                // Fetch NGOs
+                const remoteNgos = await apiClient.getNgos();
+                if (remoteNgos && Array.isArray(remoteNgos) && remoteNgos.length > 0) {
+                    setNgosList(remoteNgos.map((n: any) => ({
+                        ...n,
+                        id: n.ngo_id || n.id,
+                        contactPerson: n.contact_person || n.contactPerson,
+                        registrationNumber: n.registration_number || n.registrationNumber,
+                        operatingArea: n.operating_area || n.operatingArea,
+                        assignedProgramIds: n.assigned_program_ids || n.assignedProgramIds,
+                        assignedProgramNames: n.assigned_program_names || n.assignedProgramNames,
+                        assignedProjectIds: n.assigned_project_ids || n.assignedProjectIds,
+                        activeSchemesCount: n.active_schemes_count || n.activeSchemesCount,
+                        primaryProgram: n.primary_program || n.primaryProgram,
+                        performanceRating: Number(n.performance_rating || n.performanceRating || 4.0),
+                        annualBudget: Number(n.annual_budget || n.annualBudget || 0),
+                        mouStatus: n.mou_status || n.mouStatus,
+                    })));
+                }
+
+                // Fetch Staff
+                const remoteStaff = await apiClient.getStaff();
+                if (remoteStaff && Array.isArray(remoteStaff) && remoteStaff.length > 0) {
+                    setStaffList(remoteStaff.map((s: any) => ({
+                        ...s,
+                        id: s.staff_id || s.id,
+                        staffCode: s.staff_code || s.staffCode,
+                        fullName: s.full_name || s.fullName,
+                        jobTitle: s.job_title || s.jobTitle,
+                        assignedProgramId: s.assigned_program_id || s.assignedProgramId,
+                        assignedProgramName: s.assigned_program_name || s.assignedProgramName,
+                        assignedNgoId: s.assigned_ngo_id || s.assignedNgoId,
+                        assignedNgoName: s.assigned_ngo_name || s.assignedNgoName,
+                        assignedProjectIds: s.assigned_project_ids || s.assignedProjectIds,
+                        supervisorName: s.supervisor_name || s.supervisorName,
+                        employmentStartDate: s.employment_start_date || s.employmentStartDate,
+                        linkedUserId: s.linked_user_id || s.linkedUserId,
+                    })));
+                }
+
+                // Fetch Procurements
+                const remoteProcurements = await apiClient.getProcurements();
+                if (remoteProcurements && Array.isArray(remoteProcurements) && remoteProcurements.length > 0) {
+                    setProcurements(remoteProcurements.map((pr: any) => ({
+                        ...pr,
+                        id: pr.procurement_id || pr.id,
+                        projectId: pr.project_id || pr.projectId,
+                        tenderReferenceNumber: pr.tender_reference_number || pr.tenderReferenceNumber,
+                        procurementMethod: pr.procurement_method || pr.procurementMethod,
+                        procurementType: pr.procurement_type || pr.procurementType,
+                        bidIssuedDate: pr.bid_issued_date || pr.bidIssuedDate,
+                        biddingPeriodStart: pr.bidding_period_start || pr.biddingPeriodStart,
+                        biddingPeriodEnd: pr.bidding_period_end || pr.biddingPeriodEnd,
+                        tenderStage: pr.tender_stage || pr.tenderStage,
+                        evaluationStatus: pr.evaluation_status || pr.evaluationStatus,
+                        evaluationCommittee: pr.evaluation_committee || pr.evaluationCommittee,
+                        awardedBidderId: pr.awarded_bidder_id || pr.awardedBidderId,
+                        awardDate: pr.award_date || pr.awardDate,
+                        standstillPeriod: pr.standstill_period !== undefined ? pr.standstill_period : pr.standstillPeriod,
+                        estimatedBudgetETB: Number(pr.estimated_budget_etb || pr.estimatedBudgetETB || 0),
+                        finalContractValueETB: Number(pr.final_contract_value_etb || pr.finalContractValueETB || 0),
+                    })));
+                }
+
+                // Fetch Contracts
+                const remoteContracts = await apiClient.getContracts();
+                if (remoteContracts && Array.isArray(remoteContracts) && remoteContracts.length > 0) {
+                    setContracts(remoteContracts.map((c: any) => ({
+                        ...c,
+                        id: c.contract_id || c.id,
+                        projectId: c.project_id || c.projectId,
+                        procurementId: c.procurement_id || c.procurementId,
+                        contractManager: c.contract_manager || c.contractManager,
+                        cmPlanAssignmentDate: c.cm_plan_assignment_date || c.cmPlanAssignmentDate,
+                        cmActualAssignmentDate: c.cm_actual_assignment_date || c.cmActualAssignmentDate,
+                        supervisor: c.supervisor,
+                        supervisorPlanAssignmentDate: c.supervisor_plan_assignment_date || c.supervisorPlanAssignmentDate,
+                        supervisorActualAssignmentDate: c.supervisor_actual_assignment_date || c.supervisorActualAssignmentDate,
+                        contractorName: c.contractor_name || c.contractorName,
+                        performanceSecurityPlanDate: c.performance_security_plan_date || c.performanceSecurityPlanDate,
+                        performanceSecurityActualDate: c.performance_security_actual_date || c.performanceSecurityActualDate,
+                        performanceSecurityExpiryDate: c.performance_security_expiry_date || c.performanceSecurityExpiryDate,
+                        performanceBondAmount: Number(c.performance_bond_amount || c.performanceBondAmount || 0),
+                        signingDate: c.signing_date || c.signingDate,
+                        commencementPlanDate: c.commencement_plan_date || c.commencementPlanDate,
+                        commencementActualDate: c.commencement_actual_date || c.commencementActualDate,
+                        plannedCompletionDate: c.planned_completion_date || c.plannedCompletionDate,
+                        isPlanFinalized: c.is_plan_finalized !== undefined ? c.is_plan_finalized : c.isPlanFinalized,
+                    })));
+                }
+
+                // Fetch Field Inspections
+                const remoteInspections = await apiClient.getInspections();
+                if (remoteInspections && Array.isArray(remoteInspections) && remoteInspections.length > 0) {
+                    setFieldInspections(remoteInspections.map((i: any) => ({
+                        ...i,
+                        id: i.inspection_id || i.id,
+                        projectId: i.project_id || i.projectId,
+                        projectName: i.project_name || i.projectName,
+                        inspectionDate: i.inspection_date || i.inspectionDate,
+                        inspectorName: i.inspector_name || i.inspectorName,
+                        inspectorRole: i.inspector_role || i.inspectorRole,
+                        visitStage: i.visit_stage || i.visitStage,
+                        overallPhysicalProgressPct: Number(i.overall_physical_progress_pct || i.overallPhysicalProgressPct || 0),
+                        workmanshipRating: i.workmanship_rating || i.workmanshipRating,
+                        siteCleanlinessAndSafety: i.site_cleanliness_and_safety || i.siteCleanlinessAndSafety,
+                        environmentalCompliance: i.environmental_compliance || i.environmentalCompliance,
+                        waterQualityTest: i.water_quality_test || i.waterQualityTest,
+                        supervisorRemarks: i.supervisor_remarks || i.supervisorRemarks,
+                        recommendedActions: i.recommended_actions || i.recommendedActions,
+                        signedOffBy: i.signed_off_by || i.signedOffBy,
+                    })));
+                }
+            } catch (err) {
+                console.warn('Backend connection initial sync check:', err);
+            }
+        };
+
+        fetchInitialBackendData();
+    }, []);
+
     useEffect(() => {
         if (activeModule !== 'contract') {
             setSelectedContract(null);
@@ -1551,23 +1783,52 @@ const App: React.FC = () => {
 
 
     const handleLogin = async (username: string, password: string): Promise<string | null> => {
-        await new Promise(resolve => setTimeout(resolve, 150));
-        const cleanInput = (username || '').trim().toLowerCase();
+        const cleanInput = (username || '').trim();
         const cleanPass = (password || '').trim();
         
         if (!cleanInput) {
             return "Please enter your username or bureau email address.";
         }
+
+        // 1. Try real Django REST API authentication first
+        try {
+            const apiRes = await apiClient.login(cleanInput, cleanPass);
+            if (apiRes && apiRes.user) {
+                const u = apiRes.user;
+                const authenticatedUserData: User = {
+                    ...u,
+                    id: String(u.id),
+                    fullName: u.full_name || u.fullName,
+                    secondaryRoles: u.secondary_roles || u.secondaryRoles,
+                    customRoleIds: u.custom_role_ids || u.customRoleIds,
+                    customPermissions: u.custom_permissions || u.customPermissions,
+                    assignedTeam: u.assigned_team || u.assignedTeam,
+                    assignedZone: u.assigned_zone || u.assignedZone,
+                    assignedWoreda: u.assigned_woreda || u.assignedWoreda,
+                    assignedProgram: u.assigned_program || u.assignedProgram,
+                    assignedPrograms: u.assigned_programs || u.assignedPrograms,
+                    assignedNgoId: u.assigned_ngo_id || u.assignedNgoId,
+                    assignedNgoName: u.assigned_ngo_name || u.assignedNgoName,
+                    staffProfileId: u.staff_profile_id || u.staffProfileId,
+                    assignedProjectIds: u.assigned_project_ids || u.assignedProjectIds,
+                    dataScopeOverride: u.data_scope_override || u.dataScopeOverride,
+                    lastLogin: new Date().toISOString(),
+                };
+                handleLoginSuccess(authenticatedUserData);
+                return null;
+            }
+        } catch (apiErr: any) {
+            console.warn("Backend auth attempt response:", apiErr?.message);
+        }
         
-        // Find user by username or email address (case-insensitive and trimmed)
+        // 2. Fallback to synchronized users list
         const user = users.find(u => {
-            const matchesUsername = u.username.toLowerCase() === cleanInput;
-            const matchesEmail = u.email && u.email.toLowerCase() === cleanInput;
+            const matchesUsername = u.username.toLowerCase() === cleanInput.toLowerCase();
+            const matchesEmail = u.email && u.email.toLowerCase() === cleanInput.toLowerCase();
             return matchesUsername || matchesEmail;
         });
         
         if (user) {
-            // Check password: allow configured password, trimmed password, or universal dev default 'password'
             const isPasswordValid = 
                 user.password === password || 
                 user.password === cleanPass || 
@@ -1650,6 +1911,35 @@ const App: React.FC = () => {
 
         setProjects(prevProjects => [...prevProjects, project]);
         logActivity('Created Project', { targetType: 'Project', targetId: project.id, details: `Status: ${project.status}` });
+        
+        // Asynchronously persist to Django REST API & PostgreSQL
+        apiClient.createProject({
+            project_id: project.id,
+            project_code: project.projectCode || '',
+            name: project.name,
+            program: project.program || '',
+            program_component: project.programComponent || '',
+            region: project.region || 'Oromia',
+            zone: project.zone,
+            woreda: project.woreda,
+            kebele: project.kebele,
+            gps_coordinates: project.gpsCoordinates,
+            elevation: project.elevation || 0,
+            project_type: project.projectType,
+            project_sub_type: project.projectSubType || '',
+            source_of_water: project.sourceOfWater || '',
+            energy_source: project.energySource || '',
+            type_of_intervention: project.typeOfIntervention,
+            population_coverage: project.populationCoverage || 0,
+            daily_demand_estimate: project.dailyDemandEstimate || 0,
+            storage_requirement: project.storageRequirement || 0,
+            pipe_length_estimation: project.pipeLengthEstimation || 0,
+            implementing_body: project.implementingBody,
+            estimated_budget: project.estimatedBudget,
+            funding_source: project.fundingSource,
+            status: project.status,
+            creator: project.creator
+        }).catch(e => console.warn('Backend createProject sync:', e));
         if (newDocs.length > 0) {
             setDocuments(prevDocs => [...prevDocs, ...newDocs]);
             newDocs.forEach(doc => logActivity('Uploaded Document', { targetType: 'Document', targetId: doc.id, details: `File: ${doc.fileName}` }));

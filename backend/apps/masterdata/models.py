@@ -1,0 +1,46 @@
+from django.db import models
+
+class MasterDataStore(models.Model):
+    version = models.CharField(max_length=50, default='2.0.0')
+    last_pushed_at = models.DateTimeField(auto_now=True)
+    last_pushed_by = models.CharField(max_length=100, default='admin')
+    change_notes = models.TextField(blank=True)
+    
+    # Store complete normalized master data schema
+    catalog_categories = models.JSONField(default=list, blank=True)
+    catalog_items = models.JSONField(default=list, blank=True)
+    regions = models.JSONField(default=list, blank=True)
+    woredas = models.JSONField(default=list, blank=True)
+    kebeles = models.JSONField(default=list, blank=True)
+    system_configurations = models.JSONField(default=list, blank=True)
+    workflow_definitions = models.JSONField(default=list, blank=True)
+    workflow_steps = models.JSONField(default=list, blank=True)
+    approval_thresholds = models.JSONField(default=list, blank=True)
+    history_entries = models.JSONField(default=list, blank=True)
+    geographic_hierarchy = models.JSONField(default=dict, blank=True)
+    project_categories = models.JSONField(default=dict, blank=True)
+    water_sources = models.JSONField(default=list, blank=True)
+    energy_sources = models.JSONField(default=list, blank=True)
+    intervention_types = models.JSONField(default=list, blank=True)
+    source_reliability_ratings = models.JSONField(default=list, blank=True)
+    implementing_bodies = models.JSONField(default=list, blank=True)
+    risk_levels = models.JSONField(default=list, blank=True)
+    funding_sources = models.JSONField(default=list, blank=True)
+    currencies = models.JSONField(default=list, blank=True)
+    departments = models.JSONField(default=list, blank=True)
+    procurement_types = models.JSONField(default=list, blank=True)
+    procurement_methods = models.JSONField(default=list, blank=True)
+    bidder_types = models.JSONField(default=list, blank=True)
+    rejection_reasons = models.JSONField(default=list, blank=True)
+    deliverable_categories = models.JSONField(default=list, blank=True)
+    amendment_types = models.JSONField(default=list, blank=True)
+    variation_statuses = models.JSONField(default=list, blank=True)
+    claim_sources = models.JSONField(default=list, blank=True)
+    claim_statuses = models.JSONField(default=list, blank=True)
+    termination_reasons = models.JSONField(default=list, blank=True)
+    document_categories = models.JSONField(default=list, blank=True)
+    priority_levels = models.JSONField(default=list, blank=True)
+    push_logs = models.JSONField(default=list, blank=True)
+
+    def __str__(self):
+        return f"MasterData v{self.version} (last pushed: {self.last_pushed_at})"
