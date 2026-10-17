@@ -34,6 +34,7 @@ import { ExternalPortal } from './components/ExternalPortal';
 import { blobToBase64, base64ToBlob } from './services/dataService';
 import { loadMasterData, saveMasterData, pushMasterDataToAllModules } from './services/masterDataService';
 import { apiClient } from './services/apiClient';
+import { flagContractsWithin30Days } from './utils/contractNotificationHelper';
 import MetisLayout from './components/layout/MetisLayout';
 import MetisPageHeader from './components/layout/MetisPageHeader';
 const BACKUP_VERSION = '1.0';
