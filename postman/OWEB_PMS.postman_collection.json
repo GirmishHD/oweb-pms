@@ -1,0 +1,945 @@
+{
+  "info": {
+    "_postman_id": "oweb-pms-production-collection",
+    "name": "OWEB Program Management System - Production API Suite",
+    "description": "Comprehensive automated REST API test collection for OWEB PMS backend covering authentication, user management, programs, projects, procurement, contracts, inspections, tracking, master data, reports, and error boundaries.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Authentication",
+      "item": [
+        {
+          "name": "Login - Admin (Valid Credentials)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns JWT access and refresh tokens', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('access');",
+                  "    pm.expect(json).to.have.property('refresh');",
+                  "    pm.expect(json.user.role).to.eql('Admin');",
+                  "    pm.environment.set('access_token', json.access);",
+                  "    pm.environment.set('refresh_token', json.refresh);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{admin_username}}\",\n    \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login", ""]
+            }
+          }
+        },
+        {
+          "name": "Login - Invalid Password (Negative 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 401 Unauthorized for invalid credentials', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{admin_username}}\",\n    \"password\": \"wrong_password_test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login", ""]
+            }
+          }
+        },
+        {
+          "name": "Token Refresh (Valid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns refreshed access token', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('access');",
+                  "    pm.environment.set('access_token', json.access);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh", ""]
+            }
+          }
+        },
+        {
+          "name": "Current User Profile (/api/auth/users/me/)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Matches current logged in user identity', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.username).to.eql('admin');",
+                  "    pm.expect(json.role).to.eql('Admin');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "users", "me", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 User Management & RBAC",
+      "item": [
+        {
+          "name": "List Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains users list', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/users/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "users", ""]
+            }
+          }
+        },
+        {
+          "name": "List RBAC Role Definitions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains configured system roles', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list).to.be.an('array');",
+                  "    var adminRole = list.find(r => r.code === 'ROLE_ADMIN');",
+                  "    pm.expect(adminRole).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/roles/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "roles", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Master Data Store",
+      "item": [
+        {
+          "name": "Get Master Data Store",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains verified master data collections', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('catalog_categories');",
+                  "    pm.expect(json).to.have.property('regions');",
+                  "    pm.expect(json).to.have.property('woredas');",
+                  "    pm.expect(json.catalog_categories.length).to.be.at.least(5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/masterdata/store/",
+              "host": ["{{base_url}}"],
+              "path": ["masterdata", "store", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Programs Portfolio",
+      "item": [
+        {
+          "name": "List Programs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns active program portfolios', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs/portfolios/",
+              "host": ["{{base_url}}"],
+              "path": ["programs", "portfolios", ""]
+            }
+          }
+        },
+        {
+          "name": "List NGOs / Implementing Partners",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns partners list', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs/ngos/",
+              "host": ["{{base_url}}"],
+              "path": ["programs", "ngos", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Schemes & Projects",
+      "item": [
+        {
+          "name": "List Schemes (All)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns project schemes array', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(3);",
+                  "    pm.environment.set('test_project_id', list[0].project_id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/schemes/",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "schemes", ""]
+            }
+          }
+        },
+        {
+          "name": "Filter Schemes by Status and Zone (Indexed Query)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Filtered result adheres to criteria', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    list.forEach(p => {",
+                  "        pm.expect(p.status).to.eql('Approved');",
+                  "        pm.expect(p.zone).to.eql('West Arsi');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/schemes/?status=Approved&zone=West%20Arsi",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "schemes", ""],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Approved"
+                },
+                {
+                  "key": "zone",
+                  "value": "West Arsi"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Project Scheme",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var randSuffix = Math.floor(1000 + Math.random() * 9000);",
+                  "pm.variables.set('rand_proj_id', 'OWEB-NEW-' + randSuffix);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Created project returned with valid ID', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.project_id).to.be.a('string');",
+                  "    pm.expect(json.name).to.include('Automated Postman Scheme');",
+                  "    pm.environment.set('created_scheme_pk', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"project_id\": \"{{rand_proj_id}}\",\n    \"name\": \"Automated Postman Scheme Test\",\n    \"project_type\": \"Water Supply\",\n    \"type_of_intervention\": \"New\",\n    \"program\": \"COWASH\",\n    \"region\": \"Oromia\",\n    \"zone\": \"Jimma\",\n    \"woreda\": \"Mana\",\n    \"kebele\": \"Gudeta\",\n    \"implementing_body\": \"OWEB\",\n    \"funding_source\": \"COWASH\",\n    \"creator\": \"admin\",\n    \"estimated_budget\": \"4500000.00\",\n    \"population_coverage\": 3500,\n    \"status\": \"Draft\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/schemes/",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "schemes", ""]
+            }
+          }
+        },
+        {
+          "name": "Submit Scheme for Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Project transitions to Submitted', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.project.status).to.eql('Submitted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/schemes/{{created_scheme_pk}}/submit/",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "schemes", "{{created_scheme_pk}}", "submit", ""]
+            }
+          }
+        },
+        {
+          "name": "Review and Approve Scheme",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Project transitions to Approved', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.project.status).to.eql('Approved');",
+                  "    pm.expect(json.project.appraisal_verdict).to.eql('Approved');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"verdict\": \"Approved\",\n    \"comments\": \"Technical appraisal passed successfully in automated test suite.\",\n    \"score\": 92\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/schemes/{{created_scheme_pk}}/review/",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "schemes", "{{created_scheme_pk}}", "review", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Procurement & Tenders",
+      "item": [
+        {
+          "name": "List Procurement Tenders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains tenders array', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/procurement/tenders/",
+              "host": ["{{base_url}}"],
+              "path": ["procurement", "tenders", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Contract Agreements",
+      "item": [
+        {
+          "name": "List Contracts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains contracts array', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/contracts/agreements/",
+              "host": ["{{base_url}}"],
+              "path": ["contracts", "agreements", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Field Inspections",
+      "item": [
+        {
+          "name": "List Field Inspection Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains inspection logs array', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inspections/logs/",
+              "host": ["{{base_url}}"],
+              "path": ["inspections", "logs", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Field Inspection Log",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var randSuffix = Math.floor(1000 + Math.random() * 9000);",
+                  "pm.variables.set('rand_insp_id', 'INSP-AUTO-' + randSuffix);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Inspection log created and persisted in PostgreSQL', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.inspection_id).to.include('INSP-AUTO-');",
+                  "    pm.expect(json.overall_physical_progress_pct).to.eql(75.5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"inspection_id\": \"{{rand_insp_id}}\",\n    \"project_id\": \"{{test_project_id}}\",\n    \"project_name\": \"Kofele Multi-Village Water Supply Scheme\",\n    \"inspector_name\": \"Dawit Alemu\",\n    \"inspector_role\": \"Zonal Senior Water Engineer\",\n    \"inspection_date\": \"2026-10-17\",\n    \"visit_stage\": \"Construction\",\n    \"zone\": \"West Arsi\",\n    \"woreda\": \"Kofele\",\n    \"overall_physical_progress_pct\": 75.5,\n    \"status\": \"Satisfactory\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inspections/logs/",
+              "host": ["{{base_url}}"],
+              "path": ["inspections", "logs", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Tracking & Work Plans",
+      "item": [
+        {
+          "name": "List Weekly Work Plans",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains work plans list', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tracking/plans/",
+              "host": ["{{base_url}}"],
+              "path": ["tracking", "plans", ""]
+            }
+          }
+        },
+        {
+          "name": "List Weekly Progress Reports",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains progress reports list', function () {",
+                  "    var json = pm.response.json();",
+                  "    var list = Array.isArray(json) ? json : json.results;",
+                  "    pm.expect(list.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tracking/reports/",
+              "host": ["{{base_url}}"],
+              "path": ["tracking", "reports", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Executive Reporting & Analytics",
+      "item": [
+        {
+          "name": "Get Portfolio Summary Report (Optimized SQL Aggregate)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Summary metrics are non-null and accurate', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.totalProjects).to.be.at.least(8);",
+                  "    pm.expect(json.approvedProjects).to.be.at.least(6);",
+                  "    pm.expect(json.totalEstimatedBudgetETB).to.be.above(0);",
+                  "    pm.expect(json.programBreakdown).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/summary/",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "summary", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Security & Error Handling (Negative Tests)",
+      "item": [
+        {
+          "name": "Access Protected Resource Without Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 401 Unauthorized', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/schemes/",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "schemes", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Project with Missing Mandatory Fields (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Incomplete Project Missing Fields\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/schemes/",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "schemes", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

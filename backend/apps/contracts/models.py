@@ -53,5 +53,16 @@ class Contract(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['project_id'], name='cont_proj_idx'),
+            models.Index(fields=['procurement_id'], name='cont_proc_idx'),
+            models.Index(fields=['is_plan_finalized'], name='cont_finalized_idx'),
+            models.Index(fields=['created_at'], name='cont_created_idx'),
+            models.Index(fields=['contract_manager'], name='cont_mgr_idx'),
+            models.Index(fields=['supervisor'], name='cont_sup_idx'),
+        ]
+
     def __str__(self):
         return f"{self.contract_id} ({self.contractor_name})"

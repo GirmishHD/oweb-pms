@@ -7,6 +7,9 @@ class ProcurementViewSet(viewsets.ModelViewSet):
     queryset = Procurement.objects.all().order_by('-created_at')
     serializer_class = ProcurementSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['tender_stage', 'evaluation_status', 'project_id', 'procurement_method']
+    search_fields = ['procurement_id', 'tender_reference_number', 'project_id', 'contractor_name']
+    ordering_fields = ['created_at', 'engineer_estimate', 'closing_date', 'award_date']
 
     def perform_create(self, serializer):
         proc = serializer.save()

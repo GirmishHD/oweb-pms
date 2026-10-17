@@ -115,5 +115,16 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'zone'], name='proj_stat_zone_idx'),
+            models.Index(fields=['program', 'status'], name='proj_prog_stat_idx'),
+            models.Index(fields=['zone', 'woreda'], name='proj_zone_woreda_idx'),
+            models.Index(fields=['created_at'], name='proj_created_idx'),
+            models.Index(fields=['assigned_engineer_id'], name='proj_eng_idx'),
+            models.Index(fields=['assigned_supervisor_id'], name='proj_sup_idx'),
+        ]
+
     def __str__(self):
         return f"{self.project_id} - {self.name} [{self.status}]"

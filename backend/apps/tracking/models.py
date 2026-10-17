@@ -27,6 +27,14 @@ class WeeklyWorkPlan(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-week_number', '-created_at']
+        indexes = [
+            models.Index(fields=['project_id', 'week_number'], name='plan_proj_wk_idx'),
+            models.Index(fields=['status'], name='plan_stat_idx'),
+            models.Index(fields=['created_at'], name='plan_created_idx'),
+        ]
+
     def __str__(self):
         return f"Week {self.week_number}: {self.project_name} ({self.status})"
 
@@ -73,6 +81,15 @@ class WeeklyProgressReport(models.Model):
     site_photos_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-week_number', '-created_at']
+        indexes = [
+            models.Index(fields=['project_id', 'week_number'], name='rep_proj_wk_idx'),
+            models.Index(fields=['work_plan_id'], name='rep_wplan_idx'),
+            models.Index(fields=['status'], name='rep_stat_idx'),
+            models.Index(fields=['created_at'], name='rep_created_idx'),
+        ]
 
     def __str__(self):
         return f"Progress Report W{self.week_number}: {self.project_name} ({self.cumulative_physical_progress_pct}%)"

@@ -18,17 +18,28 @@ class PortfolioSummaryReportView(APIView):
         total_budget = Project.objects.aggregate(total=Sum('estimated_budget'))['total'] or 0
         total_beneficiaries = Project.objects.aggregate(total=Sum('population_coverage'))['total'] or 0
         
-        # Breakdown by program
+        # Single optimized database query aggregating projects by program
+        project_aggregates = {
+            item['program']: item
+            for item in Project.objects.values('program').annotate(
+                total_schemes=Count('id'),
+                committed_budget=Sum('estimated_budget'),
+                actual_pop=Sum('population_coverage')
+            )
+        }
+        
         programs_stats = []
         for p in Program.objects.all():
-            p_schemes = Project.objects.filter(program__icontains=p.name)
-            p_budget = p_schemes.aggregate(total=Sum('estimated_budget'))['total'] or 0
-            p_pop = p_schemes.aggregate(total=Sum('population_coverage'))['total'] or 0
+            match = project_aggregates.get(p.name) or project_aggregates.get(p.code)
+            schemes_count = match['total_schemes'] if match else 0
+            p_budget = match['committed_budget'] if match else 0
+            p_pop = match['actual_pop'] if match else 0
+
             programs_stats.append({
                 'programId': p.prog_id,
                 'programName': p.name,
                 'programCode': p.code,
-                'totalSchemes': p_schemes.count(),
+                'totalSchemes': schemes_count,
                 'allocatedBudgetETB': float(p.budget_etb),
                 'schemesCommittedBudgetETB': float(p_budget),
                 'targetBeneficiaries': p.target_beneficiaries,

@@ -9,6 +9,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by('-created_at')
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['status', 'zone', 'woreda', 'program', 'assigned_engineer_id', 'assigned_supervisor_id']
+    search_fields = ['project_id', 'name', 'scheme_type', 'zone', 'woreda', 'kebele', 'community_name']
+    ordering_fields = ['created_at', 'estimated_budget', 'population_coverage', 'name', 'status']
 
     def perform_create(self, serializer):
         project = serializer.save()

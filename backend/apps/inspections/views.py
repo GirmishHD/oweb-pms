@@ -7,6 +7,9 @@ class FieldInspectionLogViewSet(viewsets.ModelViewSet):
     queryset = FieldInspectionLog.objects.all().order_by('-inspection_date')
     serializer_class = FieldInspectionLogSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['project_id', 'status', 'zone', 'woreda', 'inspector_name', 'visit_stage']
+    search_fields = ['inspection_id', 'project_id', 'project_name', 'inspector_name', 'zone', 'woreda', 'kebele']
+    ordering_fields = ['inspection_date', 'overall_physical_progress_pct', 'created_at']
 
     def perform_create(self, serializer):
         log = serializer.save()

@@ -20,6 +20,13 @@ class Program(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['status'], name='prog_stat_idx'),
+            models.Index(fields=['funding_source'], name='prog_funding_idx'),
+        ]
+
     def __str__(self):
         return f"{self.name} ({self.code})"
 
@@ -47,6 +54,13 @@ class NGO(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['status'], name='ngo_stat_idx'),
+            models.Index(fields=['primary_program'], name='ngo_prim_prog_idx'),
+        ]
+
     def __str__(self):
         return f"{self.name} ({self.code})"
 
@@ -73,6 +87,15 @@ class Staff(models.Model):
     transfer_history = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['full_name']
+        indexes = [
+            models.Index(fields=['assigned_program_id'], name='staff_prog_idx'),
+            models.Index(fields=['assigned_ngo_id'], name='staff_ngo_idx'),
+            models.Index(fields=['status'], name='staff_stat_idx'),
+            models.Index(fields=['department'], name='staff_dept_idx'),
+        ]
 
     def __str__(self):
         return f"{self.full_name} - {self.job_title}"

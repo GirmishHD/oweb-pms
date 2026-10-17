@@ -7,6 +7,9 @@ class ContractViewSet(viewsets.ModelViewSet):
     queryset = Contract.objects.all().order_by('-created_at')
     serializer_class = ContractSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['project_id', 'procurement_id', 'contract_manager', 'supervisor', 'is_plan_finalized']
+    search_fields = ['contract_id', 'project_id', 'procurement_id', 'contractor_name', 'contract_manager', 'supervisor']
+    ordering_fields = ['created_at', 'contract_price', 'commencement_date', 'completion_date_intended']
 
     def perform_create(self, serializer):
         contract = serializer.save()

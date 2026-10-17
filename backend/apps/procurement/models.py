@@ -38,5 +38,14 @@ class Procurement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['project_id'], name='proc_proj_idx'),
+            models.Index(fields=['tender_stage'], name='proc_stage_idx'),
+            models.Index(fields=['evaluation_status'], name='proc_eval_stat_idx'),
+            models.Index(fields=['created_at'], name='proc_created_idx'),
+        ]
+
     def __str__(self):
         return f"{self.procurement_id} - {self.tender_reference_number}"

@@ -91,7 +91,6 @@ Navigation instructions: Whenever relevant, append an action token like [ACTION:
         }
     }
 }
-export const MockChat = GeminiOrLocalChat;
 const generateLocalAssistantResponse = (message, data) => {
     const { projects, contracts, procurements, inspections, weeklyPlans, user } = data;
     const lower = message.toLowerCase().trim();
@@ -512,9 +511,8 @@ export const generateDashboardInsights = async (projects = [], contracts = [], p
     const approvedProjects = safeProjects.filter(p => p && p.status === ProjectStatus.APPROVED);
     const procuredProjectIds = new Set(safeProcurements.map(proc => proc.projectId));
     const delayedProcurement = approvedProjects.find(p => {
-        // Mocking an approval date for this logic
-        const projectApprovalDate = p.eiaApprovalDate ? new Date(p.eiaApprovalDate).getTime() : new Date('2025-01-15').getTime();
-        return !procuredProjectIds.has(p.id) && projectApprovalDate < thirtyDaysAgo;
+        const projectApprovalDate = p.reviewDate ? new Date(p.reviewDate).getTime() : (p.createdAt ? new Date(p.createdAt).getTime() : null);
+        return !procuredProjectIds.has(p.id) && projectApprovalDate && projectApprovalDate < thirtyDaysAgo;
     });
     if (delayedProcurement) {
         insights.push({

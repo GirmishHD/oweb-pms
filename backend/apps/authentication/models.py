@@ -58,6 +58,13 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['role', 'status'], name='usr_role_stat_idx'),
+            models.Index(fields=['assigned_zone'], name='usr_zone_idx'),
+            models.Index(fields=['assigned_program'], name='usr_prog_idx'),
+        ]
+
     def __str__(self):
         return f"{self.username} ({self.role})"
 
@@ -86,6 +93,12 @@ class Notification(models.Model):
     link = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read', '-created_at'], name='notif_usr_read_idx'),
+        ]
+
     def __str__(self):
         return f"Notification to {self.user.username}: {self.message[:30]}"
 
@@ -99,6 +112,10 @@ class ActivityLog(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', '-timestamp'], name='act_usr_time_idx'),
+            models.Index(fields=['target_type', 'target_id'], name='act_target_idx'),
+        ]
 
     def __str__(self):
         return f"[{self.timestamp}] {self.user}: {self.action}"

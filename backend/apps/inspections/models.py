@@ -25,5 +25,14 @@ class FieldInspectionLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-inspection_date', '-created_at']
+        indexes = [
+            models.Index(fields=['project_id'], name='insp_proj_idx'),
+            models.Index(fields=['inspection_date'], name='insp_date_idx'),
+            models.Index(fields=['status'], name='insp_status_idx'),
+            models.Index(fields=['zone', 'woreda'], name='insp_zone_wor_idx'),
+        ]
+
     def __str__(self):
         return f"{self.inspection_id} - {self.project_name} ({self.inspection_date})"

@@ -1031,7 +1031,7 @@ const UserManagementModule = ({ users, onAddUser, onUpdateUser, onDeleteUser, on
 
                             {/* User Selector */}
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-slate-300 font-semibold whitespace-nowrap">Simulate User:</span>
+                                <span className="text-xs text-slate-300 font-semibold whitespace-nowrap">Preview User Access:</span>
                                 <select value={simulatorSelectedUser} onChange={e => setSimulatorSelectedUser(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
                                     {users.map(u => (<option key={u.id} value={u.username}>
                                             @{u.username} • {u.fullName || u.username} ({u.role})

@@ -9,5 +9,12 @@ class Document(models.Model):
     uploaded_by = models.CharField(max_length=100)
     upload_date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-upload_date']
+        indexes = [
+            models.Index(fields=['project_id', 'category'], name='doc_proj_cat_idx'),
+            models.Index(fields=['upload_date'], name='doc_upload_idx'),
+        ]
+
     def __str__(self):
         return f"{self.file_name} ({self.category}) for {self.project_id}"
