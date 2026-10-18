@@ -203,7 +203,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
 
                 {/* 2. Water Sunlight Caustics & Optical Refraction (Shimmering Water Pattern) */}
                 <div 
-                    className="absolute inset-0 opacity-20 mix-blend-screen animate-water-caustics pointer-events-none"
+                    className="absolute inset-0 opacity-25 mix-blend-screen animate-water-caustics pointer-events-none"
                     style={{
                         backgroundImage: `radial-gradient(ellipse 60% 50% at 50% 20%, rgba(56, 189, 248, 0.45), transparent 70%),
                                           radial-gradient(ellipse 70% 60% at 85% 65%, rgba(6, 182, 212, 0.35), transparent 70%),
@@ -216,11 +216,22 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                 <div className="absolute -bottom-24 right-10 w-[600px] h-[600px] bg-teal-500/15 rounded-full blur-[160px]" />
                 <div className="absolute top-2/3 left-10 w-[500px] h-[500px] bg-cyan-600/15 rounded-full blur-[150px]" />
 
-                {/* 4. Layered Animated Water Waves (Realistic Flowing Waves) */}
+                {/* 4. Smart Rising Water Bubbles (Hydro Floating Physics) */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute left-[7%] w-5 h-5 rounded-full border border-sky-300/60 bg-gradient-to-tr from-cyan-400/20 via-sky-300/30 to-white/60 shadow-[inset_-2px_-2px_4px_rgba(255,255,255,0.7),0_0_10px_rgba(56,189,248,0.35)] backdrop-blur-[1px] animate-bubble-1" />
+                    <div className="absolute left-[21%] w-3.5 h-3.5 rounded-full border border-teal-300/60 bg-gradient-to-tr from-teal-400/20 via-cyan-300/30 to-white/60 shadow-[inset_-1px_-1px_3px_rgba(255,255,255,0.7),0_0_8px_rgba(20,184,166,0.35)] animate-bubble-2" />
+                    <div className="absolute left-[36%] w-6 h-6 rounded-full border border-sky-200/70 bg-gradient-to-tr from-sky-400/20 via-cyan-200/30 to-white/70 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.7),0_0_14px_rgba(56,189,248,0.45)] backdrop-blur-[1px] animate-bubble-3" />
+                    <div className="absolute left-[52%] w-4 h-4 rounded-full border border-cyan-300/60 bg-gradient-to-tr from-cyan-400/20 to-white/60 shadow-[inset_-1px_-1px_3px_rgba(255,255,255,0.7)] animate-bubble-4" />
+                    <div className="absolute left-[68%] w-5 h-5 rounded-full border border-sky-300/60 bg-gradient-to-tr from-sky-400/20 via-teal-300/30 to-white/60 shadow-[inset_-2px_-2px_4px_rgba(255,255,255,0.7),0_0_10px_rgba(56,189,248,0.35)] animate-bubble-5" />
+                    <div className="absolute left-[84%] w-3.5 h-3.5 rounded-full border border-cyan-200/70 bg-gradient-to-tr from-teal-400/20 to-white/60 shadow-[inset_-1px_-1px_3px_rgba(255,255,255,0.7)] animate-bubble-1" />
+                    <div className="absolute left-[92%] w-6 h-6 rounded-full border border-sky-300/60 bg-gradient-to-tr from-sky-400/20 to-white/60 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.7)] animate-bubble-2" />
+                </div>
+
+                {/* 5. Layered Animated Water Waves (Realistic Flowing Waves) */}
                 <div className="absolute inset-x-0 bottom-0 h-96 overflow-hidden pointer-events-none">
                     {/* Deep Slow Background Wave */}
                     <svg 
-                        className="absolute bottom-0 w-[200%] h-64 text-sky-900/30 animate-water-wave-slow fill-current" 
+                        className="absolute bottom-0 w-[200%] h-64 text-sky-900/35 animate-water-wave-slow fill-current" 
                         viewBox="0 0 1440 320" 
                         preserveAspectRatio="none"
                     >
@@ -229,7 +240,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
 
                     {/* Middle Azure Water Wave with Glow */}
                     <svg 
-                        className="absolute bottom-0 w-[200%] h-56 text-sky-600/20 animate-water-wave fill-current" 
+                        className="absolute bottom-0 w-[200%] h-56 text-sky-600/25 animate-water-wave fill-current" 
                         viewBox="0 0 1440 320" 
                         preserveAspectRatio="none"
                     >
@@ -238,7 +249,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
 
                     {/* Foreground Crest Wave with Cyan Shimmer */}
                     <svg 
-                        className="absolute bottom-0 w-[200%] h-48 text-cyan-400/15 animate-water-wave-slow fill-current" 
+                        className="absolute bottom-0 w-[200%] h-48 text-cyan-400/20 animate-water-wave-slow fill-current" 
                         viewBox="0 0 1440 320" 
                         preserveAspectRatio="none"
                     >
@@ -246,9 +257,9 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                     </svg>
                 </div>
 
-                {/* 5. Water Droplets & Telemetry Network Particles */}
+                {/* 6. Water Droplets & Telemetry Network Particles */}
                 <div 
-                    className="absolute inset-0 opacity-15 pointer-events-none"
+                    className="absolute inset-0 opacity-20 pointer-events-none"
                     style={{
                         backgroundImage: `radial-gradient(circle 2px at 20% 30%, #7dd3fc 100%, transparent),
                                           radial-gradient(circle 2.5px at 80% 40%, #38bdf8 100%, transparent),
@@ -262,26 +273,26 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
             {/* Top Global Bar: Language Switcher & Public Transparency Link */}
             <header className="absolute top-0 left-0 right-0 z-20 px-6 sm:px-12 py-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/15">
+                    <div className="p-2 bg-slate-900/60 backdrop-blur-md rounded-xl border border-sky-400/30 shadow-md">
                         <Logo className="h-6 w-6 text-white" />
                     </div>
-                    <span className="text-white font-bold tracking-tight text-sm hidden sm:inline font-display">
+                    <span className="text-white font-extrabold tracking-wide text-sm hidden sm:inline font-display drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {t.bureauName}
                     </span>
                 </div>
 
                 <div className="flex items-center gap-3">
                     {/* Language Switcher Pill */}
-                    <div className="flex items-center gap-1 bg-black/25 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-sm">
+                    <div className="flex items-center gap-1 bg-slate-950/70 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-lg">
                         {['EN', 'OM', 'AM'].map((langCode) => (
                             <button
                                 key={langCode}
                                 type="button"
                                 onClick={() => handleLanguageChange(langCode)}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
                                     lang === langCode 
-                                        ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30' 
-                                        : 'text-white/70 hover:text-white'
+                                        ? 'bg-sky-500 text-white shadow-md shadow-sky-500/40 ring-1 ring-white/30' 
+                                        : 'text-slate-300 hover:text-white'
                                 }`}
                             >
                                 {langCode}
@@ -294,9 +305,9 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                         <button
                             type="button"
                             onClick={onOpenExternalPortal}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-xs font-semibold text-white transition shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md border border-sky-400/30 text-xs font-bold text-white transition shadow-md hover:border-sky-300"
                         >
-                            <Globe className="w-3.5 h-3.5 text-sky-300" />
+                            <Globe className="w-3.5 h-3.5 text-cyan-300" />
                             <span className="hidden md:inline">{t.publicPortalLink}</span>
                         </button>
                     )}
@@ -313,48 +324,51 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                 {/* LEFT HERO: Bureau Branding & Mission (Colorlib Left Panel)   */}
                 {/* ------------------------------------------------------------ */}
                 <div className="lg:col-span-7 text-white space-y-6 px-2 sm:px-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 backdrop-blur-md border border-sky-400/30 text-xs font-semibold text-sky-200">
-                        <Droplets className="w-3.5 h-3.5 text-sky-300" />
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/65 backdrop-blur-md border border-cyan-400/40 text-xs font-extrabold text-cyan-200 shadow-lg shadow-black/30">
+                        <Droplets className="w-4 h-4 text-cyan-300 animate-pulse-subtle" />
                         <span>{t.heroBadge}</span>
                     </div>
 
                     <div className="space-y-3">
-                        <span className="text-xs font-bold tracking-widest uppercase text-sky-300/80 block">
+                        <span className="text-xs sm:text-sm font-extrabold tracking-widest uppercase text-cyan-300 block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                             {t.bureauSub}
                         </span>
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-display leading-[1.15]">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-display leading-[1.15] drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)]">
                             {t.heroHeadline}
                         </h1>
-                        <p className="text-sm sm:text-base text-sky-100/80 leading-relaxed font-light max-w-xl">
+                        <p className="text-sm sm:text-base text-slate-100 leading-relaxed font-normal max-w-xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
                             {t.heroSubheadline}
                         </p>
                     </div>
 
                     {/* 3 Colorlib Informational Pillars */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4">
-                        <div className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition">
-                            <span className="text-sm font-bold text-white block mb-1">
+                        <div className="p-4 rounded-2xl bg-slate-950/70 hover:bg-slate-900/80 backdrop-blur-md border border-sky-400/30 transition shadow-lg shadow-black/25">
+                            <span className="text-sm font-extrabold text-white block mb-1 drop-shadow-sm flex items-center gap-1.5">
+                                <Layers className="w-3.5 h-3.5 text-cyan-300" />
                                 {t.clusterStat}
                             </span>
-                            <span className="text-xs text-sky-200/70 leading-relaxed block font-light">
+                            <span className="text-xs text-slate-200 leading-relaxed block font-medium">
                                 {t.clusterStatDesc}
                             </span>
                         </div>
 
-                        <div className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition">
-                            <span className="text-sm font-bold text-white block mb-1">
+                        <div className="p-4 rounded-2xl bg-slate-950/70 hover:bg-slate-900/80 backdrop-blur-md border border-sky-400/30 transition shadow-lg shadow-black/25">
+                            <span className="text-sm font-extrabold text-white block mb-1 drop-shadow-sm flex items-center gap-1.5">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-teal-300" />
                                 {t.standardsStat}
                             </span>
-                            <span className="text-xs text-sky-200/70 leading-relaxed block font-light">
+                            <span className="text-xs text-slate-200 leading-relaxed block font-medium">
                                 {t.standardsStatDesc}
                             </span>
                         </div>
 
-                        <div className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition">
-                            <span className="text-sm font-bold text-white block mb-1">
+                        <div className="p-4 rounded-2xl bg-slate-950/70 hover:bg-slate-900/80 backdrop-blur-md border border-sky-400/30 transition shadow-lg shadow-black/25">
+                            <span className="text-sm font-extrabold text-white block mb-1 drop-shadow-sm flex items-center gap-1.5">
+                                <ShieldCheck className="w-3.5 h-3.5 text-sky-300" />
                                 {t.rbacStat}
                             </span>
-                            <span className="text-xs text-sky-200/70 leading-relaxed block font-light">
+                            <span className="text-xs text-slate-200 leading-relaxed block font-medium">
                                 {t.rbacStatDesc}
                             </span>
                         </div>
@@ -365,20 +379,24 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                 {/* RIGHT CARD: Colorlib Login-Page-04 Frosted Glass Sign-In     */}
                 {/* ------------------------------------------------------------ */}
                 <div className="lg:col-span-5">
-                    <div className="w-full bg-white/95 sm:bg-white/90 backdrop-blur-2xl rounded-3xl p-8 sm:p-10 shadow-[0_30px_70px_rgba(0,0,0,0.35)] border border-white/40 relative">
+                    <div className="w-full bg-white/95 sm:bg-white/92 backdrop-blur-2xl rounded-3xl p-8 sm:p-10 shadow-[0_30px_80px_rgba(0,0,0,0.5)] border border-white/60 relative">
                         
                         {/* Header of Form */}
                         <div className="flex items-start justify-between gap-3 mb-6">
                             <div>
-                                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-display">
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight font-display">
                                     {t.cardTitle}
                                 </h2>
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-slate-600 font-semibold mt-1">
                                     {t.cardSubtitle}
                                 </p>
                             </div>
-                            <div className="p-2.5 bg-gradient-to-br from-sky-500 to-teal-600 rounded-2xl shadow-md shadow-sky-500/25 flex-shrink-0">
-                                <Logo className="h-6 w-6 text-white" />
+                            {/* Water Ripple Logo Container */}
+                            <div className="relative flex items-center justify-center">
+                                <div className="absolute inset-0 rounded-2xl border-2 border-sky-400/50 animate-ripple-ring pointer-events-none" />
+                                <div className="p-2.5 bg-gradient-to-br from-sky-500 to-teal-600 rounded-2xl shadow-lg shadow-sky-500/30 flex-shrink-0 relative z-10">
+                                    <Logo className="h-6 w-6 text-white" />
+                                </div>
                             </div>
                         </div>
 
@@ -386,7 +404,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                         {error && (
                             <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2 animate-shake">
                                 <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-                                <span className="font-semibold leading-relaxed">{error}</span>
+                                <span className="font-bold leading-relaxed">{error}</span>
                             </div>
                         )}
 
@@ -394,7 +412,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                         <form onSubmit={handleSignInSubmit} className="space-y-4">
                             {/* Username or Email Input */}
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                                <label className="block text-xs font-black uppercase tracking-wider text-slate-800 mb-1.5">
                                     {t.usernameLabel}
                                 </label>
                                 <div className="relative">
@@ -409,7 +427,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                         placeholder={t.usernamePlaceholder}
                                         required
                                         autoComplete="username"
-                                        className="w-full pl-10 pr-4 py-3 bg-slate-50/80 hover:bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
+                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 hover:bg-white border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-sky-600 focus:ring-4 focus:ring-sky-500/20 outline-none transition shadow-sm"
                                     />
                                 </div>
                             </div>
@@ -417,15 +435,15 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                             {/* Password Input */}
                             <div>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    <label className="block text-xs font-black uppercase tracking-wider text-slate-800">
                                         {t.passwordLabel}
                                     </label>
                                     <button
                                         type="button"
                                         onClick={() => setPassword('password')}
-                                        className="text-[11px] text-slate-400 hover:text-sky-600 transition"
+                                        className="text-xs font-bold text-sky-700 hover:text-sky-800 transition"
                                     >
-                                        {t.defaultCredHint} <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-bold text-[10px]">password</code>
+                                        {t.defaultCredHint} <code className="font-mono bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-extrabold text-[11px]">password</code>
                                     </button>
                                 </div>
                                 <div className="relative">
@@ -440,12 +458,12 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                         placeholder={t.passwordPlaceholder}
                                         required
                                         autoComplete="current-password"
-                                        className="w-full pl-10 pr-10 py-3 bg-slate-50/80 hover:bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
+                                        className="w-full pl-10 pr-10 py-3 bg-slate-50 hover:bg-white border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-sky-600 focus:ring-4 focus:ring-sky-500/20 outline-none transition shadow-sm"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1 cursor-pointer"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition p-1 cursor-pointer"
                                         title={showPassword ? "Hide password" : "Show password"}
                                     >
                                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -453,7 +471,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                 </div>
 
                                 {capsLockActive && (
-                                    <div className="mt-1 flex items-center gap-1.5 text-[11px] text-amber-600 font-medium">
+                                    <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-700 font-bold">
                                         <span>⚠️</span>
                                         <span>{t.capsLockWarning}</span>
                                     </div>
@@ -461,20 +479,20 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                             </div>
 
                             {/* Remember Me & Forgot Password Row */}
-                            <div className="flex items-center justify-between text-xs text-slate-600 pt-1">
+                            <div className="flex items-center justify-between text-xs text-slate-700 pt-1">
                                 <label className="flex items-center gap-2 cursor-pointer select-none">
                                     <input
                                         type="checkbox"
                                         checked={rememberMe}
                                         onChange={(e) => setRememberMe(e.target.checked)}
-                                        className="rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                                        className="rounded border-slate-300 text-sky-600 focus:ring-sky-500 w-4 h-4"
                                     />
-                                    <span className="text-xs font-medium text-slate-700">{t.rememberMe}</span>
+                                    <span className="text-xs font-bold text-slate-800">{t.rememberMe}</span>
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setShowForgotModal(true)}
-                                    className="text-xs font-semibold text-sky-600 hover:text-sky-700 hover:underline transition"
+                                    className="text-xs font-extrabold text-sky-700 hover:text-sky-900 hover:underline transition"
                                 >
                                     {t.forgotPassword}
                                 </button>
@@ -484,7 +502,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-3.5 px-4 bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-sky-600/30 transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2"
+                                className="w-full py-3.5 px-4 bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white rounded-xl text-sm font-extrabold tracking-wide shadow-xl shadow-sky-600/35 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2"
                             >
                                 {isLoading ? (
                                     <>
@@ -505,28 +523,28 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                             <button
                                 type="button"
                                 onClick={() => setShowPersonaMenu(!showPersonaMenu)}
-                                className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center justify-between"
+                                className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/90 text-slate-800 font-extrabold text-xs border border-slate-200/80 transition flex items-center justify-between shadow-sm"
                             >
                                 <span className="flex items-center gap-1.5">
-                                    <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                                    <Sparkles className="w-4 h-4 text-sky-600" />
                                     <span>{t.quickPersonaButton}</span>
                                 </span>
-                                <span className="text-[10px] text-slate-500">{showPersonaMenu ? '▲ Hide' : '▼ Show'}</span>
+                                <span className="text-xs font-bold text-slate-600">{showPersonaMenu ? '▲ Hide' : '▼ Show'}</span>
                             </button>
 
                             {showPersonaMenu && (
-                                <div className="mt-3 p-2 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-1.5 animate-fade-in">
+                                <div className="mt-3 p-2.5 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-2 animate-fade-in shadow-inner">
                                     {SAMPLE_PERSONAS.map((p) => (
                                         <button
                                             key={p.username}
                                             type="button"
                                             onClick={() => selectPersona(p.username)}
-                                            className="text-left p-2 rounded-xl bg-white hover:bg-sky-50 border border-slate-200/80 hover:border-sky-300 transition text-xs"
+                                            className="text-left p-2.5 rounded-xl bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-400 transition text-xs shadow-sm"
                                         >
-                                            <div className="font-bold text-slate-800 truncate text-[11px]">
+                                            <div className="font-extrabold text-slate-900 truncate text-xs">
                                                 {p.name}
                                             </div>
-                                            <div className="text-[10px] text-slate-500 truncate">
+                                            <div className="text-[11px] font-semibold text-sky-700 truncate mt-0.5">
                                                 {p.role}
                                             </div>
                                         </button>
@@ -536,8 +554,8 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                         </div>
 
                         {/* Security Notice */}
-                        <div className="mt-4 pt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        <div className="mt-4 pt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500 font-semibold text-center">
+                            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                             <span>{t.authorizedNotice}</span>
                         </div>
                     </div>
@@ -545,7 +563,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
             </main>
 
             {/* Bottom Footer */}
-            <footer className="absolute bottom-3 left-0 right-0 text-center text-xs text-sky-200/50 z-10 px-4">
+            <footer className="absolute bottom-3 left-0 right-0 text-center text-xs text-sky-100/70 font-semibold z-10 px-4 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                 © {new Date().getFullYear()} Oromia Water Bureau (OWEB). All rights reserved. &bull; Sustainable Water Services for Every Community
             </footer>
 
