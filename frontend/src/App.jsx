@@ -441,7 +441,9 @@ const App = () => {
                     feasibilityStudyDate: p.feasibility_study_date || p.feasibilityStudyDate,
                     eiaConducted: p.eia_conducted !== undefined ? p.eia_conducted : p.eiaConducted,
                     eiaConsultant: p.eia_consultant || p.eiaConsultant,
+                    eiaApprovalAuthority: p.eia_approval_authority || p.eiaApprovalAuthority || '',
                     eiaApprovalDate: p.eia_approval_date || p.eiaApprovalDate,
+                    eiaRiskRating: p.eia_risk_rating || p.eiaRiskRating || 'Low',
                     plannedStartDate: p.planned_start_date || p.plannedStartDate,
                     plannedCompletionDate: p.planned_completion_date || p.plannedCompletionDate,
                     actualStartDate: p.actual_start_date || p.actualStartDate,
@@ -453,6 +455,16 @@ const App = () => {
                     assignedTeamLeaderId: p.assigned_team_leader_id || p.assignedTeamLeaderId,
                     assignedTeam: p.assigned_team || p.assignedTeam,
                     partnerOrganization: p.partner_organization || p.partnerOrganization,
+                    summary: p.summary || '',
+                    aiRiskAssessment: p.ai_risk_assessment || p.aiRiskAssessment || { level: 'Unknown', keyRisks: [], mitigationStrategies: [] },
+                    reviewComments: p.review_comments || p.reviewComments || '',
+                    reviewedBy: p.reviewed_by || p.reviewedBy || '',
+                    reviewDate: p.review_date || p.reviewDate || '',
+                    reviewScore: p.review_score !== undefined && p.review_score !== null ? Number(p.review_score) : p.reviewScore,
+                    appraisalVerdict: p.appraisal_verdict || p.appraisalVerdict || '',
+                    approvalCertificateNo: p.approval_certificate_no || p.approvalCertificateNo || '',
+                    revisionPoints: p.revision_points || p.revisionPoints || [],
+                    reviewChecklist: p.review_checklist || p.reviewChecklist || {},
                 })));
             }
             // Fetch programs
@@ -982,7 +994,13 @@ const App = () => {
                 uploadDate: new Date().toISOString()
             });
         }
-        setProjects(prevProjects => [...prevProjects, project]);
+        setProjects(prevProjects => {
+            const exists = prevProjects.some(p => p.id === project.id);
+            if (exists) {
+                return prevProjects.map(p => p.id === project.id ? { ...p, ...project } : p);
+            }
+            return [...prevProjects, project];
+        });
         logActivity('Created Project', { targetType: 'Project', targetId: project.id, details: `Status: ${project.status}` });
         // Asynchronously persist to Django REST API & PostgreSQL
         apiClient.createProject({
@@ -1007,8 +1025,29 @@ const App = () => {
             storage_requirement: project.storageRequirement || 0,
             pipe_length_estimation: project.pipeLengthEstimation || 0,
             implementing_body: project.implementingBody,
+            washco_exists: project.washcoExists !== undefined ? project.washcoExists : (project.washco_exists || false),
+            washco_details: project.washcoDetails || project.washco_details || '',
+            land_ownership_cleared: project.landOwnershipCleared !== undefined ? project.landOwnershipCleared : (project.land_ownership_cleared || false),
+            land_ownership_comment: project.landOwnershipComment || project.land_ownership_comment || '',
             estimated_budget: project.estimatedBudget,
+            phase_costs: project.phaseCosts || project.phase_costs || [],
             funding_source: project.fundingSource,
+            community_contribution: project.communityContribution || project.community_contribution || '',
+            environmental_risk_level: project.environmentalRiskLevel || project.environmental_risk_level || 'Low',
+            source_reliability: project.sourceReliability || project.source_reliability || 'Reliable',
+            feasibility_study_conducted: project.feasibilityStudyConducted || false,
+            eia_conducted: project.eiaConducted || false,
+            eia_approval_authority: project.eiaApprovalAuthority || '',
+            eia_risk_rating: project.eiaRiskRating || 'Low',
+            planned_start_date: project.plannedStartDate ? project.plannedStartDate.split('T')[0] : null,
+            planned_completion_date: project.plannedCompletionDate ? project.plannedCompletionDate.split('T')[0] : null,
+            assigned_engineer_id: project.assignedEngineerId || '',
+            assigned_engineer_name: project.assignedEngineerName || '',
+            assigned_supervisor_id: project.assignedSupervisorId || '',
+            assigned_supervisor_name: project.assignedSupervisorName || '',
+            assigned_team: project.assignedTeam || '',
+            summary: project.summary || project.donorJustification || '',
+            ai_risk_assessment: project.aiRiskAssessment || {},
             status: project.status,
             creator: project.creator
         }).then(() => {
@@ -1038,7 +1077,7 @@ const App = () => {
                 sendAppNotification({ role: Role.PROCUREMENT }, `Project "${updatedProject.name}" has been approved and is ready for procurement.`, NotificationType.INFO, { moduleId: 'procurement', itemId: updatedProject.id });
             }
         }
-        setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
+        setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? { ...p, ...updatedProject } : p));
         apiClient.updateProject(updatedProject.id, {
             name: updatedProject.name,
             project_code: updatedProject.projectCode,
@@ -1052,11 +1091,21 @@ const App = () => {
             assigned_engineer_id: updatedProject.assignedEngineerId,
             assigned_supervisor_id: updatedProject.assignedSupervisorId,
             assigned_team: updatedProject.assignedTeam,
-            planned_start_date: updatedProject.plannedStartDate,
-            planned_completion_date: updatedProject.plannedCompletionDate,
-            actual_start_date: updatedProject.actualStartDate,
-            actual_completion_date: updatedProject.actualCompletionDate,
+            planned_start_date: updatedProject.plannedStartDate ? updatedProject.plannedStartDate.split('T')[0] : null,
+            planned_completion_date: updatedProject.plannedCompletionDate ? updatedProject.plannedCompletionDate.split('T')[0] : null,
+            actual_start_date: updatedProject.actualStartDate ? updatedProject.actualStartDate.split('T')[0] : null,
+            actual_completion_date: updatedProject.actualCompletionDate ? updatedProject.actualCompletionDate.split('T')[0] : null,
             phase_costs: updatedProject.phaseCosts,
+            review_comments: updatedProject.reviewComments || updatedProject.review_comments,
+            reviewed_by: updatedProject.reviewedBy || updatedProject.reviewed_by,
+            review_date: updatedProject.reviewDate ? updatedProject.reviewDate.split('T')[0] : null,
+            review_score: updatedProject.reviewScore !== undefined && updatedProject.reviewScore !== null ? Number(updatedProject.reviewScore) : undefined,
+            appraisal_verdict: updatedProject.appraisalVerdict || updatedProject.appraisal_verdict,
+            approval_certificate_no: updatedProject.approvalCertificateNo || updatedProject.approval_certificate_no,
+            revision_points: updatedProject.revisionPoints || updatedProject.revision_points,
+            review_checklist: updatedProject.reviewChecklist || updatedProject.review_checklist,
+            ai_risk_assessment: updatedProject.aiRiskAssessment || updatedProject.ai_risk_assessment,
+            summary: updatedProject.summary,
         }).then(() => {
             setToastMessage(`Project "${updatedProject.name}" updated successfully.`);
         }).catch(err => {
@@ -1534,7 +1583,7 @@ const App = () => {
             gisMap: (ROLE_PERMISSIONS.canViewGisMap || ROLE_PERMISSIONS.canViewDashboard).includes(authenticatedUser.role) ? <GeographicMapModule projects={accessibleProjects} user={authenticatedUser} inspections={accessibleInspections} onNavigate={handleNavigate}/> : null,
             inspection: (ROLE_PERMISSIONS.canViewInspection || Object.values(Role)).includes(authenticatedUser.role) ? (<FieldInspectionModule projects={accessibleProjects} user={authenticatedUser} inspections={accessibleInspections} onAddInspection={handleAddInspection} onUpdateInspection={handleUpdateInspection} onNavigate={handleNavigate} weeklyPlans={accessibleWeeklyPlans} weeklyReports={accessibleWeeklyReports} onAddWeeklyPlan={handleAddWeeklyPlan} onUpdateWeeklyPlan={handleUpdateWeeklyPlan} onAddWeeklyReport={handleAddWeeklyReport} onUpdateWeeklyReport={handleUpdateWeeklyReport}/>) : null,
             planning: ROLE_PERMISSIONS.canViewPlanning.includes(authenticatedUser.role) ? <PlanningModule onAddProject={handleAddProject} user={authenticatedUser} masterData={masterData} projects={accessibleProjects} contracts={accessibleContracts} procurements={accessibleProcurements} users={users}/> : null,
-            review: ROLE_PERMISSIONS.canViewReview.includes(authenticatedUser.role) ? <ReviewModule projects={accessibleProjects} documents={accessibleDocuments} onUpdateProject={handleUpdateProject} currentUser={authenticatedUser}/> : null,
+            review: ROLE_PERMISSIONS.canViewReview.includes(authenticatedUser.role) ? <ReviewModule projects={accessibleProjects} documents={accessibleDocuments} onUpdateProject={handleUpdateProject} currentUser={authenticatedUser} onNavigate={handleNavigate} onAddProcurement={handleAddProcurement}/> : null,
             procurement: ROLE_PERMISSIONS.canViewProcurement.includes(authenticatedUser.role) ? (<ProcurementModule projects={accessibleProjects.filter(p => p.status === ProjectStatus.APPROVED)} allProjects={accessibleProjects} procurements={accessibleProcurements} contracts={accessibleContracts} users={users} onAddProcurement={handleAddProcurement} onUpdateProcurement={handleUpdateProcurement} onAddContract={handleAddContract} onNavigate={handleNavigate} currentUser={authenticatedUser}/>) : null,
             contract: ROLE_PERMISSIONS.canViewContract.includes(authenticatedUser.role) ? <ContractModule procurements={accessibleProcurements.filter(p => p.awardedBidderId)} onAddContract={handleAddContract} onUpdateContract={handleUpdateContract} users={users} contractToEdit={selectedContract} documents={accessibleDocuments} projects={accessibleProjects} contracts={accessibleContracts}/> : null,
             performance: (ROLE_PERMISSIONS.canViewPerformance || Object.values(Role)).includes(authenticatedUser.role) ? (<PerformanceDashboard projects={accessibleProjects} contracts={accessibleContracts} procurements={accessibleProcurements} user={authenticatedUser} onNavigate={handleNavigate} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans}/>) : null,

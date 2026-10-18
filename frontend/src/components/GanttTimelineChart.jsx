@@ -350,6 +350,43 @@ export const GanttTimelineChart = ({ projects = [], contracts = [], procurements
                 current.setMonth(current.getMonth() + 3);
             }
         }
+        else if (timeScale === 'efy') {
+            // Ethiopian Fiscal Year quarters (Q1: Jul-Sep, Q2: Oct-Dec, Q3: Jan-Mar, Q4: Apr-Jun)
+            while (current <= maxDate) {
+                const year = current.getFullYear();
+                const m = current.getMonth();
+                let efyYear, efyQuarter, startMonth;
+                if (m >= 6 && m <= 8) {
+                    efyYear = year - 7;
+                    efyQuarter = 1;
+                    startMonth = 6;
+                } else if (m >= 9 && m <= 11) {
+                    efyYear = year - 7;
+                    efyQuarter = 2;
+                    startMonth = 9;
+                } else if (m >= 0 && m <= 2) {
+                    efyYear = year - 8;
+                    efyQuarter = 3;
+                    startMonth = 0;
+                } else {
+                    efyYear = year - 8;
+                    efyQuarter = 4;
+                    startMonth = 3;
+                }
+                const start = new Date(year, startMonth, 1);
+                const end = new Date(year, startMonth + 3, 0);
+                const colDays = Math.round((Math.min(end.getTime(), maxDate.getTime()) - Math.max(start.getTime(), minDate.getTime())) / (1000 * 60 * 60 * 24));
+                const widthPercent = (colDays / totalTimelineDays) * 100;
+                columns.push({
+                    label: `EFY Q${efyQuarter}`,
+                    subLabel: `${efyYear} EFY`,
+                    startDate: start,
+                    endDate: end,
+                    widthPercent
+                });
+                current.setMonth(current.getMonth() + 3);
+            }
+        }
         else if (timeScale === 'week') {
             while (current <= maxDate) {
                 const start = new Date(current);
@@ -612,6 +649,9 @@ export const GanttTimelineChart = ({ projects = [], contracts = [], procurements
 
                         {/* Time Scale Zoom Controls */}
                         <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+                            <button onClick={() => setTimeScale('efy')} className={`px-2.5 py-1 rounded-md transition-colors ${timeScale === 'efy' ? 'bg-cyan-700 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'}`} title="Ethiopian Fiscal Year Quarters (Hamle - Sene)">
+                                🇪🇹 EFY
+                            </button>
                             <button onClick={() => setTimeScale('quarter')} className={`px-2.5 py-1 rounded-md transition-colors ${timeScale === 'quarter' ? 'bg-white text-primary-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>
                                 Quarterly
                             </button>

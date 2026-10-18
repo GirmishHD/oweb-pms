@@ -79,13 +79,39 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project = self.get_object()
         verdict = request.data.get('verdict', 'Approved')
         comments = request.data.get('comments', '')
-        score = request.data.get('score', 85)
+        score = request.data.get('score') or request.data.get('review_score', 85)
         
-        project.status = 'Approved' if verdict == 'Approved' else 'Rejected'
+        status_val = request.data.get('status')
+        if not status_val:
+            if verdict in ['Approved', 'Conditional']:
+                status_val = 'Approved'
+            elif verdict in ['Revision Requested', 'Under Review']:
+                status_val = 'Under Review'
+            else:
+                status_val = 'Rejected'
+        
+        project.status = status_val
         project.appraisal_verdict = verdict
         project.review_comments = comments
         project.review_score = score
-        project.reviewed_by = request.user.username
+        project.reviewed_by = request.data.get('reviewed_by') or request.user.username
+        
+        if request.data.get('approval_certificate_no'):
+            project.approval_certificate_no = request.data.get('approval_certificate_no')
+        if request.data.get('revision_points') is not None:
+            project.revision_points = request.data.get('revision_points')
+        if request.data.get('review_checklist') is not None:
+            project.review_checklist = request.data.get('review_checklist')
+        if request.data.get('ai_risk_assessment') is not None:
+            project.ai_risk_assessment = request.data.get('ai_risk_assessment')
+            
+        from django.utils import timezone
+        review_date_input = request.data.get('review_date')
+        if review_date_input:
+            project.review_date = str(review_date_input).split('T')[0]
+        else:
+            project.review_date = timezone.now().date()
+            
         project.save()
         
         ActivityLog.objects.create(
@@ -93,6 +119,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             action=f"Reviewed Project ({verdict})",
             target_type='Project',
             target_id=project.project_id,
-            details=f"Project verdict: {verdict}. Score: {score}. Remarks: {comments[:100]}"
+            details=f"Project verdict: {verdict}. Score: {score}. Status: {status_val}. Remarks: {comments[:100]}"
         )
         return Response({'status': f"Project marked as {verdict}", 'project': ProjectSerializer(project).data})
+

@@ -217,6 +217,17 @@ class ApiClient {
             body: projectData
         });
     }
+    async reviewProject(id, reviewData) {
+        return await this.request(`/projects/schemes/${id}/review/`, {
+            method: 'POST',
+            body: reviewData
+        });
+    }
+    async submitProject(id) {
+        return await this.request(`/projects/schemes/${id}/submit/`, {
+            method: 'POST'
+        });
+    }
     async deleteProject(id) {
         return await this.request(`/projects/schemes/${id}/`, {
             method: 'DELETE'

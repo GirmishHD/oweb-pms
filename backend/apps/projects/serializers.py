@@ -14,4 +14,10 @@ class ProjectSerializer(serializers.ModelSerializer):
             'implementing_body': {'required': False, 'allow_blank': True},
             'funding_source': {'required': False, 'allow_blank': True},
             'gps_coordinates': {'required': False},
+            'review_comments': {'required': False, 'allow_blank': True},
+            'reviewed_by': {'required': False, 'allow_blank': True},
+            'appraisal_verdict': {'required': False, 'allow_blank': True},
+            'approval_certificate_no': {'required': False, 'allow_blank': True},
+            'summary': {'required': False, 'allow_blank': True},
         }
+

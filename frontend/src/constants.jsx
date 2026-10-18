@@ -379,13 +379,13 @@ export const ENGINEERING_TEAMS = [
     'Community Engagement & WASHCO Support'
 ];
 export const PLANNING_STEPS = [
-    { id: 'general', name: 'General Information', description: 'Identification, program, and classification.' },
-    { id: 'location', name: 'Location & Sizing', description: 'Administrative hierarchy & technical sizing.' },
-    { id: 'readiness', name: 'Institutional Readiness', description: 'Governance, WASHCO & assigned staff.' },
-    { id: 'financial', name: 'Cost & Financing', description: 'Budget, funding partner & contributions.' },
-    { id: 'feasibility', name: 'Feasibility & EIA', description: 'Technical studies & environmental clearances.' },
-    { id: 'risk', name: 'AI Risk Assessment', description: 'Automated vulnerability profiling.' },
-    { id: 'summary', name: 'Summary & Submission', description: 'Executive summary & proposal submission.' },
+    { id: 'general', name: 'General & Program Alignment', description: 'Identification, program component & code generation.' },
+    { id: 'geographic', name: 'Geographic & Hydrogeology', description: 'Administrative hierarchy, GPS, water source & pumping.' },
+    { id: 'engineering', name: 'Engineering Sizing & Demand', description: 'Human & livestock population, daily demand & reservoir.' },
+    { id: 'boq', name: 'BoQ & Budget Breakdown', description: 'Itemized capital expenditure & donor financing ratio.' },
+    { id: 'safeguards', name: 'Environmental & Social Safeguards', description: 'EIA clearances, water quality baseline & WASHCO parity.' },
+    { id: 'wbs', name: 'WBS & Milestone Schedule', description: 'Target milestone dates, procurement start & phase gates.' },
+    { id: 'ai_evaluation', name: 'AI Feasibility & Justification', description: 'Gemini feasibility audit, benchmarks & executive narrative.' },
 ];
 export const OROMIA_HIERARCHY = {
     'Arsi': ['Amigna', 'Aseko', 'Asella town', 'Bale', 'Bekoji town', 'Boku', 'Chilalo', 'Cholé', 'Digeluna Tijo', 'Dodota', 'Enkelo Wabe', 'Gedeb Asasa', 'Guna', 'Hitosa', 'Jeju', 'Limu Bilbilo', 'Lude Hitosa', 'Merti', 'Munessa', 'Robe', 'Seru', 'Shirka', 'Siltʼe', 'Sire', 'Sude', 'Tena', 'Tiyo', 'Ziway Dugda'],
