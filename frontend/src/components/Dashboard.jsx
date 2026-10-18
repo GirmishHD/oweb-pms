@@ -493,62 +493,62 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
 
             {/* Site Operations, QA/QC & Weekly Plans Executive Hub */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-2xl border border-sky-100 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
+                <div className="bg-white p-4 rounded-2xl border border-[#DCE7ED] shadow-xs hover:shadow-sm transition-all flex items-center justify-between">
                     <div className="flex items-center space-x-3 min-w-0">
-                        <div className="p-3 rounded-xl bg-sky-50 text-sky-600 flex-shrink-0 text-base">
+                        <div className="p-3 rounded-xl bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2] flex-shrink-0 text-base">
                             🛡️
                         </div>
                         <div className="min-w-0">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 truncate block">QA/QC Inspections</span>
-                            <span className="text-xl font-black text-slate-900">{safeInspections.length} Logged</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#607585] truncate block">QA/QC Inspections</span>
+                            <span className="text-xl font-black text-[#0B3D5C]">{safeInspections.length} Logged</span>
                         </div>
                     </div>
-                    <button type="button" onClick={() => onNavigate && onNavigate('reporting')} className="text-xs font-bold text-sky-600 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
+                    <button type="button" onClick={() => onNavigate && onNavigate('reporting')} className="text-xs font-bold text-[#087EAD] hover:text-[#0B3D5C] bg-[#E7F6FB] hover:bg-[#D0EDF8] px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-[#BCE3F2]">
                         View →
                     </button>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
+                <div className="bg-white p-4 rounded-2xl border border-[#DCE7ED] shadow-xs hover:shadow-sm transition-all flex items-center justify-between">
                     <div className="flex items-center space-x-3 min-w-0">
-                        <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 flex-shrink-0 text-base">
+                        <div className="p-3 rounded-xl bg-[#EDFAF4] text-[#0E9F6E] border border-[#BCF0DA] flex-shrink-0 text-base">
                             💧
                         </div>
                         <div className="min-w-0">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 truncate block">Water Quality Compliance</span>
-                            <span className="text-xl font-black text-emerald-600">{waterComplianceRate}% Safe</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#607585] truncate block">Water Quality Compliance</span>
+                            <span className="text-xl font-black text-[#0E9F6E]">{waterComplianceRate}% Safe</span>
                         </div>
                     </div>
-                    <span className="text-xs font-bold text-emerald-700">
-                        WHO · CES
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#EDFAF4] text-[#03543F] border border-[#BCF0DA]">
+                        WHO · CES 58
                     </span>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-indigo-100 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
+                <div className="bg-white p-4 rounded-2xl border border-[#DCE7ED] shadow-xs hover:shadow-sm transition-all flex items-center justify-between">
                     <div className="flex items-center space-x-3 min-w-0">
-                        <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600 flex-shrink-0 text-base">
+                        <div className="p-3 rounded-xl bg-[#E8F9FA] text-[#20B8C4] border border-[#A6EBF0] flex-shrink-0 text-base">
                             📋
                         </div>
                         <div className="min-w-0">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 truncate block">Weekly Work Plans</span>
-                            <span className="text-xl font-black text-slate-900">{safeWeeklyPlans.length} Active</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#607585] truncate block">Weekly Work Plans</span>
+                            <span className="text-xl font-black text-[#0B3D5C]">{safeWeeklyPlans.length} Active</span>
                         </div>
                     </div>
-                    <button type="button" onClick={() => onNavigate && onNavigate('performance')} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
+                    <button type="button" onClick={() => onNavigate && onNavigate('performance')} className="text-xs font-bold text-[#087EAD] hover:text-[#0B3D5C] bg-[#E7F6FB] hover:bg-[#D0EDF8] px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-[#BCE3F2]">
                         S-Curve →
                     </button>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
+                <div className="bg-white p-4 rounded-2xl border border-[#DCE7ED] shadow-xs hover:shadow-sm transition-all flex items-center justify-between">
                     <div className="flex items-center space-x-3 min-w-0">
-                        <div className="p-3 rounded-xl bg-amber-50 text-amber-600 flex-shrink-0 text-base">
+                        <div className="p-3 rounded-xl bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A] flex-shrink-0 text-base">
                             ⚠️
                         </div>
                         <div className="min-w-0">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 truncate block">Open Punch List Defects</span>
-                            <span className="text-xl font-black text-amber-700">{openDefectsCount} Pending</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#607585] truncate block">Punch List Defects</span>
+                            <span className="text-xl font-black text-[#D97706]">{openDefectsCount} Pending</span>
                         </div>
                     </div>
-                    <span className={`text-xs font-bold ${openDefectsCount > 0 ? 'text-amber-700' : 'text-slate-500'}`}>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${openDefectsCount > 0 ? 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]' : 'bg-[#EDFAF4] text-[#03543F] border-[#BCF0DA]'}`}>
                         {openDefectsCount > 0 ? 'Action Required' : 'All Clear'}
                     </span>
                 </div>

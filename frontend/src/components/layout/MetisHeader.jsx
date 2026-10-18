@@ -99,6 +99,15 @@ export const MetisHeader = ({
           />
           <kbd className="metis-search-shortcut">Ctrl+K</kbd>
         </div>
+
+        {/* Live Cluster SCADA Telemetry Pill */}
+        <div className="d-none d-xl-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill text-xs font-semibold" style={{ backgroundColor: '#E7F6FB', border: '1px solid #BCE3F2', color: '#0B3D5C' }}>
+          <span className="position-relative d-inline-flex" style={{ width: '8px', height: '8px' }}>
+            <span className="position-absolute w-100 h-100 rounded-circle animate-ping" style={{ backgroundColor: '#20B8C4', opacity: 0.75 }}></span>
+            <span className="position-relative rounded-circle w-100 h-100" style={{ backgroundColor: '#087EAD' }}></span>
+          </span>
+          <span style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.04em' }}>SCADA TELEMETRY: 6 CLUSTERS ONLINE</span>
+        </div>
       </div>
 
       {/* Right: Actions, Notifications, Role Switcher & User Profile */}
