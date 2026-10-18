@@ -51,7 +51,6 @@ export const NAVIGATION_ITEMS = [
     { id: 'ngos', label: 'NGOs & Partners', icon: ICONS.building },
     { id: 'staff', label: 'Staff Management', icon: ICONS.userCheck },
     { id: 'gisMap', label: 'GIS & Regional Map', icon: ICONS.gisMap },
-    { id: 'inspection', label: 'QA/QC & Field Logs', icon: ICONS.inspection },
     { id: 'planning', label: 'Planning', icon: ICONS.planning },
     { id: 'review', label: 'Review & Approvals', icon: ICONS.review },
     { id: 'procurement', label: 'Procurement & Tenders', icon: ICONS.procurement },

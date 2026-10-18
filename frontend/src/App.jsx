@@ -12,7 +12,6 @@ import ReviewModule from './components/ReviewModule';
 import ProcurementModule from './components/ProcurementModule';
 import ContractModule from './components/ContractModule';
 import GeographicMapModule from './components/GeographicMapModule';
-import FieldInspectionModule from './components/FieldInspectionModule';
 import PerformanceDashboard from './components/PerformanceDashboard';
 import UserManagementModule from './components/UserManagementModule';
 import { NgoManagementModule } from './components/NgoManagementModule';
@@ -42,7 +41,7 @@ const initialProcurements = [];
 const initialContracts = [];
 const initialNotifications = [];
 const VALID_MODULES = [
-    'dashboard', 'ngos', 'staff', 'gisMap', 'inspection',
+    'dashboard', 'ngos', 'staff', 'gisMap',
     'planning', 'review', 'procurement', 'contract', 'performance',
     'documents', 'reporting', 'usermanagement', 'masterdata', 'training'
 ];
@@ -65,7 +64,6 @@ export const getModuleTitle = (mod) => {
         case 'review': return 'Technical Review & EIA Compliance';
         case 'procurement': return 'Procurement & Tenders';
         case 'gisMap': return 'GIS & Regional Asset Map';
-        case 'inspection': return 'QA/QC & Field Inspection Logbooks';
         case 'performance': return 'Performance & Overruns Dashboard';
         case 'documents': return 'Document Repository & Vault';
         case 'reporting': return 'Executive Reports & Analytics';
@@ -85,7 +83,6 @@ export const getModuleSubtitle = (mod) => {
         case 'review': return 'Zonal engineering appraisal, technical scoring, and executive approval workflow';
         case 'procurement': return 'Tender packages, competitive bidding stages, evaluation committees, and award notices';
         case 'gisMap': return 'Spatial GIS distribution, GPS coordinates, and water quality telemetry across 21 zones';
-        case 'inspection': return 'QA/QC & Field Inspection Logbooks, water quality compliance, and defect tracking';
         case 'performance': return 'Earned Value Management (EVM), Cost Performance Index (CPI), and Schedule Variance (SV)';
         case 'documents': return 'Central cryptographic project document vault, technical drawings, and legal deeds';
         case 'reporting': return 'Executive analytical summaries, regional disaggregations, and database backups';
@@ -816,9 +813,6 @@ const App = () => {
             if (item.id === 'gisMap') {
                 return (ROLE_PERMISSIONS.canViewGisMap || ROLE_PERMISSIONS.canViewDashboard)?.includes(authenticatedUser.role);
             }
-            if (item.id === 'inspection') {
-                return (ROLE_PERMISSIONS.canViewInspection || Object.values(Role))?.includes(authenticatedUser.role);
-            }
             if (item.id === 'performance') {
                 return (ROLE_PERMISSIONS.canViewPerformance || Object.values(Role))?.includes(authenticatedUser.role);
             }
@@ -840,7 +834,6 @@ const App = () => {
             const actualExp = Math.max(contractExp, phaseExp);
             return revisedBudget > 0 && actualExp > revisedBudget * 1.10;
         }).length;
-        const siteItems = (fieldInspections?.length || 0) + (weeklyPlans?.length || 0);
         const activeNgos = ngosList.filter(n => n.status === 'Active').length;
         const activeStaff = staffList.filter(s => s.status === 'Active').length;
         return {
@@ -851,9 +844,8 @@ const App = () => {
             procurement: activeTenders > 0 ? { label: `${activeTenders}`, color: 'bg-sky-500 text-white' } : undefined,
             contract: activeContracts > 0 ? { label: `${activeContracts}`, color: 'bg-emerald-500 text-white' } : undefined,
             performance: criticalOverruns > 0 ? { label: `! ${criticalOverruns}`, color: 'bg-rose-500 text-white animate-pulse' } : undefined,
-            inspection: siteItems > 0 ? { label: `${siteItems}`, color: 'bg-indigo-500 text-white' } : undefined,
         };
-    }, [projects, procurements, contracts, fieldInspections, weeklyPlans, ngosList, staffList]);
+    }, [projects, procurements, contracts, ngosList, staffList]);
     // Navigation item groups for professional taxonomy
     const navGroups = useMemo(() => [
         {
@@ -862,7 +854,7 @@ const App = () => {
         },
         {
             title: 'Execution & Quality',
-            items: visibleNavigationItems.filter(item => ['review', 'procurement', 'contract', 'inspection'].includes(item.id))
+            items: visibleNavigationItems.filter(item => ['review', 'procurement', 'contract'].includes(item.id))
         },
         {
             title: 'Governance & Analytics',
@@ -1572,7 +1564,6 @@ const App = () => {
                     handleNavigate('planning', p.id);
                 }}/>) : null,
             gisMap: (ROLE_PERMISSIONS.canViewGisMap || ROLE_PERMISSIONS.canViewDashboard).includes(authenticatedUser.role) ? <GeographicMapModule projects={accessibleProjects} user={authenticatedUser} inspections={accessibleInspections} onNavigate={handleNavigate}/> : null,
-            inspection: (ROLE_PERMISSIONS.canViewInspection || Object.values(Role)).includes(authenticatedUser.role) ? (<FieldInspectionModule projects={accessibleProjects} user={authenticatedUser} inspections={accessibleInspections} onAddInspection={handleAddInspection} onUpdateInspection={handleUpdateInspection} onNavigate={handleNavigate} weeklyPlans={accessibleWeeklyPlans} weeklyReports={accessibleWeeklyReports} onAddWeeklyPlan={handleAddWeeklyPlan} onUpdateWeeklyPlan={handleUpdateWeeklyPlan} onAddWeeklyReport={handleAddWeeklyReport} onUpdateWeeklyReport={handleUpdateWeeklyReport} masterData={masterData}/>) : null,
             planning: ROLE_PERMISSIONS.canViewPlanning.includes(authenticatedUser.role) ? <PlanningModule onAddProject={handleAddProject} user={authenticatedUser} masterData={masterData} projects={accessibleProjects} contracts={accessibleContracts} procurements={accessibleProcurements} users={users}/> : null,
             review: ROLE_PERMISSIONS.canViewReview.includes(authenticatedUser.role) ? <ReviewModule projects={accessibleProjects} documents={accessibleDocuments} onUpdateProject={handleUpdateProject} currentUser={authenticatedUser} onNavigate={handleNavigate} onAddProcurement={handleAddProcurement} masterData={masterData}/> : null,
             procurement: ROLE_PERMISSIONS.canViewProcurement.includes(authenticatedUser.role) ? (<ProcurementModule projects={accessibleProjects.filter(p => p.status === ProjectStatus.APPROVED)} allProjects={accessibleProjects} procurements={accessibleProcurements} contracts={accessibleContracts} users={users} onAddProcurement={handleAddProcurement} onUpdateProcurement={handleUpdateProcurement} onAddContract={handleAddContract} onNavigate={handleNavigate} currentUser={authenticatedUser} masterData={masterData}/>) : null,

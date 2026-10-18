@@ -470,11 +470,6 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                         <span>GIS Regional Map</span>
                     </button>
 
-                    <button onClick={() => onNavigate && onNavigate('inspection')} className="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
-                        <span>{ICONS.inspection}</span>
-                        <span>Field QA/QC</span>
-                    </button>
-
                     <button onClick={() => setViewMode('gantt')} className="px-3.5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                         <span>Gantt Chart</span>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -496,7 +491,7 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                             <span className="text-xl font-black text-slate-900">{safeInspections.length} Logged</span>
                         </div>
                     </div>
-                    <button type="button" onClick={() => onNavigate && onNavigate('inspection')} className="text-xs font-bold text-sky-600 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
+                    <button type="button" onClick={() => onNavigate && onNavigate('reporting')} className="text-xs font-bold text-sky-600 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
                         View →
                     </button>
                 </div>
@@ -526,7 +521,7 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                             <span className="text-xl font-black text-slate-900">{safeWeeklyPlans.length} Active</span>
                         </div>
                     </div>
-                    <button type="button" onClick={() => onNavigate && onNavigate('inspection')} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
+                    <button type="button" onClick={() => onNavigate && onNavigate('performance')} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
                         S-Curve →
                     </button>
                 </div>
@@ -713,9 +708,9 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                     </div>
 
                     <div className="flex items-center gap-2.5 flex-wrap">
-                        <button onClick={() => onNavigate && onNavigate('inspection')} className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
-                            <span>{ICONS.inspection}</span>
-                            <span>Review Inspections ({pendingInspections.length})</span>
+                        <button onClick={() => onNavigate && onNavigate('performance')} className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                            <span>{ICONS.performance}</span>
+                            <span>Review Site Plans ({pendingWeeklyPlans.length})</span>
                         </button>
                         <button onClick={() => onNavigate && onNavigate('gisMap')} className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-200 border border-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer">
                             <span>{ICONS.gisMap}</span>
@@ -744,21 +739,12 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                                 <span>Supervisor Approval Queue</span>
                             </h3>
                             <div className="space-y-2.5 text-xs">
-                                <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 flex items-center justify-between">
-                                    <div>
-                                        <p className="font-bold text-amber-900">{pendingInspections.length} QA/QC Logbooks</p>
-                                        <p className="text-[11px] text-amber-700">Awaiting technical supervisor verification</p>
-                                    </div>
-                                    <button onClick={() => onNavigate('inspection')} className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px]">
-                                        Verify
-                                    </button>
-                                </div>
                                 <div className="p-3 rounded-xl bg-sky-50/70 border border-sky-200 flex items-center justify-between">
                                     <div>
                                         <p className="font-bold text-sky-900">{pendingWeeklyPlans.length} Weekly Plans</p>
                                         <p className="text-[11px] text-sky-700">Submitted by field engineers</p>
                                     </div>
-                                    <button onClick={() => onNavigate('inspection')} className="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-[11px]">
+                                    <button onClick={() => onNavigate('performance')} className="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-[11px]">
                                         Endorse
                                     </button>
                                 </div>
@@ -780,20 +766,20 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                     <div>
                         <div className="flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"/>
-                            <h3 className="text-base font-bold tracking-tight">Field Engineering &amp; Site Log Hub</h3>
+                            <h3 className="text-base font-bold tracking-tight">Field Engineering &amp; Site Progress Hub</h3>
                             <span className="text-xs font-semibold text-emerald-200">
                                 · Assigned Scope: {mySchemes.length} Water Schemes
                             </span>
                         </div>
                         <p className="text-xs text-slate-300 mt-1">
-                            Logged in as <strong>{user?.fullName || user?.username}</strong>. You have direct access to submit QA/QC verification logs, photos, and weekly work plans for your designated schemes.
+                            Logged in as <strong>{user?.fullName || user?.username}</strong>. You have direct access to track site milestones, view schemes on GIS, and submit weekly work plans for your designated schemes.
                         </p>
                     </div>
 
                     <div className="flex items-center gap-2.5 flex-wrap">
-                        <button onClick={() => onNavigate && onNavigate('inspection')} className="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
-                            <span>{ICONS.inspection}</span>
-                            <span>+ Log Site QA/QC</span>
+                        <button onClick={() => onNavigate && onNavigate('performance')} className="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span>{ICONS.performance}</span>
+                            <span>View Site Progress</span>
                         </button>
                         <button onClick={() => onNavigate && onNavigate('gisMap')} className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-teal-200 border border-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer">
                             <span>{ICONS.gisMap}</span>
@@ -805,9 +791,9 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                 {/* KPI Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <Card title="Assigned Schemes" value={mySchemes.length} icon={ICONS.briefcase} iconBg="bg-teal-600"/>
-                    <Card title="QA/QC Logs Recorded" value={myInspections.length} icon={ICONS.checkCircle} iconBg="bg-primary-500"/>
-                    <Card title="Weekly Plans Submitted" value={myPlans.length} icon={ICONS.planning} iconBg="bg-indigo-500"/>
+                    <Card title="Weekly Plans" value={myPlans.length} icon={ICONS.planning} iconBg="bg-indigo-500"/>
                     <Card title="Water Quality Testing" value={`${waterComplianceRate}%`} icon={ICONS.shieldAlert} iconBg="bg-emerald-500"/>
+                    <Card title="Tracked Schemes" value={safeProjects.length} icon={ICONS.checkCircle} iconBg="bg-primary-500"/>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -825,12 +811,8 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                                 Fast shortcuts to record site activities from the field:
                             </p>
                             <div className="space-y-2">
-                                <button onClick={() => onNavigate('inspection')} className="w-full p-2.5 text-left rounded-xl bg-teal-50 hover:bg-teal-100/80 border border-teal-200 transition-colors flex items-center justify-between text-xs font-semibold text-teal-900">
-                                    <span>📝 Record Stage QA/QC Inspection</span>
-                                    <span>→</span>
-                                </button>
-                                <button onClick={() => onNavigate('inspection')} className="w-full p-2.5 text-left rounded-xl bg-sky-50 hover:bg-sky-100/80 border border-sky-200 transition-colors flex items-center justify-between text-xs font-semibold text-sky-900">
-                                    <span>📅 Submit Weekly Work Plan</span>
+                                <button onClick={() => onNavigate('performance')} className="w-full p-2.5 text-left rounded-xl bg-teal-50 hover:bg-teal-100/80 border border-teal-200 transition-colors flex items-center justify-between text-xs font-semibold text-teal-900">
+                                    <span>📊 View Performance &amp; S-Curve</span>
                                     <span>→</span>
                                 </button>
                                 <button onClick={() => onNavigate('gisMap')} className="w-full p-2.5 text-left rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 transition-colors flex items-center justify-between text-xs font-semibold text-emerald-900">
@@ -841,28 +823,6 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                                     <span>📂 Feasibility &amp; EIA Study Vault</span>
                                     <span>→</span>
                                 </button>
-                            </div>
-                        </div>
-
-                        {/* Recent Inspection Logs */}
-                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-                            <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
-                                <span>Recent QA/QC Field Logs</span>
-                                <span className="text-xs text-cyan-600 font-bold cursor-pointer" onClick={() => onNavigate('inspection')}>All ({myInspections.length})</span>
-                            </h3>
-                            <div className="space-y-2.5">
-                                {myInspections.slice(0, 3).map(insp => (<div key={insp.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-bold text-slate-800 truncate">{insp.projectName}</span>
-                                            <span className="text-[10px] text-slate-500 font-mono">{insp.inspectionDate}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-600">
-                                            <span>Stage: {insp.visitStage}</span>
-                                            <span>·</span>
-                                            <span className="font-semibold text-emerald-700">{insp.overallPhysicalProgressPct}% Done</span>
-                                        </div>
-                                    </div>))}
-                                {myInspections.length === 0 && (<p className="text-xs text-slate-400 py-3 text-center">No inspection logs recorded yet.</p>)}
                             </div>
                         </div>
                     </div>

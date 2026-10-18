@@ -791,20 +791,13 @@ const GeographicMapModule = ({ projects, user, inspections = [], onSelectProject
                                                     {insp.defects.filter(d => d.status === 'Open').length} Open / {insp.defects.length} Total
                                                 </span>
                                             </div>)}
-                                    </div>) : (<div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500 flex items-center justify-between">
+                                    </div>) : (<div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500">
                                         <span>No field QA/QC inspection logged yet</span>
-                                        {onNavigate && (<button type="button" onClick={() => onNavigate('inspection', selectedProject.id)} className="text-primary-700 font-bold hover:underline cursor-pointer">
-                                                + Log Inspection
-                                            </button>)}
                                     </div>);
             })()}
 
                             {/* Action Buttons */}
                             <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-                                <button onClick={() => onNavigate && onNavigate('inspection', selectedProject.id)} className="w-full py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-2">
-                                    <span>{ICONS.inspection}</span>
-                                    <span>View QA/QC Site Inspections</span>
-                                </button>
                                 <button onClick={() => onNavigate && onNavigate('reporting', selectedProject.id)} className="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-xl transition-colors flex items-center justify-center gap-2">
                                     <span>{ICONS.reporting}</span>
                                     <span>View Variance & Financial Analytics</span>

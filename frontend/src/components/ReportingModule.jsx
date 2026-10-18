@@ -1117,10 +1117,6 @@ const ReportingModule = ({ projects = [], contracts = [], procurements = [], act
                                         <p className="text-[11px] text-slate-500 font-medium">Laboratory parameter compliance &amp; defect tracking</p>
                                     </div>
                                 </div>
-                                {onNavigate && (<button type="button" onClick={() => onNavigate('inspection')} className="text-xs font-bold text-sky-700 hover:text-sky-900 bg-sky-100/70 hover:bg-sky-200/70 px-3 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1">
-                                        <span>View QA Logbook</span>
-                                        <span>→</span>
-                                    </button>)}
                             </div>
                             <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-sky-100 text-center">
                                 <div className="bg-white/80 p-2.5 rounded-lg border border-sky-100">
@@ -1155,7 +1151,7 @@ const ReportingModule = ({ projects = [], contracts = [], procurements = [], act
                                         <p className="text-[11px] text-slate-500 font-medium">Activity task scheduling &amp; cumulative progress</p>
                                     </div>
                                 </div>
-                                {onNavigate && (<button type="button" onClick={() => onNavigate('inspection')} className="text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-100/70 hover:bg-indigo-200/70 px-3 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1">
+                                {onNavigate && (<button type="button" onClick={() => onNavigate('performance')} className="text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-100/70 hover:bg-indigo-200/70 px-3 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1">
                                         <span>View S-Curve</span>
                                         <span>→</span>
                                     </button>)}

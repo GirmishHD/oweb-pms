@@ -821,16 +821,10 @@ const PerformanceDashboard = ({ projects, contracts, procurements = [], user, on
                                 </span>
                             </div>
                             <p className="text-xs text-slate-300 mt-0.5">
-                                Physical field inspections: <strong className="text-white">{inspections.length} logged</strong> • Active S-Curve weekly plans: <strong className="text-white">{weeklyPlans.length} plans</strong> • Open defects: <strong className="text-amber-300">{inspections.reduce((sum, i) => sum + ((i.defects || []).filter(d => d.status === 'Open').length), 0)} items</strong>
+                                Active S-Curve weekly plans: <strong className="text-white">{weeklyPlans.length} plans</strong>
                             </p>
                         </div>
                     </div>
-                    {onNavigate && (<div className="flex items-center gap-2 flex-shrink-0">
-                            <button type="button" onClick={() => onNavigate('inspection')} className="px-3.5 py-2 bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
-                                <span>Site QA &amp; S-Curve</span>
-                                <span>→</span>
-                            </button>
-                        </div>)}
                 </div>)}
 
             {/* CRITICAL BUDGET OVERRUN WARNING SYSTEM BANNER (>10% Overrun Flag) */}

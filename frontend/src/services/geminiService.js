@@ -47,7 +47,7 @@ Active Contracts Summary: ${contracts.slice(0, 6).map(c => `[Contract #${c.id}] 
 Total Procurements/Tenders: ${procurements.length}
 QA/QC Inspections: ${inspections.length} recorded
 Weekly Work Plans: ${weeklyPlans.length} plans submitted
-Navigation instructions: Whenever relevant, append an action token like [ACTION:{"type":"navigate","moduleId":"<module>","itemId":"<optional_id>"}] where moduleId is one of: 'dashboard', 'ngos', 'staff', 'planning', 'gisMap', 'review', 'procurement', 'contract', 'inspection', 'performance', 'documents', 'reporting', 'usermanagement', 'masterdata'.
+Navigation instructions: Whenever relevant, append an action token like [ACTION:{"type":"navigate","moduleId":"<module>","itemId":"<optional_id>"}] where moduleId is one of: 'dashboard', 'ngos', 'staff', 'planning', 'gisMap', 'review', 'procurement', 'contract', 'performance', 'documents', 'reporting', 'usermanagement', 'masterdata'.
 `;
                 const promptContents = [
                     { text: contextSummary },
@@ -157,23 +157,22 @@ const generateLocalAssistantResponse = (message, data) => {
         const totalPlans = weeklyPlans.length;
         const approvedPlans = weeklyPlans.filter(p => p.status === 'Approved').length;
         const activeActivities = weeklyPlans.reduce((sum, p) => sum + (p.plannedActivities?.length || 0), 0);
-        const action = { type: 'navigate', moduleId: 'inspection' };
+        const action = { type: 'navigate', moduleId: 'performance' };
         return `Weekly Work Plans & Site Execution Tracking:\n\n` +
             `• Active Work Plans: ${totalPlans} (${approvedPlans} approved by supervisors)\n` +
             `• Tracked Field Activities: ${activeActivities} work package tasks across assigned schemes\n` +
             `• Features Available: Weekly activity breakdown, daily workforce & equipment logs, cumulative S-Curve planned vs actual progress tracking, and supervisor approval workflows.\n\n` +
-            `Access the Weekly Work Plans & S-Curve dashboard [ACTION:${JSON.stringify(action)}].`;
+            `Access the Site Performance & S-Curve dashboard [ACTION:${JSON.stringify(action)}].`;
     }
-    // 3. QA/QC Field Inspections & Punch Lists
+    // 3. Performance & Quality Analytics
     if (lower.includes('inspection') || lower.includes('defect') || lower.includes('punch list') || lower.includes('qa/qc') || lower.includes('quality')) {
         const totalInspections = inspections.length;
         const totalDefects = inspections.reduce((sum, i) => sum + ((i.defects || []).filter((d) => d.status === 'Open').length), 0);
-        const action = { type: 'navigate', moduleId: 'inspection' };
-        return `Field Quality Assurance (QA/QC) & Inspection Logbook:\n\n` +
-            `• Total Field Inspections: ${totalInspections} logged\n` +
-            `• Open Quality Punch List Defects: ${totalDefects} requiring contractor rectification\n` +
-            `• Stages Inspected: Pre-Construction, Excavation & Foundations, Pipelaying & Pressure Test, Electromechanical Installation, and Pre-Commissioning.\n\n` +
-            `Open the Field Inspection Logbook [ACTION:${JSON.stringify(action)}].`;
+        const action = { type: 'navigate', moduleId: 'reporting' };
+        return `Quality Assurance & Variance Analytics:\n\n` +
+            `• Total Field Records: ${totalInspections} logged\n` +
+            `• Open Defects: ${totalDefects} requiring contractor rectification\n\n` +
+            `Open the Executive Reports & Analytics [ACTION:${JSON.stringify(action)}].`;
     }
     // 4. Cost Overruns & Budget Variations
     if (lower.includes('overrun') || lower.includes('variation') || lower.includes('cost increase') || lower.includes('exceed')) {

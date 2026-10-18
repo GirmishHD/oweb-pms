@@ -13,7 +13,6 @@ export const PERMISSION_MODULES = [
     { id: 'users', label: 'User Accounts', icon: 'Users' },
     { id: 'roles', label: 'Roles & Permissions', icon: 'ShieldCheck' },
     { id: 'master_data', label: 'Master Data & Org Units', icon: 'Database' },
-    { id: 'inspection', label: 'QA/QC & Field Inspections', icon: 'ClipboardCheck' },
     { id: 'documents', label: 'Document Vault', icon: 'FileStack' },
 ];
 export const GRANULAR_PERMISSIONS = [
