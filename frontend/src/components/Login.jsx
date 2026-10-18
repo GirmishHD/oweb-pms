@@ -10,61 +10,68 @@ const TRANSLATIONS = {
     EN: {
         bureauName: 'OROMIA WATER BUREAU',
         bureauSub: 'National Regional State of Oromia',
-        heroTitle: 'Welcome to Oromia Water Bureau',
-        heroSubtitle: 'Sustainable Water Services for Every Community across 6 Clusters.',
-        tagline: 'Sustainable Water Services for Every Community',
-        missionQuote: '“Empowering communities through reliable, climate-resilient water infrastructure, institutional governance, and transparent partnership delivery.”',
-        welcomeBack: 'Welcome Back',
-        signInPrompt: 'Sign in to access your bureau dashboard and project portfolio.',
+        heroHeadline: 'Sustainable Water Services for Every Community.',
+        heroSubheadline: 'Digital coordination ledger for capital water infrastructure, urban sanitation, and climate resilience across all 6 administrative clusters.',
+        heroBadge: 'Sovereign Water & Infrastructure Capital Ledger',
+        clusterStat: '6 Clusters',
+        clusterStatDesc: 'Central, Western, Southern, Southeastern, Eastern, and Southwestern Oromia.',
+        standardsStat: 'WHO & CES 58',
+        standardsStatDesc: 'Standard drinking water quality verification and physical progress auditing.',
+        rbacStat: 'RBAC Privileges',
+        rbacStatDesc: 'Granular permission matrices across engineers, supervisors, and directors.',
+        cardTitle: 'Sign In',
+        cardSubtitle: 'Enter your credentials to access the bureau management system',
         usernameLabel: 'Username or Bureau Email',
-        usernamePlaceholder: 'Username (e.g. admin)',
+        usernamePlaceholder: 'Username or email (e.g. admin)',
         passwordLabel: 'Password',
-        passwordPlaceholder: 'Password',
-        defaultCredHint: 'Default password:',
+        passwordPlaceholder: 'Enter your password',
+        defaultCredHint: 'Default:',
         rememberMe: 'Remember me',
         forgotPassword: 'Forgot password?',
         signInButton: 'Sign In',
         authenticating: 'Authenticating...',
         capsLockWarning: 'Caps Lock is ON',
         authorizedNotice: 'Authorized Bureau Personnel Only',
-        switchPersonaLabel: 'Select Authorized Staff Persona',
-        personaTitle: 'Quick Persona Access (Development / Testing)',
-        forgotModalTitle: 'Account Recovery & Access Assistance',
-        forgotModalDesc: 'In accordance with Oromia Water Bureau cybersecurity protocols, public self-service password resets are restricted to protect critical regional infrastructure systems.',
-        forgotModalStepsTitle: 'Bureau Verification & Recovery Procedure:',
-        forgotModalStep1: 'Contact your Zonal/Cluster IT Administrator or Head Office ICT Directorate.',
-        forgotModalStep2: 'Provide your official Bureau Staff ID / Employee Number and duty station.',
-        forgotModalStep3: 'Your credentials will be securely reset and provided via verified internal channels.',
-        forgotContactDirect: 'OWEB ICT Support Desk: support.ict@oweb.gov.et | Internal Ext: 4410 / 4412',
-        closeModal: 'Close & Return to Sign In',
-        language: 'Language',
+        quickPersonaButton: '1-Click Persona Access',
+        personaTitle: 'Authorized Staff Personas (Select to test view)',
         publicPortalLink: 'Public Transparency Portal',
-        clustersPill: '6 Administrative Clusters',
-        standardsPill: 'WHO & CES 58 Verified',
-        rbacPill: 'Multi-Role RBAC Active'
+        forgotModalTitle: 'Account Recovery & Access Assistance',
+        forgotModalDesc: 'In accordance with Oromia Water Bureau security policies, public self-service password resets are restricted to protect critical regional infrastructure systems.',
+        forgotModalStepsTitle: 'Standard Bureau Recovery Protocol:',
+        forgotModalStep1: 'Contact your Zonal or Cluster IT Administrator or Head Office ICT Directorate.',
+        forgotModalStep2: 'Provide your official Bureau Staff ID / Employee Number and assigned duty station.',
+        forgotModalStep3: 'Your account credentials will be securely reset and provided via verified internal channels.',
+        forgotContactDirect: 'OWEB ICT Support Desk: support.ict@oweb.gov.et | Internal Ext: 4410 / 4412',
+        closeModal: 'Close & Return to Sign In'
     },
     OM: {
         bureauName: 'BIIROO QABEENYA BISHAANII OROMIYAA',
         bureauSub: 'Mootummaa Naannoo Oromiyaa',
-        heroTitle: 'Baga Nagaan Gara Biiroo Bishaanii Dhuftan',
-        heroSubtitle: 'Tajaajila bishaanii itti-fufiinsa qabu hawaasa hundumaaf kilaastaroota 6 keessatti.',
-        tagline: 'Tajaajila Bishaanii Itti-Fufiinsa Qabu Hawaasa Hundaaf',
-        missionQuote: '“Ijaarsa bu\'uuraalee misooma bishaanii dandamanna qabuu fi dhiyeessii bishaan dhugaatii qulqulluu mirkaneessuu.”',
-        welcomeBack: 'Baga Nagaan Dhuftan',
-        signInPrompt: 'Pilaatfoormii hojii fi piroojektiiwwan bishaanii ilaaluuf seenaa.',
+        heroHeadline: 'Tajaajila Bishaanii Itti-Fufiinsa Qabu Hawaasa Hundaaf.',
+        heroSubheadline: 'Ijaarsa bu\'uuraalee misooma bishaanii, eegumsa qulqullinaa, fi dandeettii dandamannaa hongee daminoolee 6 keessatti.',
+        heroBadge: 'Pilaatfoormii Bu\'uuraalee Misooma Bishaanii Oromiyaa',
+        clusterStat: 'Kilaastara 6',
+        clusterStatDesc: 'Giddu-galeessa, Lixaa, Kibbaa, Kibba-Bahaa, Bahaa, fi Kibba-Lixaa Oromiyaa.',
+        standardsStat: 'Ulaagaa WHO & CES 58',
+        standardsStatDesc: 'Qulqullina bishaan dhugaatii fi raawwii hojii bu\'uuraalee misoomaa mirkaneessuu.',
+        rbacStat: 'Heyyama RBAC',
+        rbacStatDesc: 'Mirga seensaa ogeeyyii bishaanii, to\'attootaa, fi daayirektarootaa.',
+        cardTitle: 'Seenaa',
+        cardSubtitle: 'Pilaatfoormii hojii fi piroojektiiwwan bishaanii ilaaluuf galmaa\'aa',
         usernameLabel: 'Maqaa Fayyadamaa ykn Imeelii Biiroo',
         usernamePlaceholder: 'Maqaa fayyadamaa (fkn. admin)',
         passwordLabel: 'Jecha Icchitii',
-        passwordPlaceholder: 'Jecha icchiitii',
-        defaultCredHint: 'Jecha icchiitii idilee:',
+        passwordPlaceholder: 'Jecha icchiitii keessan galchaa',
+        defaultCredHint: 'Idilee:',
         rememberMe: 'Na yaadadhu',
         forgotPassword: 'Jecha icchiitii dagattanii?',
         signInButton: 'Gara Pilaatfoormiitti Seenaa',
         authenticating: 'Mirkaneessaa jira...',
         capsLockWarning: 'Caps Lock banee jira',
         authorizedNotice: 'Hojjetoota Heyyama Qabaniif Qofa',
-        switchPersonaLabel: 'Gahee Hojjetaa Filadhaa',
+        quickPersonaButton: 'Gahee Hojjetaa Filadhaa',
         personaTitle: 'Seensa Qaxxaamuraa (Qorannoo Hojiif)',
+        publicPortalLink: 'Pootaalii Iftoomina Uummataa',
         forgotModalTitle: 'Gargaarsa Deebisanii Banuu Herregaa',
         forgotModalDesc: 'Akka qajeelfama nageenya odeeffannoo Biiroo Bishaanii Oromiyaatti, sirna eegumsa bu\'uuraaleetiif jecha icchiitii deebisuun qaamaan mirkanaa\'a.',
         forgotModalStepsTitle: 'Tartiiba Deebisanii Argachuu:',
@@ -72,35 +79,36 @@ const TRANSLATIONS = {
         forgotModalStep2: 'Waraqaa eenyummaa hojjetaa (Staff ID) fi bakka ramaddii keessan dhiyeessaa.',
         forgotModalStep3: 'Odeeffannoon seensaa haaraan karaa nageenyi isaa mirkanaa\'een isiniif kennama.',
         forgotContactDirect: 'Gargaarsa ICT Biiroo: support.ict@oweb.gov.et | Sarara Keessaa: 4410 / 4412',
-        closeModal: 'Cufiitii Seensaatti Deebi\'i',
-        language: 'Afaan',
-        publicPortalLink: 'Pootaalii Iftoomina Uummataa',
-        clustersPill: 'Daminoolee Kilaastaraa 6',
-        standardsPill: 'Ulaagaa WHO & CES 58',
-        rbacPill: 'Eegumsa Heyyama RBAC'
+        closeModal: 'Cufiitii Seensaatti Deebi\'i'
     },
     AM: {
         bureauName: 'የኦሮሚያ የውሃ ቢሮ',
         bureauSub: 'የኦሮሚያ ብሔራዊ ክልላዊ መንግሥት',
-        heroTitle: 'ወደ ኦሮሚያ የውሃ ቢሮ እንኳን ደህና መጡ',
-        heroSubtitle: 'በሁሉም 6 ክላስተሮች ውስጥ ዘላቂና አስተማማኝ ንጹህ የመጠጥ ውሃ አገልግሎት።',
-        tagline: 'ዘላቂ የውሃ አገልግሎት ለመላው ማህበረሰብ',
-        missionQuote: '“ዘላቂ የውሃ መሠረተ ልማትን በመገንባት፣ የህብረተሰቡን ተጠቃሚነት ማረጋገጥ እና የተቋማዊ ግልጽነትን ማስፈን።”',
-        welcomeBack: 'እንኳን ደህና መጡ',
-        signInPrompt: 'የቢሮውን ዳሽቦርድ እና የውሃ ፕሮጀክቶችን ለማግኘት መለያዎን ያስገቡ።',
+        heroHeadline: 'ዘላቂ የውሃ አገልግሎት ለመላው ማህበረሰብ።',
+        heroSubheadline: 'በሁሉም 6 ክላስተሮች ውስጥ የውሃ መሠረተ ልማት፣ የከተሞች ሳኒቴሽን እና የአየር ንብረት ድርቅ መቋቋሚያ ዲጂታል መድረክ።',
+        heroBadge: 'የኦሮሚያ የውሃ እና መሠረተ ልማት ካፒታል መዝገብ',
+        clusterStat: '6 ክላስተሮች',
+        clusterStatDesc: 'ማዕከላዊ፣ ምዕራብ፣ ደቡብ፣ ደቡብ-ምሥራቅ፣ ምሥራቅ እና ደቡብ-ምዕራብ ኦሮሚያ።',
+        standardsStat: 'WHO እና CES 58',
+        standardsStatDesc: 'የመጠጥ ውሃ ጥራት ደረጃ ማረጋገጫ እና አካላዊ የስራ ክንውን ቁጥጥር።',
+        rbacStat: 'የRBAC ፈቃድ ስርዓት',
+        rbacStatDesc: 'የኢንጅነሮች፣ ሱፐርቫይዘሮች እና ዳይሬክተሮች ግልጽ የስራ ድርሻ ክፍፍል።',
+        cardTitle: 'ይግቡ',
+        cardSubtitle: 'ወደ ኦሮሚያ የውሃ ቢሮ ዲጂታል መድረክ ለመግባት መለያዎን ያስገቡ',
         usernameLabel: 'የተጠቃሚ ስም ወይም የቢሮ ኢሜይል',
         usernamePlaceholder: 'የተጠቃሚ ስም (ለምሳሌ admin)',
         passwordLabel: 'የይለፍ ቃል',
-        passwordPlaceholder: 'የይለፍ ቃል',
-        defaultCredHint: 'ነባሪ የይለፍ ቃል:',
+        passwordPlaceholder: 'የይለፍ ቃልዎን ያስገቡ',
+        defaultCredHint: 'ነባሪ:',
         rememberMe: 'አስታውሰኝ',
         forgotPassword: 'የይለፍ ቃል ረሱ?',
         signInButton: 'ወደ መድረክ ግባ',
         authenticating: 'በማረጋገጥ ላይ...',
         capsLockWarning: 'Caps Lock በርቷል',
         authorizedNotice: 'ለተፈቀደላቸው ሰራተኞች ብቻ የተዘጋጀ',
-        switchPersonaLabel: 'የተፈቀደ የሰራተኛ ሚና ይምረጡ',
-        personaTitle: 'ፈጣን የሙከራ ሚናዎች (Persona Access)',
+        quickPersonaButton: 'ፈጣን የሙከራ ሚናዎች',
+        personaTitle: 'የተፈቀዱ የሙከራ ሚናዎች',
+        publicPortalLink: 'የህዝብ ግልጽነት ፖርታል',
         forgotModalTitle: 'የመለያ መልሶ ማግኛ እና ድጋፍ',
         forgotModalDesc: 'በኦሮሚያ የውሃ ቢሮ የደህንነት መመሪያ መሠረት፣ የክልሉን የውሃ መሠረተ ልማት ለመጠበቅ የይለፍ ቃል ዳግም ማስጀመር የሚከናወነው በተረጋገጠ የውስጥ አሰራር ነው።',
         forgotModalStepsTitle: 'የይለፍ ቃል ለማስጀመር ቅደም ተከተል:',
@@ -108,18 +116,13 @@ const TRANSLATIONS = {
         forgotModalStep2: 'የቢሮ መታወቂያ ቁጥርዎን (Staff ID) እና የተመደቡበትን የስራ ቦታ ያሳውቁ።',
         forgotModalStep3: 'አዲሱ የይለፍ ቃል በተረጋገጠ አስተማማኝ ውስጣዊ መስመር ይሰጥዎታል።',
         forgotContactDirect: 'የቢሮው አይሲቲ ድጋፍ: support.ict@oweb.gov.et | የውስጥ መስመር: 4410 / 4412',
-        closeModal: 'ዝጋና ወደ መግቢያ ተመለስ',
-        language: 'ቋንቋ',
-        publicPortalLink: 'የህዝብ ግልጽነት ፖርታል',
-        clustersPill: '6 የክልል ክላስተሮች',
-        standardsPill: 'የWHO እና CES 58 መስፈርት',
-        rbacPill: 'የተጠበቀ የRBAC ፈቃድ'
+        closeModal: 'ዝጋና ወደ መግቢያ ተመለስ'
     }
 };
 
 const SAMPLE_PERSONAS = [
     { username: 'admin', role: 'System Administrator', name: 'Girma Worku', tag: 'Admin' },
-    { username: 'director_chaltu', role: 'Water Supply Director', name: 'Dr. Chaltu Desta', tag: 'Directorate' },
+    { username: 'director_chaltu', role: 'Water Supply Director', name: 'Dr. Chaltu Desta', tag: 'Director' },
     { username: 'coordinator_kenenisa', role: 'Project Coordinator (PIU)', name: 'Kenenisa Bekele', tag: 'Coordinator' },
     { username: 'engineer_dawit', role: 'Resident Site Engineer', name: 'Eng. Dawit Alemu', tag: 'Engineer' },
     { username: 'supervisor', role: 'Resident Supervisor', name: 'Eng. Hawi Kebede', tag: 'Supervisor' },
@@ -190,174 +193,157 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[#e8f1f5] flex items-center justify-center p-3 sm:p-6 lg:p-10 font-sans relative overflow-x-hidden">
-            {/* Subtle atmospheric hydro waves in background */}
-            <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-[#0b3c68]/10 via-[#0b3c68]/5 to-transparent pointer-events-none" />
-            <div className="absolute -top-32 -right-32 w-96 h-96 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Main Login-Page-04 Card Wrapper */}
-            <div className="w-full max-w-5xl bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(11,60,104,0.18)] border border-slate-100 overflow-hidden relative z-10 grid grid-cols-1 lg:grid-cols-12 animate-fade-in my-auto">
+        <div className="min-h-screen w-full relative flex items-center justify-center p-4 sm:p-6 lg:p-12 font-sans overflow-x-hidden bg-[#071927]">
+            {/* ============================================================ */}
+            {/* RICH COLORLIB BACKGROUND: Vibrant Water & Hydro Abstract Glow*/}
+            {/* ============================================================ */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                {/* Deep Aquatic Gradient Wash */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#02111d] via-[#052b49] to-[#0a4875] opacity-95" />
                 
-                {/* ============================================================ */}
-                {/* LEFT HERO PANEL: Colorlib Login-Page-04 Hero Showcase        */}
-                {/* ============================================================ */}
-                <div className="lg:col-span-6 bg-gradient-to-br from-[#072d52] via-[#0b3c68] to-[#041a33] text-white p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden">
-                    {/* Architectural Hydro-Wave Background Visual */}
-                    <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-300 via-transparent to-transparent" />
-                    <svg className="absolute -bottom-20 -right-20 w-96 h-96 text-sky-400/10 pointer-events-none" viewBox="0 0 200 200" fill="currentColor">
-                        <path d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,79.6,-45.8C87.4,-32.6,90,-16.3,88.5,-0.9C86.9,14.6,81.2,29.1,72.6,41.9C64.1,54.6,52.7,65.5,39.3,72.4C25.9,79.3,10.5,82.1,-4.2,79.7C-18.9,77.3,-32.8,69.7,-45.7,60.8C-58.5,51.8,-70.2,41.5,-77.8,28.2C-85.4,14.8,-88.9,-1.5,-85.4,-16.8C-81.8,-32.1,-71.2,-46.3,-58.1,-54C-45,-61.7,-29.4,-62.8,-15.1,-65.4C-0.8,-68.1,13.5,-72.3,44.7,-76.4Z" transform="translate(100 100)" />
-                    </svg>
+                {/* Colorlib Frosted Glass Ambient Hydro Circles */}
+                <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-sky-400/20 rounded-full blur-[140px]" />
+                <div className="absolute top-1/3 -right-40 w-[650px] h-[650px] bg-cyan-400/15 rounded-full blur-[160px]" />
+                <div className="absolute -bottom-40 left-1/3 w-[700px] h-[700px] bg-teal-500/15 rounded-full blur-[180px]" />
 
-                    {/* Top Hero Brand Header */}
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3.5 mb-8">
-                            <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner flex-shrink-0">
-                                <Logo className="h-9 w-9 text-sky-300" />
-                            </div>
-                            <div>
-                                <span className="inline-block px-2.5 py-0.5 rounded-full bg-sky-400/20 text-sky-200 text-[10px] font-bold tracking-widest uppercase border border-sky-300/20">
-                                    {t.bureauSub}
-                                </span>
-                                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white font-display mt-0.5">
-                                    {t.bureauName}
-                                </h1>
-                            </div>
-                        </div>
+                {/* Hydro Ripple Vector Accents */}
+                <svg className="absolute -bottom-24 -left-24 w-[500px] h-[500px] text-sky-400/5" viewBox="0 0 200 200" fill="currentColor">
+                    <path d="M41.7,-71.4C54.1,-65.2,64.2,-54.6,71.8,-42.1C79.4,-29.6,84.5,-14.8,83.9,-0.3C83.4,14.1,77.2,28.3,69.1,41.2C61,54.1,51,65.8,38.4,72.4C25.8,79,10.6,80.5,-4.4,78.2C-19.4,75.9,-34.2,69.8,-47.3,61.1C-60.4,52.3,-71.8,40.9,-78.9,27.1C-85.9,13.3,-88.6,-2.9,-84.9,-17.8C-81.2,-32.7,-71.2,-46.3,-58.4,-53.2C-45.6,-60.1,-30,-60.3,-15.8,-62.9C-1.6,-65.5,12.7,-70.5,41.7,-71.4Z" transform="translate(100 100)" />
+                </svg>
+            </div>
 
-                        {/* Hero Typography & Mission Statement */}
-                        <div className="space-y-4 my-8">
-                            <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight font-display">
-                                {t.heroTitle}
-                            </h2>
-                            <p className="text-sm text-sky-100/90 leading-relaxed font-light">
-                                {t.heroSubtitle}
-                            </p>
-                            <p className="text-xs text-sky-200/80 italic border-l-2 border-sky-400/60 pl-3 leading-relaxed mt-2">
-                                {t.missionQuote}
-                            </p>
-                        </div>
+            {/* Top Global Bar: Language Switcher & Public Transparency Link */}
+            <header className="absolute top-0 left-0 right-0 z-20 px-6 sm:px-12 py-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/15">
+                        <Logo className="h-6 w-6 text-white" />
+                    </div>
+                    <span className="text-white font-bold tracking-tight text-sm hidden sm:inline font-display">
+                        {t.bureauName}
+                    </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    {/* Language Switcher Pill */}
+                    <div className="flex items-center gap-1 bg-black/25 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-sm">
+                        {['EN', 'OM', 'AM'].map((langCode) => (
+                            <button
+                                key={langCode}
+                                type="button"
+                                onClick={() => handleLanguageChange(langCode)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                                    lang === langCode 
+                                        ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30' 
+                                        : 'text-white/70 hover:text-white'
+                                }`}
+                            >
+                                {langCode}
+                            </button>
+                        ))}
                     </div>
 
-                    {/* Hero Feature Indicators & Badges */}
-                    <div className="relative z-10 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-sm text-[11px] font-semibold text-sky-100 border border-white/10">
-                                {t.clustersPill}
+                    {/* Public Transparency Portal Shortcut */}
+                    {onOpenExternalPortal && (
+                        <button
+                            type="button"
+                            onClick={onOpenExternalPortal}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-xs font-semibold text-white transition shadow-sm"
+                        >
+                            <Globe className="w-3.5 h-3.5 text-sky-300" />
+                            <span className="hidden md:inline">{t.publicPortalLink}</span>
+                        </button>
+                    )}
+                </div>
+            </header>
+
+            {/* ============================================================ */}
+            {/* COLORLIB LOGIN-PAGE-04 CONTAINER                             */}
+            {/* Split Hero Description + Frosted Glass Login Card            */}
+            {/* ============================================================ */}
+            <main className="w-full max-w-6xl relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center my-auto pt-16 pb-8">
+                
+                {/* ------------------------------------------------------------ */}
+                {/* LEFT HERO: Bureau Branding & Mission (Colorlib Left Panel)   */}
+                {/* ------------------------------------------------------------ */}
+                <div className="lg:col-span-7 text-white space-y-6 px-2 sm:px-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 backdrop-blur-md border border-sky-400/30 text-xs font-semibold text-sky-200">
+                        <Droplets className="w-3.5 h-3.5 text-sky-300" />
+                        <span>{t.heroBadge}</span>
+                    </div>
+
+                    <div className="space-y-3">
+                        <span className="text-xs font-bold tracking-widest uppercase text-sky-300/80 block">
+                            {t.bureauSub}
+                        </span>
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-display leading-[1.15]">
+                            {t.heroHeadline}
+                        </h1>
+                        <p className="text-sm sm:text-base text-sky-100/80 leading-relaxed font-light max-w-xl">
+                            {t.heroSubheadline}
+                        </p>
+                    </div>
+
+                    {/* 3 Colorlib Informational Pillars */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4">
+                        <div className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition">
+                            <span className="text-sm font-bold text-white block mb-1">
+                                {t.clusterStat}
                             </span>
-                            <span className="px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-sm text-[11px] font-semibold text-sky-100 border border-white/10">
-                                {t.standardsPill}
-                            </span>
-                            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 backdrop-blur-sm text-[11px] font-semibold text-emerald-200 border border-emerald-400/30 flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                                <span>{t.rbacPill}</span>
+                            <span className="text-xs text-sky-200/70 leading-relaxed block font-light">
+                                {t.clusterStatDesc}
                             </span>
                         </div>
 
-                        {onOpenExternalPortal && (
-                            <button
-                                type="button"
-                                onClick={onOpenExternalPortal}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-300 hover:text-white transition group py-1"
-                            >
-                                <Globe className="w-3.5 h-3.5 text-sky-300 group-hover:rotate-12 transition" />
-                                <span>{t.publicPortalLink}</span>
-                                <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition" />
-                            </button>
-                        )}
+                        <div className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition">
+                            <span className="text-sm font-bold text-white block mb-1">
+                                {t.standardsStat}
+                            </span>
+                            <span className="text-xs text-sky-200/70 leading-relaxed block font-light">
+                                {t.standardsStatDesc}
+                            </span>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 transition">
+                            <span className="text-sm font-bold text-white block mb-1">
+                                {t.rbacStat}
+                            </span>
+                            <span className="text-xs text-sky-200/70 leading-relaxed block font-light">
+                                {t.rbacStatDesc}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* ============================================================ */}
-                {/* RIGHT FORM PANEL: Colorlib Login-Page-04 Sign-In Form        */}
-                {/* ============================================================ */}
-                <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-between bg-white">
-                    <div>
-                        {/* Top Utility Bar: Language Selector & Persona Shortcut */}
-                        <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
-                            {/* Language Pills (Colorlib Switcher Style) */}
-                            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-                                {['EN', 'OM', 'AM'].map((langCode) => (
-                                    <button
-                                        key={langCode}
-                                        type="button"
-                                        onClick={() => handleLanguageChange(langCode)}
-                                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                                            lang === langCode 
-                                                ? 'bg-[#0b3c68] text-white shadow-sm' 
-                                                : 'text-slate-600 hover:text-slate-900'
-                                        }`}
-                                    >
-                                        {langCode}
-                                    </button>
-                                ))}
+                {/* ------------------------------------------------------------ */}
+                {/* RIGHT CARD: Colorlib Login-Page-04 Frosted Glass Sign-In     */}
+                {/* ------------------------------------------------------------ */}
+                <div className="lg:col-span-5">
+                    <div className="w-full bg-white/95 sm:bg-white/90 backdrop-blur-2xl rounded-3xl p-8 sm:p-10 shadow-[0_30px_70px_rgba(0,0,0,0.35)] border border-white/40 relative">
+                        
+                        {/* Header of Form */}
+                        <div className="flex items-start justify-between gap-3 mb-6">
+                            <div>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-display">
+                                    {t.cardTitle}
+                                </h2>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    {t.cardSubtitle}
+                                </p>
                             </div>
-
-                            {/* Persona Quick Menu Toggle */}
-                            <button
-                                type="button"
-                                onClick={() => setShowPersonaMenu(!showPersonaMenu)}
-                                className="text-xs font-semibold text-[#0b3c68] hover:text-sky-600 flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-sky-50 transition"
-                            >
-                                <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                                <span>{t.switchPersonaLabel}</span>
-                            </button>
-                        </div>
-
-                        {/* Persona Dropdown Panel if toggled */}
-                        {showPersonaMenu && (
-                            <div className="mb-6 p-3 bg-slate-50 border border-slate-200 rounded-2xl animate-fade-in">
-                                <div className="flex items-center justify-between mb-2 px-1">
-                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                                        {t.personaTitle}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPersonaMenu(false)}
-                                        className="text-slate-400 hover:text-slate-600 text-xs"
-                                    >
-                                        &times;
-                                    </button>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {SAMPLE_PERSONAS.map((p) => (
-                                        <button
-                                            key={p.username}
-                                            type="button"
-                                            onClick={() => selectPersona(p.username)}
-                                            className="text-left p-2 rounded-xl bg-white hover:bg-sky-50 border border-slate-200/80 hover:border-sky-300 transition text-xs group"
-                                        >
-                                            <div className="font-bold text-slate-800 group-hover:text-[#0b3c68] truncate">
-                                                {p.name}
-                                            </div>
-                                            <div className="text-[10px] text-slate-500 truncate">
-                                                {p.role}
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
+                            <div className="p-2.5 bg-gradient-to-br from-sky-500 to-teal-600 rounded-2xl shadow-md shadow-sky-500/25 flex-shrink-0">
+                                <Logo className="h-6 w-6 text-white" />
                             </div>
-                        )}
-
-                        {/* Sign In Header */}
-                        <div className="mb-6">
-                            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-display">
-                                {t.welcomeBack}
-                            </h2>
-                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                                {t.signInPrompt}
-                            </p>
                         </div>
 
                         {/* Error Feedback */}
                         {error && (
-                            <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2 animate-shake">
+                            <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2 animate-shake">
                                 <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
                                 <span className="font-semibold leading-relaxed">{error}</span>
                             </div>
                         )}
 
-                        {/* Form: Colorlib Clean Float Inputs */}
+                        {/* Form: Colorlib Floating Style Fields */}
                         <form onSubmit={handleSignInSubmit} className="space-y-4">
                             {/* Username or Email Input */}
                             <div>
@@ -376,7 +362,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                         placeholder={t.usernamePlaceholder}
                                         required
                                         autoComplete="username"
-                                        className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#0b3c68] focus:ring-2 focus:ring-[#0b3c68]/15 outline-none transition"
+                                        className="w-full pl-10 pr-4 py-3 bg-slate-50/80 hover:bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
                                     />
                                 </div>
                             </div>
@@ -390,7 +376,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                     <button
                                         type="button"
                                         onClick={() => setPassword('password')}
-                                        className="text-[11px] text-slate-400 hover:text-[#0b3c68] transition"
+                                        className="text-[11px] text-slate-400 hover:text-sky-600 transition"
                                     >
                                         {t.defaultCredHint} <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-bold text-[10px]">password</code>
                                     </button>
@@ -407,7 +393,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                         placeholder={t.passwordPlaceholder}
                                         required
                                         autoComplete="current-password"
-                                        className="w-full pl-10 pr-10 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#0b3c68] focus:ring-2 focus:ring-[#0b3c68]/15 outline-none transition"
+                                        className="w-full pl-10 pr-10 py-3 bg-slate-50/80 hover:bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
                                     />
                                     <button
                                         type="button"
@@ -434,24 +420,24 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                         type="checkbox"
                                         checked={rememberMe}
                                         onChange={(e) => setRememberMe(e.target.checked)}
-                                        className="rounded border-slate-300 text-[#0b3c68] focus:ring-[#0b3c68]/20"
+                                        className="rounded border-slate-300 text-sky-600 focus:ring-sky-500"
                                     />
                                     <span className="text-xs font-medium text-slate-700">{t.rememberMe}</span>
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setShowForgotModal(true)}
-                                    className="text-xs font-semibold text-[#0b3c68] hover:text-sky-600 hover:underline transition"
+                                    className="text-xs font-semibold text-sky-600 hover:text-sky-700 hover:underline transition"
                                 >
                                     {t.forgotPassword}
                                 </button>
                             </div>
 
-                            {/* Submit Button (Colorlib Bold Gradient) */}
+                            {/* Submit Button (Colorlib Bold Vibrant Action) */}
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-3.5 px-4 bg-gradient-to-r from-[#0b3c68] via-[#0d508c] to-[#0284c7] hover:from-[#093054] hover:to-[#0369a1] text-white rounded-xl text-sm font-bold shadow-lg shadow-[#0b3c68]/25 transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2"
+                                className="w-full py-3.5 px-4 bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-sky-600/30 transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2"
                             >
                                 {isLoading ? (
                                     <>
@@ -466,24 +452,59 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                 )}
                             </button>
                         </form>
-                    </div>
 
-                    {/* Bottom Security / Government Seal */}
-                    <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-center gap-2 text-[11px] text-slate-400 text-center">
-                        <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                        <span>{t.authorizedNotice}</span>
+                        {/* 1-Click Persona Selector Drawer */}
+                        <div className="mt-6 pt-4 border-t border-slate-100">
+                            <button
+                                type="button"
+                                onClick={() => setShowPersonaMenu(!showPersonaMenu)}
+                                className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center justify-between"
+                            >
+                                <span className="flex items-center gap-1.5">
+                                    <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                                    <span>{t.quickPersonaButton}</span>
+                                </span>
+                                <span className="text-[10px] text-slate-500">{showPersonaMenu ? '▲ Hide' : '▼ Show'}</span>
+                            </button>
+
+                            {showPersonaMenu && (
+                                <div className="mt-3 p-2 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-1.5 animate-fade-in">
+                                    {SAMPLE_PERSONAS.map((p) => (
+                                        <button
+                                            key={p.username}
+                                            type="button"
+                                            onClick={() => selectPersona(p.username)}
+                                            className="text-left p-2 rounded-xl bg-white hover:bg-sky-50 border border-slate-200/80 hover:border-sky-300 transition text-xs"
+                                        >
+                                            <div className="font-bold text-slate-800 truncate text-[11px]">
+                                                {p.name}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500 truncate">
+                                                {p.role}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Security Notice */}
+                        <div className="mt-4 pt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                            <span>{t.authorizedNotice}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </main>
 
-            {/* Bottom Copyright */}
-            <footer className="mt-6 text-center text-xs text-slate-500 relative z-10">
+            {/* Bottom Footer */}
+            <footer className="absolute bottom-3 left-0 right-0 text-center text-xs text-sky-200/50 z-10 px-4">
                 © {new Date().getFullYear()} Oromia Water Bureau (OWEB). All rights reserved. &bull; Sustainable Water Services for Every Community
             </footer>
 
-            {/* Forgot Password / Access Protocol Modal */}
+            {/* Forgot Password / Security Recovery Modal */}
             {showForgotModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
                         <button
                             type="button"
@@ -513,7 +534,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                         </p>
 
                         <div className="space-y-2.5 mb-5">
-                            <p className="text-xs font-bold text-[#0b3c68] uppercase tracking-wider">
+                            <p className="text-xs font-bold text-sky-800 uppercase tracking-wider">
                                 {t.forgotModalStepsTitle}
                             </p>
                             <div className="flex items-start gap-2.5 text-xs text-slate-700">
