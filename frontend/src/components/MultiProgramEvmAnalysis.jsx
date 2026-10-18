@@ -214,10 +214,6 @@ export const MultiProgramEvmAnalysis = ({ projects, contracts, user, inspections
                         <span>📥</span>
                         <span>Export EVM Excel</span>
                     </button>
-                    {onNavigate && (<button onClick={() => onNavigate('programs')} className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
-                            <span>📁</span>
-                            <span>Program Portfolios →</span>
-                        </button>)}
                 </div>
             </div>
 
@@ -362,7 +358,6 @@ export const MultiProgramEvmAnalysis = ({ projects, contracts, user, inspections
                                 <th className="px-3 py-3 text-center">SPI</th>
                                 <th className="px-4 py-3 text-right">Cost Var (CV)</th>
                                 <th className="px-4 py-3 text-right">EAC Forecast</th>
-                                <th className="px-3 py-3 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -403,11 +398,6 @@ export const MultiProgramEvmAnalysis = ({ projects, contracts, user, inspections
                                     </td>
                                     <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-800">
                                         {formatCurrency(item.eac)}
-                                    </td>
-                                    <td className="px-3 py-3.5 text-center">
-                                        {onNavigate && (<button onClick={() => onNavigate('programs', item.id)} className="px-2.5 py-1 text-[11px] bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded-lg transition-colors cursor-pointer">
-                                                Portfolio →
-                                            </button>)}
                                     </td>
                                 </tr>))}
                         </tbody>

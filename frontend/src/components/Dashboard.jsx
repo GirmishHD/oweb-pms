@@ -455,11 +455,6 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                         </div>
                     </div>
 
-                    <button onClick={() => onNavigate && onNavigate('programs')} className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer backdrop-blur-xs">
-                        <span>{ICONS.layers}</span>
-                        <span>Programs</span>
-                    </button>
-
                     <button onClick={() => onNavigate && onNavigate('ngos')} className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer backdrop-blur-xs">
                         <span>{ICONS.building}</span>
                         <span>NGOs</span>
@@ -570,9 +565,6 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                         {programFilter && (<button onClick={() => setProgramFilter('')} className="px-2.5 py-1 text-[11px] bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/30 rounded-lg font-semibold transition-colors cursor-pointer">
                                 Clear Filter ({programFilter}) ✕
                             </button>)}
-                        <button onClick={() => onNavigate && onNavigate('programs')} className="px-3 py-1.5 text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg transition-colors cursor-pointer shadow-xs">
-                            Manage Portfolios →
-                        </button>
                     </div>
                 </div>
 

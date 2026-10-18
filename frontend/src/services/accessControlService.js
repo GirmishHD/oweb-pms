@@ -2,7 +2,6 @@ import { Role } from '../types';
 import { apiClient } from './apiClient';
 export const PERMISSION_MODULES = [
     { id: 'projects', label: 'Projects & Schemes', icon: 'FolderKanban' },
-    { id: 'programs', label: 'Program Portfolio Registry', icon: 'Layers' },
     { id: 'ngos', label: 'NGOs & Implementing Partners', icon: 'Building2' },
     { id: 'staff', label: 'Staff Management & Classifications', icon: 'UserCheck' },
     { id: 'contracts', label: 'Contracts & Contractors', icon: 'FileSignature' },
@@ -87,12 +86,6 @@ export const GRANULAR_PERMISSIONS = [
     { code: 'documents.upload', module: 'documents', action: 'create', label: 'Upload Documents', description: 'Can upload project designs, EIA, and contract files' },
     { code: 'documents.download', module: 'documents', action: 'export', label: 'Download Documents', description: 'Can download vault artifacts and attachments' },
     { code: 'documents.delete', module: 'documents', action: 'delete', label: 'Delete Documents', description: 'Can archive or delete repository files' },
-    // Program Management
-    { code: 'programs.view', module: 'programs', action: 'view', label: 'View Programs', description: 'Can view registered programs and performance' },
-    { code: 'programs.create', module: 'programs', action: 'create', label: 'Register Program', description: 'Can register new funding programs & initiatives' },
-    { code: 'programs.update', module: 'programs', action: 'update', label: 'Edit Program', description: 'Can update program details, managers, and budgets' },
-    { code: 'programs.delete', module: 'programs', action: 'delete', label: 'Deactivate Program', description: 'Can toggle active/inactive status of programs' },
-    { code: 'programs.export', module: 'programs', action: 'export', label: 'Export Programs', description: 'Can export program registry reports' },
     // NGO & Implementing Partners
     { code: 'ngos.view', module: 'ngos', action: 'view', label: 'View NGOs', description: 'Can view registered NGOs and implementing partners' },
     { code: 'ngos.create', module: 'ngos', action: 'create', label: 'Register NGO', description: 'Can register new NGO partners and accreditations' },

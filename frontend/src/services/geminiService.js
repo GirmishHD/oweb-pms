@@ -47,7 +47,7 @@ Active Contracts Summary: ${contracts.slice(0, 6).map(c => `[Contract #${c.id}] 
 Total Procurements/Tenders: ${procurements.length}
 QA/QC Inspections: ${inspections.length} recorded
 Weekly Work Plans: ${weeklyPlans.length} plans submitted
-Navigation instructions: Whenever relevant, append an action token like [ACTION:{"type":"navigate","moduleId":"<module>","itemId":"<optional_id>"}] where moduleId is one of: 'dashboard', 'programs', 'ngos', 'staff', 'planning', 'gisMap', 'review', 'procurement', 'contract', 'inspection', 'performance', 'documents', 'reporting', 'usermanagement', 'masterdata'.
+Navigation instructions: Whenever relevant, append an action token like [ACTION:{"type":"navigate","moduleId":"<module>","itemId":"<optional_id>"}] where moduleId is one of: 'dashboard', 'ngos', 'staff', 'planning', 'gisMap', 'review', 'procurement', 'contract', 'inspection', 'performance', 'documents', 'reporting', 'usermanagement', 'masterdata'.
 `;
                 const promptContents = [
                     { text: contextSummary },
@@ -97,19 +97,19 @@ const generateLocalAssistantResponse = (message, data) => {
     // 0a. Programs & Multi-Program Portfolio Queries
     if (lower.includes('one wash') || lower.includes('cowash') || lower.includes('unicef') || lower.includes('second urban') || lower.includes('biogas') || lower.includes('basket fund') || lower.includes('programs') || lower.includes('portfolio') || lower.includes('scheme under') || lower.includes('schemes are under')) {
         const programs = loadPrograms();
-        const action = { type: 'navigate', moduleId: 'programs' };
+        const action = { type: 'navigate', moduleId: 'dashboard' };
         // Count schemes per program
         const programSummaries = programs.map(prog => {
             const progProjects = projects.filter(p => p.program === prog.name || p.program === prog.code);
             const totalBudget = progProjects.reduce((s, p) => s + (p.estimatedBudget || 0), 0);
             return `• ${prog.name} (${prog.code}): ${progProjects.length} schemes | Investment: ${(totalBudget / 1e6).toFixed(1)}M ETB (Status: ${prog.status})`;
         });
-        return `Multi-Program Portfolios & Program Isolation Status:\n\n` +
+        return `Multi-Program Portfolios & Status:\n\n` +
             `• Registered Programs: ${programs.length} active funding frameworks\n` +
-            `• Governance: Bureau-wide strict program data isolation active\n\n` +
+            `• Governance: Regional scheme breakdown active\n\n` +
             `Program Breakdown:\n` +
             programSummaries.join('\n') +
-            `\n\nManage Programs, Portfolios & Budgets [ACTION:${JSON.stringify(action)}].`;
+            `\n\nView Program Schemes on Dashboard [ACTION:${JSON.stringify(action)}].`;
     }
     // 0b. NGOs & Implementing Partners Queries
     if (lower.includes('ngo') || lower.includes('partner') || lower.includes('implementing partner') || lower.includes('world vision') || lower.includes('wateraid') || lower.includes('care')) {

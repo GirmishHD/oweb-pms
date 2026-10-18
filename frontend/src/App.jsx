@@ -15,7 +15,6 @@ import GeographicMapModule from './components/GeographicMapModule';
 import FieldInspectionModule from './components/FieldInspectionModule';
 import PerformanceDashboard from './components/PerformanceDashboard';
 import UserManagementModule from './components/UserManagementModule';
-import { ProgramManagementModule } from './components/ProgramManagementModule';
 import { NgoManagementModule } from './components/NgoManagementModule';
 import { StaffManagementModule } from './components/StaffManagementModule';
 import MasterDataModule from './components/MasterDataModule';
@@ -43,7 +42,7 @@ const initialProcurements = [];
 const initialContracts = [];
 const initialNotifications = [];
 const VALID_MODULES = [
-    'dashboard', 'programs', 'ngos', 'staff', 'gisMap', 'inspection',
+    'dashboard', 'ngos', 'staff', 'gisMap', 'inspection',
     'planning', 'review', 'procurement', 'contract', 'performance',
     'documents', 'reporting', 'usermanagement', 'masterdata', 'training'
 ];
@@ -59,7 +58,6 @@ const getInitialModuleFromHash = () => {
 export const getModuleTitle = (mod) => {
     switch (mod) {
         case 'usermanagement': return 'Users & Permissions Management';
-        case 'programs': return 'Programs & Multi-Program Portfolios';
         case 'ngos': return 'NGOs & Implementing Partners Registry';
         case 'staff': return 'Staff Management & Program Classifications';
         case 'contract': return 'Contract Administration & Delivery';
@@ -80,7 +78,6 @@ export const getModuleTitle = (mod) => {
 export const getModuleSubtitle = (mod) => {
     switch (mod) {
         case 'usermanagement': return 'Role-Based Access Control (RBAC), user directory, permissions matrix, and audit logs';
-        case 'programs': return 'Multilateral donor and sovereign program portfolios (One WaSH, Climate Resilient, UNICEF)';
         case 'ngos': return 'Authorized non-governmental organizations and implementing partners registry';
         case 'staff': return 'Bureau zonal hydraulic engineers, resident supervisors, and project staff roster';
         case 'contract': return 'Binding contract agreements, performance securities, milestone payments, and variations';
@@ -861,7 +858,7 @@ const App = () => {
     const navGroups = useMemo(() => [
         {
             title: 'Portfolios & Operations',
-            items: visibleNavigationItems.filter(item => ['dashboard', 'programs', 'ngos', 'staff', 'gisMap', 'planning'].includes(item.id))
+            items: visibleNavigationItems.filter(item => ['dashboard', 'ngos', 'staff', 'gisMap', 'planning'].includes(item.id))
         },
         {
             title: 'Execution & Quality',
@@ -1560,12 +1557,6 @@ const App = () => {
     const renderModule = () => {
         const moduleMap = {
             dashboard: ROLE_PERMISSIONS.canViewDashboard.includes(authenticatedUser.role) ? (<Dashboard user={authenticatedUser} projects={accessibleProjects} procurements={accessibleProcurements} contracts={accessibleContracts} onSelectContract={handleSelectContract} onNavigate={handleNavigate} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans}/>) : null,
-            programs: (ROLE_PERMISSIONS.canViewPrograms || Object.values(Role)).includes(authenticatedUser.role) ? (<ProgramManagementModule user={authenticatedUser} projects={accessibleProjects} staff={staffList} ngos={ngosList} users={users} onProgramsChange={(newPrograms) => {
-                    logActivity('Saved Programs & Portfolio Configuration', { details: `${newPrograms.length} programs registered` });
-                    setToastMessage('Programs and portfolio configuration saved.');
-                }} onNavigate={handleNavigate} onSelectProject={(p) => {
-                    handleNavigate('planning', p.id);
-                }}/>) : null,
             ngos: (ROLE_PERMISSIONS.canViewNgos || Object.values(Role)).includes(authenticatedUser.role) ? (<NgoManagementModule user={authenticatedUser} projects={accessibleProjects} staff={staffList} onNgosChange={(newNgos) => {
                     setNgosList(newNgos);
                     logActivity('Updated NGO Implementing Partners Registry', { details: `${newNgos.length} NGOs registered` });

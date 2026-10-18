@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { NAVIGATION_ITEMS } from '../constants';
-import { loadPrograms } from '../services/programService';
 import { loadNgos } from '../services/ngoService';
 import { loadStaff } from '../services/staffService';
 export const CommandPalette = ({ isOpen, onClose, projects, contracts, procurements = [], inspections = [], weeklyPlans = [], onNavigate, onTriggerAction, currentRole, }) => {
@@ -143,23 +142,6 @@ export const CommandPalette = ({ isOpen, onClose, projects, contracts, procureme
             }
         });
         items.push({
-            id: 'action-programs-portfolio',
-            title: 'Manage Programs & Multi-Program Portfolios',
-            subtitle: 'Configure ONE WaSH, COWASH, CR-WASH, budget allocations, and funding components',
-            category: 'Quick Actions',
-            icon: (<svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-                    <polyline points="2 17 12 22 22 17"/>
-                    <polyline points="2 12 12 17 22 12"/>
-                </svg>),
-            badge: 'Portfolios',
-            badgeColor: 'bg-indigo-100 text-indigo-800',
-            action: () => {
-                onNavigate('programs');
-                onClose();
-            }
-        });
-        items.push({
             id: 'action-ngo-registry',
             title: 'Register & Track Implementing Partner NGOs',
             subtitle: 'Directory of NGOs, MOUs, operating zones, active water schemes, and agreements',
@@ -280,33 +262,7 @@ export const CommandPalette = ({ isOpen, onClose, projects, contracts, procureme
                 }
             });
         });
-        // 8. Programs & Multi-Program Portfolios Catalog
-        try {
-            const programsCatalog = loadPrograms();
-            programsCatalog.forEach(prog => {
-                items.push({
-                    id: `prog-${prog.id}`,
-                    title: `${prog.name} (${prog.code})`,
-                    subtitle: `Lead: ${prog.programManager} • Fund: ${prog.fundingSource} • Budget: ${new Intl.NumberFormat('en-US').format(prog.budgetETB || 0)} ETB`,
-                    category: 'Programs & Portfolios',
-                    icon: (<svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-                            <polyline points="2 17 12 22 22 17"/>
-                            <polyline points="2 12 12 17 22 12"/>
-                        </svg>),
-                    badge: prog.status,
-                    badgeColor: prog.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700',
-                    action: () => {
-                        onNavigate('programs', prog.id);
-                        onClose();
-                    }
-                });
-            });
-        }
-        catch (e) {
-            console.error('Error loading programs for command palette', e);
-        }
-        // 9. Implementing Partner NGOs Catalog
+        // 8. Implementing Partner NGOs Catalog
         try {
             const ngosCatalog = loadNgos();
             ngosCatalog.forEach(ngo => {
@@ -419,7 +375,7 @@ export const CommandPalette = ({ isOpen, onClose, projects, contracts, procureme
                     <svg className="w-5 h-5 text-cyan-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                    <input ref={inputRef} type="text" placeholder="Search projects, programs, NGOs, staff, contracts, or commands... (e.g. 'ONE WASH', 'WaterAid', 'Shashamane')" value={query} onChange={(e) => {
+                    <input ref={inputRef} type="text" placeholder="Search projects, NGOs, staff, contracts, or commands... (e.g. 'WaterAid', 'Shashamane')" value={query} onChange={(e) => {
             setQuery(e.target.value);
             setSelectedIndex(0);
         }} className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none font-medium"/>
