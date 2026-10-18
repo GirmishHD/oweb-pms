@@ -10,7 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from apps.authentication.models import User, RoleDefinition
-from apps.programs.models import Program, NGO, Staff
+from apps.programs.models import Program, NGO, Staff, DevelopmentPartner, PartnerDocument
 from apps.projects.models import Project
 from apps.procurement.models import Procurement
 from apps.contracts.models import Contract
@@ -1243,6 +1243,178 @@ def seed_master_data():
             )
     print(f"MasterDataStore ready in PostgreSQL: {MasterDataStore.objects.count()}")
 
+def seed_development_partners():
+    print("Seeding Development Partners & Official WASH Documents...")
+    partners = [
+        {
+            'partner_id': 'DPART-001',
+            'name': 'Government of Finland (MFA Finland)',
+            'acronym': 'MFA Finland',
+            'category': 'Bilateral',
+            'country_of_origin': 'Finland',
+            'headquarters': 'Helsinki, Finland / Addis Ababa Embassy',
+            'focal_person': 'Arto Suominen (Chief Technical Advisor)',
+            'focal_email': 'arto.suominen@cowashethiopia.net',
+            'focal_phone': '+251 115 510002',
+            'website': 'https://www.cmpethiopia.org',
+            'wash_focus_areas': ['Community-Managed Projects (CMP)', 'Rural Water Supply', 'Inclusion & Disability WASH', 'Capacity Building'],
+            'supported_clusters': ['Central Oromia', 'Western Oromia', 'Southwestern Oromia'],
+            'total_financing_commitment_usd': Decimal('24500000.00'),
+            'status': 'Active',
+            'official_verification_url': 'https://www.cmpethiopia.org/cowash-phase-iv/',
+            'notes': 'Co-financing COWASH Phase IV (April 2021 – September 2025) with Oromia Regional Government.'
+        },
+        {
+            'partner_id': 'DPART-002',
+            'name': 'The World Bank Group (IDA)',
+            'acronym': 'World Bank',
+            'category': 'Multilateral',
+            'country_of_origin': 'International',
+            'headquarters': 'Washington, D.C. / Addis Ababa Country Office',
+            'focal_person': 'Yitbarek Tessema (Senior Water Specialist)',
+            'focal_email': 'ytessema@worldbank.org',
+            'focal_phone': '+251 115 176000',
+            'website': 'https://projects.worldbank.org/en/projects-operations/project-detail/P167794',
+            'wash_focus_areas': ['Urban Water Supply', 'Faecal Sludge Management (FSTP)', 'Utility Modernization', 'Consolidated WASH Account (CWA)'],
+            'supported_clusters': ['Central Oromia', 'Southeastern Oromia', 'Southwestern Oromia', 'Eastern Oromia'],
+            'total_financing_commitment_usd': Decimal('185000000.00'),
+            'status': 'Active',
+            'official_verification_url': 'https://projects.worldbank.org/en/projects-operations/project-detail/P167794',
+            'notes': 'Financing Second Urban Water Supply and Sanitation Project (UWSSP-II, P167794) and OWNP CWA-II.'
+        },
+        {
+            'partner_id': 'DPART-003',
+            'name': 'African Development Bank (AfDB)',
+            'acronym': 'AfDB',
+            'category': 'Multilateral',
+            'country_of_origin': 'International',
+            'headquarters': 'Abidjan, Côte d’Ivoire / Addis Ababa Office',
+            'focal_person': 'Dr. Zenebe Urgessa',
+            'focal_email': 'z.urgessa@afdb.org',
+            'focal_phone': '+251 115 542240',
+            'website': 'https://www.afdb.org/en/projects-and-operations/p-et-e00-011',
+            'wash_focus_areas': ['Drought Resilience', 'Deep Groundwater Extraction (>500m)', 'Pastoralist Water Corridors', 'Multi-Village Piped Schemes'],
+            'supported_clusters': ['Southern Oromia', 'Southeastern Oromia'],
+            'total_financing_commitment_usd': Decimal('68000000.00'),
+            'status': 'Active',
+            'official_verification_url': 'https://www.afdb.org/en/documents/ethiopia-borana-resilient-water-development-improved-livelihoods-program-phase-i-appraisal-report',
+            'notes': 'Financing Borana Resilient Water Development for Improved Livelihoods Program (BRWDLP, P-ET-E00-011).'
+        },
+        {
+            'partner_id': 'DPART-004',
+            'name': 'UNICEF Ethiopia',
+            'acronym': 'UNICEF',
+            'category': 'Multilateral',
+            'country_of_origin': 'United Nations',
+            'headquarters': 'Addis Ababa Country Office (UNECA Compound)',
+            'focal_person': 'Biniam Aregawi (WASH Specialist - Oromia Field)',
+            'focal_email': 'baregawi@unicef.org',
+            'focal_phone': '+251 115 184000',
+            'website': 'https://www.unicef.org/ethiopia/water-sanitation-and-hygiene-wash',
+            'wash_focus_areas': ['Emergency Drought Response', 'Solar Pumping Conversions', 'School & Health Facility WASH', 'Water Quality Surveillance'],
+            'supported_clusters': ['Southern Oromia', 'Eastern Oromia', 'Central Oromia'],
+            'total_financing_commitment_usd': Decimal('32000000.00'),
+            'status': 'Active',
+            'official_verification_url': 'https://www.unicef.org/ethiopia/water-sanitation-and-hygiene-wash',
+            'notes': 'Co-chairing Regional WASH Emergency Taskforce and supporting solarized water schemes across drought-impacted woredas.'
+        },
+        {
+            'partner_id': 'DPART-005',
+            'name': 'One WASH National Program (OWNP / CWA Pooled Partners)',
+            'acronym': 'OWNP / CWA',
+            'category': 'Government Program',
+            'country_of_origin': 'Federal Republic of Ethiopia / Multi-Donor',
+            'headquarters': 'Ministry of Water & Energy / OWEB PMU Finfinnee',
+            'focal_person': 'Ato Abiy Girma (National Coordinator)',
+            'focal_email': 'coordinator.cwa@mowe.gov.et',
+            'focal_phone': '+251 116 611111',
+            'website': 'https://www.cmpethiopia.org/one-wash-national-program/',
+            'wash_focus_areas': ['Rural Water Supply', 'Urban Utility Upgrades', 'Institutional WASH', 'Consolidated Account Harmonization'],
+            'supported_clusters': ['Central Oromia', 'Eastern Oromia', 'Western Oromia', 'Southeastern Oromia', 'Southern Oromia', 'Southwestern Oromia'],
+            'total_financing_commitment_usd': Decimal('325000000.00'),
+            'status': 'Active',
+            'official_verification_url': 'https://www.cmpethiopia.org/one-wash-national-program/',
+            'notes': 'Coordinating Phase II of the Consolidated WASH Account (CWA) across all 6 administrative clusters.'
+        }
+    ]
+
+    for p_data in partners:
+        DevelopmentPartner.objects.update_or_create(
+            partner_id=p_data['partner_id'],
+            defaults=p_data
+        )
+
+    documents = [
+        {
+            'doc_id': 'PDOC-001',
+            'title': 'COWASH Phase IV Project Document (2021–2025)',
+            'document_type': 'Project Document',
+            'program_code': 'COWASH',
+            'partner_id': 'DPART-001',
+            'publication_year': 2021,
+            'file_url': 'https://www.cmpethiopia.org/wp-content/uploads/2021/04/COWASH_IV_Project_Document.pdf',
+            'source_organization': 'Ministry of Foreign Affairs of Finland & MoWE',
+            'summary': 'Official project appraisal and operational implementation manual for Community-Managed Projects (CMP) in Oromia woredas.',
+            'verified': True
+        },
+        {
+            'doc_id': 'PDOC-002',
+            'title': 'Borana Resilient Water Development Program (BRWDLP Phase I) Appraisal Report',
+            'document_type': 'Project Appraisal Report',
+            'program_code': 'BORENA-RESILIENCE',
+            'partner_id': 'DPART-003',
+            'publication_year': 2022,
+            'file_url': 'https://www.afdb.org/en/documents/ethiopia-borana-resilient-water-development-improved-livelihoods-program-phase-i-appraisal-report',
+            'source_organization': 'African Development Bank (AfDB)',
+            'summary': 'Comprehensive technical appraisal detailing deep well drilling (>500m), livestock watering points, and climate adaptation in Borana.',
+            'verified': True
+        },
+        {
+            'doc_id': 'PDOC-003',
+            'title': 'Second Urban Water Supply and Sanitation Project (UWSSP-II) Project Appraisal Document',
+            'document_type': 'Project Appraisal Document',
+            'program_code': 'SUWSSP',
+            'partner_id': 'DPART-002',
+            'publication_year': 2019,
+            'file_url': 'https://documents.worldbank.org/en/publication/documents-reports/documentdetail/859591500084393666/ethiopia-second-urban-water-supply-and-sanitation-project',
+            'source_organization': 'World Bank Group (IDA)',
+            'summary': 'World Bank appraisal and restructuring documents for piped networks and faecal sludge treatment plants in secondary cities.',
+            'verified': True
+        },
+        {
+            'doc_id': 'PDOC-004',
+            'title': 'One WASH National Program Phase II (OWNP-CWA) Program Operational Manual',
+            'document_type': 'Program Operational Manual',
+            'program_code': 'ONE-WASH',
+            'partner_id': 'DPART-005',
+            'publication_year': 2020,
+            'file_url': 'https://www.cmpethiopia.org/wp-content/uploads/2020/01/OWNP_Phase_II_POM.pdf',
+            'source_organization': 'Ministry of Water & Energy / Consolidated WASH Account PMU',
+            'summary': 'Harmonized implementation guidelines across water, health, and education sectors for regional bureaus and woredas.',
+            'verified': True
+        },
+        {
+            'doc_id': 'PDOC-005',
+            'title': 'UNICEF Ethiopia WASH Sector Annual Progress & Solar Pumping Assessment',
+            'document_type': 'Progress & Technical Assessment',
+            'program_code': 'UNICEF',
+            'partner_id': 'DPART-004',
+            'publication_year': 2023,
+            'file_url': 'https://www.unicef.org/ethiopia/reports/wash-annual-results-2023',
+            'source_organization': 'UNICEF Ethiopia',
+            'summary': 'Evaluates solarization conversions of motorized boreholes and emergency drought rehabilitation across lowlands.',
+            'verified': True
+        }
+    ]
+
+    for d_data in documents:
+        PartnerDocument.objects.update_or_create(
+            doc_id=d_data['doc_id'],
+            defaults=d_data
+        )
+
+    print(f"DevelopmentPartners seeded: {DevelopmentPartner.objects.count()}, PartnerDocuments: {PartnerDocument.objects.count()}")
+
 if __name__ == '__main__':
     seed_users()
     seed_programs()
@@ -1254,4 +1426,6 @@ if __name__ == '__main__':
     seed_inspections()
     seed_weekly_tracking()
     seed_master_data()
+    seed_development_partners()
     print("All seed data successfully committed to PostgreSQL!")
+

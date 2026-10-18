@@ -20,6 +20,7 @@ import MasterDataModule from './components/MasterDataModule';
 import DocumentModule from './components/DocumentModule';
 import ReportingModule from './components/ReportingModule';
 import TrainingModule from './components/TrainingModule';
+import DevelopmentPartnersPortal from './components/DevelopmentPartnersPortal';
 import Login from './components/Login';
 import NotificationPanel from './components/Notification';
 import { Logo } from './components/Logo';
@@ -41,7 +42,7 @@ const initialProcurements = [];
 const initialContracts = [];
 const initialNotifications = [];
 const VALID_MODULES = [
-    'dashboard', 'ngos', 'staff', 'gisMap',
+    'dashboard', 'developmentPartners', 'ngos', 'staff', 'gisMap',
     'planning', 'review', 'procurement', 'contract', 'performance',
     'documents', 'reporting', 'usermanagement', 'masterdata', 'training'
 ];
@@ -57,6 +58,7 @@ const getInitialModuleFromHash = () => {
 export const getModuleTitle = (mod) => {
     switch (mod) {
         case 'usermanagement': return 'Users & Permissions Management';
+        case 'developmentPartners': return 'Development Partners & Programs Portal';
         case 'ngos': return 'NGOs & Implementing Partners Registry';
         case 'staff': return 'Staff Management & Program Classifications';
         case 'contract': return 'Contract Administration & Delivery';
@@ -76,6 +78,7 @@ export const getModuleTitle = (mod) => {
 export const getModuleSubtitle = (mod) => {
     switch (mod) {
         case 'usermanagement': return 'Role-Based Access Control (RBAC), user directory, permissions matrix, and audit logs';
+        case 'developmentPartners': return 'Bilateral, multilateral, and government WASH programs: COWASH, OWNP/CWA, UWSSP-II, Borana Resilience, UNICEF';
         case 'ngos': return 'Authorized non-governmental organizations and implementing partners registry';
         case 'staff': return 'Bureau zonal hydraulic engineers, resident supervisors, and project staff roster';
         case 'contract': return 'Binding contract agreements, performance securities, milestone payments, and variations';
@@ -89,7 +92,7 @@ export const getModuleSubtitle = (mod) => {
         case 'training': return 'Capacity building curriculum, standard operating procedures, and technical documentation';
         case 'masterdata': return 'Master data catalog, administrative registry, and institutional workflow rules';
         case 'dashboard': return 'Real-time regional water resource & infrastructure portfolio across 21 zones';
-        default: return 'OWEB Regional Water & Energy Program Management System';
+        default: return 'Oromia Water Bureau (OWEB) Program Management System';
     }
 };
 const App = () => {
@@ -850,7 +853,7 @@ const App = () => {
     const navGroups = useMemo(() => [
         {
             title: 'Portfolios & Operations',
-            items: visibleNavigationItems.filter(item => ['dashboard', 'ngos', 'staff', 'gisMap', 'planning'].includes(item.id))
+            items: visibleNavigationItems.filter(item => ['dashboard', 'developmentPartners', 'ngos', 'staff', 'gisMap', 'planning'].includes(item.id))
         },
         {
             title: 'Execution & Quality',
@@ -1549,6 +1552,7 @@ const App = () => {
     const renderModule = () => {
         const moduleMap = {
             dashboard: ROLE_PERMISSIONS.canViewDashboard.includes(authenticatedUser.role) ? (<Dashboard user={authenticatedUser} projects={accessibleProjects} procurements={accessibleProcurements} contracts={accessibleContracts} onSelectContract={handleSelectContract} onNavigate={handleNavigate} inspections={accessibleInspections} weeklyPlans={accessibleWeeklyPlans}/>) : null,
+            developmentPartners: (ROLE_PERMISSIONS.canViewDevelopmentPartners || Object.values(Role)).includes(authenticatedUser.role) ? (<DevelopmentPartnersPortal user={authenticatedUser} onNavigate={handleNavigate}/>) : null,
             ngos: (ROLE_PERMISSIONS.canViewNgos || Object.values(Role)).includes(authenticatedUser.role) ? (<NgoManagementModule user={authenticatedUser} projects={accessibleProjects} staff={staffList} onNgosChange={(newNgos) => {
                     setNgosList(newNgos);
                     logActivity('Updated NGO Implementing Partners Registry', { details: `${newNgos.length} NGOs registered` });

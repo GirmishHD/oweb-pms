@@ -520,4 +520,51 @@ class PMSComprehensiveBackendTests(APITestCase):
         self.assertIn('city_admin_as_town_count', response.data)
         self.assertGreaterEqual(response.data['city_admin_as_town_count'], 15)
 
+    def test_development_partners_and_documents_api(self):
+        self.client.force_authenticate(user=self.admin)
+        # 1. Test Development Partner Creation
+        part_res = self.client.post('/api/programs/partners/', {
+            'partner_id': 'DPART-TEST-001',
+            'name': 'Test Water Partner Agency',
+            'acronym': 'TWPA',
+            'category': 'Bilateral',
+            'country_of_origin': 'Netherlands',
+            'headquarters': 'The Hague',
+            'focal_person': 'Jan de Vries',
+            'focal_email': 'j.vries@twpa.org',
+            'website': 'https://twpa.org',
+            'wash_focus_areas': ['Rural Water', 'Sanitation'],
+            'supported_clusters': ['Central Oromia'],
+            'total_financing_commitment_usd': '15000000.00',
+            'status': 'Active'
+        }, format='json')
+        self.assertEqual(part_res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(part_res.data['name'], 'Test Water Partner Agency')
+
+        # 2. Test Get Partners List
+        list_res = self.client.get('/api/programs/partners/')
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(list_res.data.get('results', list_res.data)), 1)
+
+        # 3. Test Partner Documents Creation
+        doc_res = self.client.post('/api/programs/documents/', {
+            'doc_id': 'PDOC-TEST-001',
+            'title': 'Test WASH Strategic Evaluation',
+            'document_type': 'Evaluation Report',
+            'program_code': 'COWASH',
+            'partner_id': 'DPART-TEST-001',
+            'publication_year': 2024,
+            'file_url': 'https://example.org/eval.pdf',
+            'source_organization': 'TWPA Evaluation Office',
+            'summary': 'Evaluation report on woreda water supply outcomes.',
+            'verified': True
+        }, format='json')
+        self.assertEqual(doc_res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(doc_res.data['title'], 'Test WASH Strategic Evaluation')
+
+        # 4. Test Get Documents List
+        doc_list_res = self.client.get('/api/programs/documents/')
+        self.assertEqual(doc_list_res.status_code, status.HTTP_200_OK)
+
+
 

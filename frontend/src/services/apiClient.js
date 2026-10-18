@@ -197,6 +197,40 @@ class ApiClient {
             body: staffData
         });
     }
+    // Development Partners & Documents
+    async getDevelopmentPartners() {
+        const data = await this.request('/programs/partners/');
+        return data.results ? data.results : data;
+    }
+    async saveDevelopmentPartner(partnerData) {
+        if (partnerData.id && typeof partnerData.id === 'number') {
+            return await this.request(`/programs/partners/${partnerData.id}/`, {
+                method: 'PUT',
+                body: partnerData
+            });
+        }
+        return await this.request('/programs/partners/', {
+            method: 'POST',
+            body: partnerData
+        });
+    }
+    async getPartnerDocuments() {
+        const data = await this.request('/programs/documents/');
+        return data.results ? data.results : data;
+    }
+    async savePartnerDocument(docData) {
+        if (docData.id && typeof docData.id === 'number') {
+            return await this.request(`/programs/documents/${docData.id}/`, {
+                method: 'PUT',
+                body: docData
+            });
+        }
+        return await this.request('/programs/documents/', {
+            method: 'POST',
+            body: docData
+        });
+    }
+
     // Projects
     async getProjects() {
         const data = await this.request('/projects/schemes/');

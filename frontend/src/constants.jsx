@@ -48,6 +48,7 @@ export const ICONS = {
 };
 export const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard', icon: ICONS.dashboard },
+    { id: 'developmentPartners', label: 'Development Partners & Programs', icon: ICONS.building },
     { id: 'ngos', label: 'NGOs & Partners', icon: ICONS.building },
     { id: 'staff', label: 'Staff Management', icon: ICONS.userCheck },
     { id: 'gisMap', label: 'GIS & Regional Map', icon: ICONS.gisMap },
@@ -64,6 +65,7 @@ export const NAVIGATION_ITEMS = [
 ];
 export const ROLE_PERMISSIONS = {
     canViewDashboard: Object.values(Role),
+    canViewDevelopmentPartners: Object.values(Role),
     canViewNgos: Object.values(Role),
     canViewStaff: Object.values(Role),
     canViewGisMap: Object.values(Role),

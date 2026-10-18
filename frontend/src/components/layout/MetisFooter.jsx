@@ -4,8 +4,8 @@ export const MetisFooter = () => {
   return (
     <footer className="metis-footer no-print">
       <div className="d-flex align-items-center gap-2">
-        <span>&copy; {new Date().getFullYear()} Oromia Water and Energy Bureau (OWEB).</span>
-        <span className="text-muted d-none d-md-inline">&bull; Sovereign Infrastructure &amp; Capital Governance</span>
+        <span>&copy; {new Date().getFullYear()} Oromia Water Bureau (OWEB).</span>
+        <span className="text-muted d-none d-md-inline">&bull; Sustainable Water Services for Every Community</span>
       </div>
       <div className="d-flex align-items-center gap-3">
         <span className="metis-badge metis-badge-success d-none d-sm-inline-flex">

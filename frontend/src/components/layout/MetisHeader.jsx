@@ -69,8 +69,8 @@ export const MetisHeader = ({
             <Logo className="w-5 h-5 text-white" />
           </div>
           <div className="metis-brand-text">
-            <span className="metis-brand-title">Metis &bull; OWEB</span>
-            <span className="metis-brand-subtitle">Water Governance Ledger</span>
+            <span className="metis-brand-title">OROMIA WATER BUREAU</span>
+            <span className="metis-brand-subtitle">Program Management System (PB-PMS)</span>
           </div>
         </a>
 
