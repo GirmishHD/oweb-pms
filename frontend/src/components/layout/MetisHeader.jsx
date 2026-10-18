@@ -181,11 +181,11 @@ export const MetisHeader = ({
         </div>
 
         {/* User Institutional Role & Status Badge */}
-        <div className="d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-lg bg-light border text-xs font-semibold">
-          <span className="w-2 h-2 rounded-full bg-success d-inline-block"></span>
-          <span className="fw-bold text-dark">{user?.role || 'Staff'}</span>
+        <div className="d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold" style={{ backgroundColor: '#E7F6FB', borderColor: '#BCE3F2', color: '#0B3D5C' }}>
+          <span className="w-2 h-2 rounded-full d-inline-block" style={{ backgroundColor: '#0E9F6E' }}></span>
+          <span className="fw-bold">{user?.role || 'Staff'}</span>
           {user?.assignedZone && (
-            <span className="text-muted d-none d-md-inline">&bull; {user.assignedZone}</span>
+            <span className="d-none d-md-inline text-muted" style={{ color: '#607585' }}>&bull; {user.assignedZone}</span>
           )}
         </div>
 

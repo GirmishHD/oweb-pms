@@ -8,24 +8,25 @@ export const MetisPageHeader = ({
   onRefresh = null,
 }) => {
   return (
-    <div className="metis-page-header mb-4">
+    <div className="metis-page-header mb-5 pb-2 border-b border-[#DCE7ED]">
       <div className="metis-page-title-group">
         {/* Breadcrumb Navigation */}
         <nav aria-label="breadcrumb">
-          <ol className="metis-breadcrumb">
-            <li className="metis-breadcrumb-item">
-              <a href="#/dashboard" className="text-decoration-none text-muted">
-                OWEB
+          <ol className="metis-breadcrumb mb-1.5 flex items-center gap-1.5 text-xs text-[#607585]">
+            <li className="metis-breadcrumb-item font-semibold text-[#087EAD]">
+              <a href="#/dashboard" className="text-decoration-none hover:underline flex items-center gap-1">
+                <span>💧</span>
+                <span>OWEB PB-PMS</span>
               </a>
             </li>
-            <li className="metis-breadcrumb-separator">&bull;</li>
+            <li className="metis-breadcrumb-separator text-[#A6EBF0]">&bull;</li>
             {breadcrumb.map((crumb, idx) => (
               <React.Fragment key={idx}>
-                <li className={`metis-breadcrumb-item ${idx === breadcrumb.length - 1 ? 'active' : ''}`}>
+                <li className={`metis-breadcrumb-item ${idx === breadcrumb.length - 1 ? 'active font-bold text-[#0B3D5C]' : 'font-medium'}`}>
                   {crumb}
                 </li>
                 {idx < breadcrumb.length - 1 && (
-                  <li className="metis-breadcrumb-separator">&bull;</li>
+                  <li className="metis-breadcrumb-separator text-[#A6EBF0]">&bull;</li>
                 )}
               </React.Fragment>
             ))}
@@ -33,8 +34,8 @@ export const MetisPageHeader = ({
         </nav>
 
         {/* Page Title & Context Subtitle */}
-        <h1>{title}</h1>
-        {subtitle && <p className="metis-page-subtitle">{subtitle}</p>}
+        <h1 className="text-2xl font-black text-[#0B3D5C] tracking-tight font-display">{title}</h1>
+        {subtitle && <p className="text-xs text-[#607585] mt-0.5 font-medium">{subtitle}</p>}
       </div>
 
       {/* Header Actions */}

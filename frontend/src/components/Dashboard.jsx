@@ -62,15 +62,15 @@ const AIInsights = ({ insights, isLoading, onNavigate, onRefresh }) => {
         [InsightLevel.CRITICAL]: { icon: ICONS.shieldAlert, bg: 'bg-danger-50/70', badgeBg: 'bg-danger-100 text-danger-800', border: 'border-danger-200', text: 'text-danger-700' },
         [InsightLevel.SUCCESS]: { icon: ICONS.checkCircle, bg: 'bg-success-50/70', badgeBg: 'bg-success-100 text-success-800', border: 'border-success-200', text: 'text-success-700' },
     };
-    return (<div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs h-full flex flex-col">
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+    return (<div className="bg-white p-6 rounded-2xl border border-[#DCE7ED] shadow-xs h-full flex flex-col">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#DCE7ED]">
                 <div className="flex items-center space-x-2.5">
-                    <div className="p-2 bg-primary-100 text-primary-700 rounded-xl">
-                        {React.cloneElement(ICONS.sparkles, { className: "w-5 h-5 text-primary-600" })}
+                    <div className="p-2 bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2] rounded-xl">
+                        {React.cloneElement(ICONS.sparkles, { className: "w-5 h-5 text-[#087EAD]" })}
                     </div>
                     <div>
-                        <h3 className="text-base font-bold text-slate-900 leading-tight">AI Executive Intelligence</h3>
-                        <p className="text-xs text-slate-500">Autonomous risk & overrun signals</p>
+                        <h3 className="text-base font-extrabold text-[#0B3D5C] leading-tight">AI Executive Intelligence</h3>
+                        <p className="text-xs text-[#607585]">Water infrastructure risk & overrun telemetry</p>
                     </div>
                 </div>
                 <button onClick={onRefresh} disabled={isLoading} className="p-2 text-slate-400 hover:text-primary-600 hover:bg-slate-50 rounded-xl transition-all disabled:opacity-50 disabled:animate-spin cursor-pointer" title="Refresh AI analysis">
@@ -264,8 +264,14 @@ const ProjectTable = ({ title, projects, onNavigate }) => (<div className="metis
                             </tr>);
     })}
                         {projects.length === 0 && (<tr>
-                                <td colSpan={6} className="text-center py-4 text-muted">
-                                    No water projects match the current scope or filter criteria.
+                                <td colSpan={6} className="text-center py-8">
+                                    <div className="flex flex-col items-center justify-center space-y-2">
+                                        <div className="w-12 h-12 rounded-full bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2] flex items-center justify-center text-xl">
+                                            💧
+                                        </div>
+                                        <p className="font-extrabold text-[#0B3D5C] text-sm">No Capital Schemes Recorded</p>
+                                        <p className="text-xs text-[#607585] max-w-sm">No water, sanitation, or irrigation projects currently exist under this scope. Real records created via the Planning Module will populate here automatically.</p>
+                                    </div>
                                 </td>
                             </tr>)}
                     </tbody>
@@ -305,8 +311,14 @@ const ContractTable = ({ title, contracts, onSelectContract }) => (<div classNam
                                     </span>
                                 </td>
                             </tr>)) : (<tr>
-                                <td colSpan={4} className="text-center py-4 text-muted">
-                                    No contracts to display in this view.
+                                <td colSpan={4} className="text-center py-8">
+                                    <div className="flex flex-col items-center justify-center space-y-2">
+                                        <div className="w-12 h-12 rounded-full bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2] flex items-center justify-center text-xl">
+                                            📄
+                                        </div>
+                                        <p className="font-extrabold text-[#0B3D5C] text-sm">No Executed Contracts Yet</p>
+                                        <p className="text-xs text-[#607585] max-w-sm">Approved project tenders awarded to water engineering contractors will appear here with performance securities and milestones.</p>
+                                    </div>
                                 </td>
                             </tr>)}
                     </tbody>
@@ -420,20 +432,20 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
                  <Card title="Active Contracts" value={safeContracts.filter(c => !c.completionDate).length} icon={ICONS.fileSignature} iconBg="bg-danger-500"/>
             </div>
 
-            {/* Quick Timeline & Schedule Health Banner - Luminous Water Gradient */}
-            <div className="bg-gradient-to-r from-[#034479] via-[#0560a8] to-[#04335c] rounded-2xl p-5 text-white shadow-md shadow-sky-900/15 border border-sky-400/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            {/* Quick Timeline & Schedule Health Banner - Water Identity */}
+            <div className="bg-gradient-to-r from-[#0B3D5C] via-[#087EAD] to-[#076C94] rounded-2xl p-5 text-white shadow-md shadow-[#0B3D5C]/15 border border-[#20B8C4]/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        <span className="p-1.5 bg-cyan-400/20 text-cyan-200 rounded-lg border border-cyan-400/30">
+                        <span className="p-1.5 bg-[#20B8C4]/20 text-[#A6EBF0] rounded-lg border border-[#20B8C4]/30">
                             {ICONS.clock}
                         </span>
                         <h3 className="text-base font-bold tracking-tight">Project Timeline &amp; Schedule Matrix</h3>
-                        <span className="text-xs font-semibold text-cyan-200">
+                        <span className="text-xs font-semibold text-[#A6EBF0]">
                             · {scheduleStats.onTrackRate}% On Schedule
                         </span>
                     </div>
                     <p className="text-xs text-sky-100/90">
-                        Tracking planned vs. actual start and completion dates, milestone handovers, and variance for {safeProjects.length} regional projects.
+                        Tracking planned vs. actual start and completion dates, milestone handovers, and variance for {safeProjects.length} regional water and energy schemes.
                     </p>
                 </div>
 
@@ -543,16 +555,16 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
             </div>
 
             {/* Multi-Program Portfolios & Partner Infrastructure Strip */}
-            <div className="bg-gradient-to-r from-[#033b6b] via-[#054d87] to-[#032e54] rounded-2xl p-5 text-white shadow-md shadow-sky-950/20 border border-sky-500/30">
+            <div className="bg-gradient-to-r from-[#0B3D5C] via-[#094C72] to-[#073652] rounded-2xl p-5 text-white shadow-md shadow-[#0B3D5C]/20 border border-[#20B8C4]/35">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-2.5 border-b border-white/10">
                     <div className="flex items-center gap-2.5">
-                        <span className="p-2 bg-cyan-400/20 text-cyan-200 rounded-xl text-lg border border-cyan-400/30">📁</span>
+                        <span className="p-2 bg-[#20B8C4]/20 text-[#A6EBF0] rounded-xl text-lg border border-[#20B8C4]/30">📁</span>
                         <div>
-                            <h4 className="text-xs font-black uppercase tracking-wider text-cyan-200">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-[#A6EBF0]">
                                 Multi-Program Funding Portfolios &amp; Implementing Partners
                             </h4>
                             <p className="text-[11px] text-sky-200/90">
-                                Click any program card to instantly filter schemes across Oromia
+                                Click any program card to instantly filter water schemes across Oromia
                             </p>
                         </div>
                     </div>
@@ -604,13 +616,13 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                  <div className="lg:col-span-3 space-y-6">
-                    <div className="bg-white rounded-2xl border border-sky-100 shadow-xs p-4 flex items-center gap-4 flex-wrap">
-                        <div className="flex items-center gap-2 text-sky-950 font-bold text-sm flex-shrink-0">
-                            <span className="text-cyan-600">🔍</span>
+                    <div className="bg-white rounded-2xl border border-[#DCE7ED] shadow-xs p-4 flex items-center gap-4 flex-wrap">
+                        <div className="flex items-center gap-2 text-[#0B3D5C] font-extrabold text-sm flex-shrink-0">
+                            <span className="text-[#087EAD]">💧</span>
                             <span>Filter Schemes:</span>
                         </div>
                         <div className="flex-grow grid grid-cols-1 sm:grid-cols-4 gap-3">
-                            <select id="program-filter" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)} className="w-full px-3 py-2 text-xs bg-sky-50/70 border border-sky-200 font-semibold text-sky-950 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all cursor-pointer">
+                            <select id="program-filter" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)} className="w-full px-3 py-2 text-xs bg-[#F0F8FC] border border-[#DCE7ED] font-semibold text-[#172B3A] rounded-xl focus:ring-2 focus:ring-[#087EAD]/20 focus:border-[#087EAD] transition-all cursor-pointer">
                                 <option value="">All Programs</option>
                                 {(() => {
             const regProgs = loadPrograms().map(p => p.name);
@@ -618,15 +630,15 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
             return allUnique.map(p => <option key={p} value={p}>{p}</option>);
         })()}
                             </select>
-                            <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-3 py-2 text-xs bg-sky-50/70 border border-sky-200 font-semibold text-sky-950 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all cursor-pointer">
+                            <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-3 py-2 text-xs bg-[#F0F8FC] border border-[#DCE7ED] font-semibold text-[#172B3A] rounded-xl focus:ring-2 focus:ring-[#087EAD]/20 focus:border-[#087EAD] transition-all cursor-pointer">
                                 <option value="">All Statuses</option>
                                 {Object.values(ProjectStatus).map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
-                            <select id="zone-filter" value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)} className="w-full px-3 py-2 text-xs bg-sky-50/70 border border-sky-200 font-semibold text-sky-950 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all cursor-pointer">
+                            <select id="zone-filter" value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)} className="w-full px-3 py-2 text-xs bg-[#F0F8FC] border border-[#DCE7ED] font-semibold text-[#172B3A] rounded-xl focus:ring-2 focus:ring-[#087EAD]/20 focus:border-[#087EAD] transition-all cursor-pointer">
                                     <option value="">All Zones</option>
                                     {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
                             </select>
-                            <button onClick={() => { setStatusFilter(''); setZoneFilter(''); setProgramFilter(''); }} className="w-full px-4 py-2 text-xs border border-sky-200 text-sky-800 rounded-xl hover:bg-sky-50 font-bold transition-all cursor-pointer shadow-2xs">
+                            <button onClick={() => { setStatusFilter(''); setZoneFilter(''); setProgramFilter(''); }} className="w-full px-4 py-2 text-xs border border-[#DCE7ED] text-[#087EAD] hover:bg-[#F0F8FC] rounded-xl font-bold transition-all cursor-pointer shadow-2xs">
                                 Reset Filters
                             </button>
                         </div>

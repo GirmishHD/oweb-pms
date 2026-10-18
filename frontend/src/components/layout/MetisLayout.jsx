@@ -95,9 +95,27 @@ export const MetisLayout = ({
           user={user}
         />
 
-        {/* Main Content Workspace */}
-        <main className="metis-main" id="main-content">
-          <div className="metis-content-container">
+        {/* Main Content Workspace with Water-Sector Ambiance */}
+        <main className="metis-main relative" id="main-content">
+          {/* Subtle Water Pattern & Hydrological Flow Background */}
+          <div className="absolute inset-0 pointer-events-none opacity-40 z-0 overflow-hidden" aria-hidden="true">
+            {/* Top right subtle hydro glow */}
+            <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-sky-200/40 blur-3xl" />
+            {/* Bottom left water reservoir hue */}
+            <div className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full bg-cyan-100/50 blur-3xl" />
+            {/* Subtle topographic hydrological contours */}
+            <svg className="absolute inset-0 w-full h-full opacity-[0.035] text-[#087EAD]" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="water-grid-pattern" width="48" height="48" patternUnits="userSpaceOnUse">
+                  <path d="M 48 0 L 0 0 0 48" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <circle cx="24" cy="24" r="1.5" fill="currentColor" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#water-grid-pattern)" />
+            </svg>
+          </div>
+
+          <div className="metis-content-container relative z-10">
             {children}
           </div>
           <MetisFooter />
