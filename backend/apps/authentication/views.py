@@ -54,10 +54,13 @@ class RoleDefinitionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.none()
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False) or not self.request.user.is_authenticated:
+            return Notification.objects.none()
         return Notification.objects.filter(user=self.request.user).order_by('-created_at')
 
     @action(detail=False, methods=['post'])
