@@ -195,21 +195,68 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
     return (
         <div className="min-h-screen w-full relative flex items-center justify-center p-4 sm:p-6 lg:p-12 font-sans overflow-x-hidden bg-[#071927]">
             {/* ============================================================ */}
-            {/* RICH COLORLIB BACKGROUND: Vibrant Water & Hydro Abstract Glow*/}
+            {/* REALISTIC WATER SOFTWARE BACKGROUND: Layered Aquatic Surface */}
             {/* ============================================================ */}
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                {/* Deep Aquatic Gradient Wash */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#02111d] via-[#052b49] to-[#0a4875] opacity-95" />
-                
-                {/* Colorlib Frosted Glass Ambient Hydro Circles */}
-                <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-sky-400/20 rounded-full blur-[140px]" />
-                <div className="absolute top-1/3 -right-40 w-[650px] h-[650px] bg-cyan-400/15 rounded-full blur-[160px]" />
-                <div className="absolute -bottom-40 left-1/3 w-[700px] h-[700px] bg-teal-500/15 rounded-full blur-[180px]" />
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+                {/* 1. Deep Ocean & Hydro Reservoir Base Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#021324] via-[#042845] to-[#011422]" />
 
-                {/* Hydro Ripple Vector Accents */}
-                <svg className="absolute -bottom-24 -left-24 w-[500px] h-[500px] text-sky-400/5" viewBox="0 0 200 200" fill="currentColor">
-                    <path d="M41.7,-71.4C54.1,-65.2,64.2,-54.6,71.8,-42.1C79.4,-29.6,84.5,-14.8,83.9,-0.3C83.4,14.1,77.2,28.3,69.1,41.2C61,54.1,51,65.8,38.4,72.4C25.8,79,10.6,80.5,-4.4,78.2C-19.4,75.9,-34.2,69.8,-47.3,61.1C-60.4,52.3,-71.8,40.9,-78.9,27.1C-85.9,13.3,-88.6,-2.9,-84.9,-17.8C-81.2,-32.7,-71.2,-46.3,-58.4,-53.2C-45.6,-60.1,-30,-60.3,-15.8,-62.9C-1.6,-65.5,12.7,-70.5,41.7,-71.4Z" transform="translate(100 100)" />
-                </svg>
+                {/* 2. Water Sunlight Caustics & Optical Refraction (Shimmering Water Pattern) */}
+                <div 
+                    className="absolute inset-0 opacity-20 mix-blend-screen animate-water-caustics pointer-events-none"
+                    style={{
+                        backgroundImage: `radial-gradient(ellipse 60% 50% at 50% 20%, rgba(56, 189, 248, 0.45), transparent 70%),
+                                          radial-gradient(ellipse 70% 60% at 85% 65%, rgba(6, 182, 212, 0.35), transparent 70%),
+                                          radial-gradient(ellipse 50% 40% at 15% 75%, rgba(20, 184, 166, 0.3), transparent 60%)`
+                    }}
+                />
+
+                {/* 3. Deep Reservoir Hydro Radial Illumination */}
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[550px] bg-sky-500/15 rounded-full blur-[140px]" />
+                <div className="absolute -bottom-24 right-10 w-[600px] h-[600px] bg-teal-500/15 rounded-full blur-[160px]" />
+                <div className="absolute top-2/3 left-10 w-[500px] h-[500px] bg-cyan-600/15 rounded-full blur-[150px]" />
+
+                {/* 4. Layered Animated Water Waves (Realistic Flowing Waves) */}
+                <div className="absolute inset-x-0 bottom-0 h-96 overflow-hidden pointer-events-none">
+                    {/* Deep Slow Background Wave */}
+                    <svg 
+                        className="absolute bottom-0 w-[200%] h-64 text-sky-900/30 animate-water-wave-slow fill-current" 
+                        viewBox="0 0 1440 320" 
+                        preserveAspectRatio="none"
+                    >
+                        <path d="M0,160L48,176C96,192,192,224,288,218.7C384,213,480,171,576,165.3C672,160,768,192,864,208C960,224,1056,224,1152,197.3C1248,171,1344,117,1392,90.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    </svg>
+
+                    {/* Middle Azure Water Wave with Glow */}
+                    <svg 
+                        className="absolute bottom-0 w-[200%] h-56 text-sky-600/20 animate-water-wave fill-current" 
+                        viewBox="0 0 1440 320" 
+                        preserveAspectRatio="none"
+                    >
+                        <path d="M0,64L48,80C96,96,192,128,288,149.3C384,171,480,181,576,165.3C672,149,768,107,864,112C960,117,1056,171,1152,181.3C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    </svg>
+
+                    {/* Foreground Crest Wave with Cyan Shimmer */}
+                    <svg 
+                        className="absolute bottom-0 w-[200%] h-48 text-cyan-400/15 animate-water-wave-slow fill-current" 
+                        viewBox="0 0 1440 320" 
+                        preserveAspectRatio="none"
+                    >
+                        <path d="M0,224L48,208C96,192,192,160,288,160C384,160,480,192,576,208C672,224,768,224,864,202.7C960,181,1056,139,1152,138.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    </svg>
+                </div>
+
+                {/* 5. Water Droplets & Telemetry Network Particles */}
+                <div 
+                    className="absolute inset-0 opacity-15 pointer-events-none"
+                    style={{
+                        backgroundImage: `radial-gradient(circle 2px at 20% 30%, #7dd3fc 100%, transparent),
+                                          radial-gradient(circle 2.5px at 80% 40%, #38bdf8 100%, transparent),
+                                          radial-gradient(circle 2px at 40% 70%, #22d3ee 100%, transparent),
+                                          radial-gradient(circle 3px at 65% 20%, #e0f2fe 100%, transparent),
+                                          radial-gradient(circle 2px at 90% 80%, #67e8f9 100%, transparent)`
+                    }}
+                />
             </div>
 
             {/* Top Global Bar: Language Switcher & Public Transparency Link */}
