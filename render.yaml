@@ -1,0 +1,73 @@
+# Render Blueprint Specification for Oromia Water & Energy Bureau (OWEB)
+# Program Based Project Management System (PB-PMS)
+# Target Render Account: gimmyphp@gmail.com
+
+services:
+  # ============================================================================
+  # 1. DJANGO REST BACKEND WEB SERVICE
+  # ============================================================================
+  - type: web
+    name: oweb-backend
+    runtime: python
+    region: frankfurt  # or oregon / ohio / singapore
+    plan: free
+    rootDir: backend
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
+    healthCheckPath: /api/programs/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: oweb-postgres
+          property: connectionString
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: CORS_ALLOW_ALL
+        value: "False"
+      - key: INITIAL_ADMIN_USERNAME
+        value: admin
+      - key: INITIAL_ADMIN_EMAIL
+        value: gimmyphp@gmail.com
+      - key: INITIAL_ADMIN_PASSWORD
+        generateValue: true
+
+  # ============================================================================
+  # 2. REACT VITE FRONTEND STATIC SITE
+  # ============================================================================
+  - type: web
+    name: oweb-frontend
+    runtime: static
+    region: frankfurt
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: oweb-backend
+          envVarKey: RENDER_EXTERNAL_URL
+          transform: suffix:/api
+
+# ============================================================================
+# 3. MANAGED POSTGRESQL DATABASE
+# ============================================================================
+databases:
+  - name: oweb-postgres
+    region: frankfurt
+    plan: free
+    databaseName: oweb_pms
+    user: oweb_admin

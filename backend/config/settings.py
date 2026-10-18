@@ -9,7 +9,11 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-pms-production
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
+# Render and host configuration
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',') if h.strip()]
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -71,17 +75,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'oweb_pms'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    import urllib.parse
+    url = urllib.parse.urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:] if url.path else 'oweb_pms',
+            'USER': url.username or 'postgres',
+            'PASSWORD': url.password or '',
+            'HOST': url.hostname or 'localhost',
+            'PORT': str(url.port) if url.port else '5432',
+            'CONN_MAX_AGE': 600,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'oweb_pms'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+            'CONN_MAX_AGE': 600,
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -149,7 +169,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-# CORS Configuration
+# CORS & CSRF Configuration
 CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL', 'True' if DEBUG else 'False').lower() in ('true', '1')
 CORS_ALLOWED_ORIGINS = [
     origin.strip() for origin in os.environ.get(
@@ -157,7 +177,17 @@ CORS_ALLOWED_ORIGINS = [
         'http://localhost:3002,http://127.0.0.1:3002,http://localhost:3000'
     ).split(',') if origin.strip()
 ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.onrender\.com$",
+]
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'http://localhost:3002,http://127.0.0.1:3002,http://localhost:3000,https://*.onrender.com'
+    ).split(',') if origin.strip()
+]
 
 # Security Headers & Cookie Flags
 SECURE_CONTENT_TYPE_NOSNIFF = True
