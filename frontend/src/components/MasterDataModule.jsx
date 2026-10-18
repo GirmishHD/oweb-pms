@@ -1,527 +1,721 @@
 import React, { useState, useMemo } from 'react';
 import { Role } from '../types';
-import { calculateTotalMasterDataItems, INITIAL_MASTER_DATA, pushMasterDataToAllModules } from '../services/masterDataService';
-import { CatalogItemsTable } from './masterdata/CatalogItemsTable';
-import { OrganizationUnitsModule } from './masterdata/OrganizationUnitsModule';
-import { SystemConfigSection } from './masterdata/SystemConfigSection';
-import { WorkflowConfigSection } from './masterdata/WorkflowConfigSection';
-import { ApprovalThresholdSection } from './masterdata/ApprovalThresholdSection';
-import { AuditHistorySection } from './masterdata/AuditHistorySection';
-import { ImportExportModal } from './masterdata/ImportExportModal';
-import { Database, Settings, GitFork, Scale, MapPin, Layers, History, Radio, Plus, Upload, RotateCcw, ShieldCheck, AlertTriangle, FolderTree, CheckCheck } from 'lucide-react';
-export const MasterDataModule = ({ masterData, onUpdateMasterData, onPushToAll, onResetToBaseline, currentUser, user, originalUser, projects = [], contracts = [], procurements = [], users = [] }) => {
+import {
+    getWaterSources, getEnergySources, getProjectTypes, getInterventionTypes,
+    getFundingSources, getImplementingBodies, getProcurementMethods,
+    getProcurementTypes, getDeliverableCategories, getAmendmentTypes,
+    getDocumentCategories, getInspectionStages, getGeographicHierarchy,
+    getZones, getWoredasForZone, addMasterDataItem, removeMasterDataItem,
+    addWoredaToZone, addZone
+} from '../services/masterDataLookups';
+import {
+    Database, Droplets, Zap, FolderKanban, RefreshCw, Landmark,
+    Gavel, PackageCheck, FileEdit, Building2, ClipboardCheck,
+    FileText, MapPin, Plus, Search, Trash2, CheckCircle2,
+    ShieldCheck, Radio, AlertCircle, X, ArrowRight, ChevronRight,
+    Tag, Download
+} from 'lucide-react';
+
+const CATEGORIES = [
+    { id: 'waterSources', label: 'Water Sources', icon: Droplets, color: 'text-sky-600 bg-sky-50 border-sky-200', countKey: 'waterSources', description: 'Raw water extraction and hydrological intake classifications' },
+    { id: 'energySources', label: 'Pumping & Energy', icon: Zap, color: 'text-amber-600 bg-amber-50 border-amber-200', countKey: 'energySources', description: 'Power systems driving electromechanical pumps (Solar, Grid, Hybrid)' },
+    { id: 'projectCategories', label: 'Project Sectors', icon: FolderKanban, color: 'text-indigo-600 bg-indigo-50 border-indigo-200', countKey: 'projectCategories', description: 'Scheme program sectors and engineering classifications' },
+    { id: 'interventionTypes', label: 'Intervention Types', icon: RefreshCw, color: 'text-emerald-600 bg-emerald-50 border-emerald-200', countKey: 'interventionTypes', description: 'Project scope classification (New Construction, Rehabilitation, Expansion)' },
+    { id: 'fundingSources', label: 'Funding Partners', icon: Landmark, color: 'text-purple-600 bg-purple-50 border-purple-200', countKey: 'fundingSources', description: 'Multilateral donors, sovereign treasury, and bilateral programs' },
+    { id: 'procurementMethods', label: 'Procurement Methods', icon: Gavel, color: 'text-rose-600 bg-rose-50 border-rose-200', countKey: 'procurementMethods', description: 'Statutory public procurement tender mechanisms (NCB, ICB, RFQ)' },
+    { id: 'deliverableCategories', label: 'Contract Deliverables', icon: PackageCheck, color: 'text-teal-600 bg-teal-50 border-teal-200', countKey: 'deliverableCategories', description: 'Major contractual milestones and work item categories' },
+    { id: 'amendmentTypes', label: 'Variation & Amendments', icon: FileEdit, color: 'text-orange-600 bg-orange-50 border-orange-200', countKey: 'amendmentTypes', description: 'Contract amendment and variation order categories' },
+    { id: 'implementingBodies', label: 'Implementing Agencies', icon: Building2, color: 'text-blue-600 bg-blue-50 border-blue-200', countKey: 'implementingBodies', description: 'Executing bureau directorates, zonal offices, utilities, and WASHCOs' },
+    { id: 'inspectionStages', label: 'Inspection Stages', icon: ClipboardCheck, color: 'text-cyan-600 bg-cyan-50 border-cyan-200', countKey: 'inspectionStages', description: 'Field QA/QC supervision and construction lifecycle phases' },
+    { id: 'documentCategories', label: 'Document Vault Categories', icon: FileText, color: 'text-slate-600 bg-slate-50 border-slate-200', countKey: 'documentCategories', description: 'Classification categories for drawings, deeds, and technical reports' },
+    { id: 'geographicHierarchy', label: 'Zones & Woredas', icon: MapPin, color: 'text-red-600 bg-red-50 border-red-200', countKey: 'geographicHierarchy', description: 'Administrative geographic hierarchy across Oromia Regional State' },
+];
+
+export const MasterDataModule = ({
+    masterData,
+    onUpdateMasterData,
+    onPushToAll,
+    currentUser,
+    user,
+    originalUser
+}) => {
     const effectiveUser = currentUser || user;
     const canEdit = effectiveUser?.role === Role.ADMIN || (originalUser && originalUser.role === Role.ADMIN);
-    const [activeTab, setActiveTab] = useState('catalog');
+
+    const [activeCategory, setActiveCategory] = useState('waterSources');
     const [searchQuery, setSearchQuery] = useState('');
-    // Modals state
-    const [isPushModalOpen, setIsPushModalOpen] = useState(false);
-    const [pushNotes, setPushNotes] = useState('');
-    const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
-    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [newItemName, setNewItemName] = useState('');
     const [toastMessage, setToastMessage] = useState(null);
-    // Geographic hierarchy states
-    const [selectedZone, setSelectedZone] = useState(Object.keys(masterData.geographicHierarchy || {})[0] || '');
+
+    // Modal state for quick add
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [modalCategory, setModalCategory] = useState('waterSources');
+    const [modalItemName, setModalItemName] = useState('');
+    const [modalItemCode, setModalItemCode] = useState('');
+    const [modalItemDesc, setModalItemDesc] = useState('');
+
+    // Zonal hierarchy specific state
+    const zones = useMemo(() => getZones(masterData), [masterData]);
+    const [selectedZone, setSelectedZone] = useState(() => zones[0] || 'Arsi');
+    const [newWoredaName, setNewWoredaName] = useState('');
     const [newZoneName, setNewZoneName] = useState('');
     const [isAddingZone, setIsAddingZone] = useState(false);
-    const [newWoredaName, setNewWoredaName] = useState('');
-    // Project categories state
-    const [selectedSector, setSelectedSector] = useState(Object.keys(masterData.projectCategories || {})[0] || '');
-    const [newSectorName, setNewSectorName] = useState('');
-    const [isAddingSector, setIsAddingSector] = useState(false);
-    const [newSubtypeName, setNewSubtypeName] = useState('');
+
     const showToast = (msg) => {
         setToastMessage(msg);
         setTimeout(() => setToastMessage(null), 3500);
     };
-    const totalRegisteredItems = useMemo(() => calculateTotalMasterDataItems(masterData), [masterData]);
-    const totalZones = Object.keys(masterData.geographicHierarchy || {}).length;
-    const totalWoredas = useMemo(() => {
-        let count = 0;
-        Object.values(masterData.geographicHierarchy || {}).forEach((arr) => {
-            count += (arr || []).length;
+
+    // Current category items extraction
+    const currentItems = useMemo(() => {
+        switch (activeCategory) {
+            case 'waterSources': return getWaterSources(masterData);
+            case 'energySources': return getEnergySources(masterData);
+            case 'projectCategories': return getProjectTypes(masterData);
+            case 'interventionTypes': return getInterventionTypes(masterData);
+            case 'fundingSources': return getFundingSources(masterData);
+            case 'procurementMethods': return getProcurementMethods(masterData);
+            case 'deliverableCategories': return getDeliverableCategories(masterData);
+            case 'amendmentTypes': return getAmendmentTypes(masterData);
+            case 'implementingBodies': return getImplementingBodies(masterData);
+            case 'inspectionStages': return getInspectionStages(masterData);
+            case 'documentCategories': return getDocumentCategories(masterData);
+            case 'geographicHierarchy': return zones;
+            default: return [];
+        }
+    }, [activeCategory, masterData, zones]);
+
+    // Search filter
+    const filteredItems = useMemo(() => {
+        if (!searchQuery.trim()) return currentItems;
+        const q = searchQuery.toLowerCase();
+        return currentItems.filter(item => {
+            const name = typeof item === 'object' ? item.name || '' : String(item);
+            return name.toLowerCase().includes(q);
         });
-        return count;
-    }, [masterData.geographicHierarchy]);
-    // Log history change helper
-    const recordHistory = (data, entityType, entityCode, entityName, action, summary, prev, next, reason) => {
-        const newEntry = {
-            id: `hist-${Date.now()}`,
-            entityType,
-            entityCode,
-            entityName,
-            action,
-            changedBy: effectiveUser?.username || 'Administrator',
-            timestamp: new Date().toISOString(),
-            previousValue: prev,
-            newValue: next,
-            changeSummary: summary,
-            reason
-        };
-        return {
-            ...data,
-            historyEntries: [newEntry, ...(data.historyEntries || [])],
-            lastUpdated: new Date().toISOString()
-        };
-    };
-    // 1. Catalog Item handlers
-    const handleUpdateItem = (updatedItem) => {
-        const currentItems = masterData.catalogItems || [];
-        const updatedItems = currentItems.map(i => i.id === updatedItem.id ? updatedItem : i);
-        const updatedData = recordHistory({ ...masterData, catalogItems: updatedItems }, 'ITEM', updatedItem.code, updatedItem.name, 'UPDATED', `${effectiveUser?.username || 'Administrator'} updated catalog item "${updatedItem.name}" (${updatedItem.code}).`);
-        onUpdateMasterData(updatedData);
-        showToast(`Catalog item "${updatedItem.name}" updated successfully.`);
-    };
-    const handleCreateItem = (newItem) => {
-        const currentItems = masterData.catalogItems || [];
-        const updatedItems = [...currentItems, newItem];
-        const updatedData = recordHistory({ ...masterData, catalogItems: updatedItems }, 'ITEM', newItem.code, newItem.name, 'CREATED', `${effectiveUser?.username || 'Administrator'} registered new catalog item "${newItem.name}" (${newItem.code}) under ${newItem.categoryCode}.`);
-        onUpdateMasterData(updatedData);
-        showToast(`Catalog item "${newItem.name}" created successfully.`);
-    };
-    const handleDeleteItem = (itemId, categoryCode, itemCode) => {
-        const currentItems = masterData.catalogItems || [];
-        const itemToDelete = currentItems.find(i => i.id === itemId);
-        const updatedItems = currentItems.filter(i => i.id !== itemId);
-        const updatedData = recordHistory({ ...masterData, catalogItems: updatedItems }, 'ITEM', itemCode, itemToDelete?.name || itemCode, 'DELETED', `${effectiveUser?.username || 'Administrator'} permanently deleted catalog item "${itemToDelete?.name || itemCode}".`);
-        onUpdateMasterData(updatedData);
-        showToast(`Item "${itemToDelete?.name || itemCode}" deleted.`);
-    };
-    // 2. System Configuration handlers
-    const handleUpdateConfig = (updatedCfg, reason) => {
-        const currentConfigs = masterData.systemConfigurations || [];
-        const prevCfg = currentConfigs.find(c => c.key === updatedCfg.key);
-        const updatedConfigs = currentConfigs.map(c => c.key === updatedCfg.key ? updatedCfg : c);
-        const updatedData = recordHistory({ ...masterData, systemConfigurations: updatedConfigs }, 'CONFIG', updatedCfg.key, updatedCfg.name, 'UPDATED', `${effectiveUser?.username || 'Administrator'} updated system parameter "${updatedCfg.name}" to "${updatedCfg.value}".`, prevCfg?.value, updatedCfg.value, reason);
-        onUpdateMasterData(updatedData);
-        showToast(`System parameter "${updatedCfg.name}" updated.`);
-    };
-    const handleResetAllConfigs = () => {
-        const resetConfigs = (masterData.systemConfigurations || []).map(c => ({
-            ...c,
-            value: c.defaultValue,
-            updatedBy: effectiveUser?.username || 'Administrator',
-            updatedAt: new Date().toISOString()
-        }));
-        const updatedData = recordHistory({ ...masterData, systemConfigurations: resetConfigs }, 'CONFIG', 'ALL_CONFIGS', 'All System Parameters', 'RESET', `${effectiveUser?.username || 'Administrator'} reverted all system configuration values to factory defaults.`);
-        onUpdateMasterData(updatedData);
-        showToast('All system configurations reset to factory defaults.');
-    };
-    // 3. Workflow handlers
-    const handleUpdateWorkflow = (wf) => {
-        const currentWfs = masterData.workflowDefinitions || [];
-        const updatedWfs = currentWfs.map(w => w.code === wf.code ? wf : w);
-        const updatedData = recordHistory({ ...masterData, workflowDefinitions: updatedWfs }, 'WORKFLOW', wf.code, wf.name, 'UPDATED', `${effectiveUser?.username || 'Administrator'} updated workflow rule "${wf.name}".`);
-        onUpdateMasterData(updatedData);
-        showToast(`Workflow "${wf.name}" updated.`);
-    };
-    const handleUpdateWorkflowSteps = (workflowCode, newSteps) => {
-        const otherSteps = (masterData.workflowSteps || []).filter(s => s.workflowCode !== workflowCode);
-        const combined = [...otherSteps, ...newSteps];
-        const wfName = (masterData.workflowDefinitions || []).find(w => w.code === workflowCode)?.name || workflowCode;
-        const updatedData = recordHistory({ ...masterData, workflowSteps: combined }, 'WORKFLOW', workflowCode, wfName, 'UPDATED', `${effectiveUser?.username || 'Administrator'} modified approval sequence steps for "${wfName}" (${newSteps.length} stages).`);
-        onUpdateMasterData(updatedData);
-        showToast(`Workflow steps for "${wfName}" updated.`);
-    };
-    // 4. Approval Thresholds handlers
-    const handleUpdateThresholds = (newThresholds) => {
-        const updatedData = recordHistory({ ...masterData, approvalThresholds: newThresholds }, 'THRESHOLD', 'APPROVAL_TIERS', 'Approval Threshold Policy', 'UPDATED', `${effectiveUser?.username || 'Administrator'} updated statutory approval threshold tiers matrix.`);
-        onUpdateMasterData(updatedData);
-        showToast('Approval threshold tiers updated.');
-    };
-    // 5. Geographic Hierarchy Adders
-    const handleAddZone = () => {
-        const zName = newZoneName.trim();
-        if (!zName)
-            return;
-        if (masterData.geographicHierarchy[zName]) {
-            alert(`Zone "${zName}" is already registered.`);
+    }, [currentItems, searchQuery]);
+
+    // Fast inline add
+    const handleQuickAdd = (e) => {
+        e?.preventDefault();
+        const cleanName = (newItemName || '').trim();
+        if (!cleanName) return;
+
+        if (activeCategory === 'geographicHierarchy') {
+            const updated = addZone(masterData, cleanName);
+            onUpdateMasterData(updated);
+            setSelectedZone(cleanName);
+            setNewItemName('');
+            showToast(`Zone "${cleanName}" added to Master Data.`);
             return;
         }
-        const updatedHierarchy = {
-            ...masterData.geographicHierarchy,
-            [zName]: []
-        };
-        const updatedData = recordHistory({ ...masterData, geographicHierarchy: updatedHierarchy }, 'ITEM', `ZONE_${zName.toUpperCase().slice(0, 10)}`, zName, 'CREATED', `${effectiveUser?.username || 'Administrator'} registered administrative zone "${zName}".`);
-        onUpdateMasterData(updatedData);
-        setSelectedZone(zName);
-        setNewZoneName('');
-        setIsAddingZone(false);
-        showToast(`Zone "${zName}" added.`);
+
+        const updated = addMasterDataItem(masterData, activeCategory, cleanName);
+        onUpdateMasterData(updated);
+        setNewItemName('');
+        showToast(`"${cleanName}" added to ${CATEGORIES.find(c => c.id === activeCategory)?.label}.`);
     };
-    const handleAddWoreda = () => {
-        const wName = newWoredaName.trim();
-        if (!wName || !selectedZone)
-            return;
-        const currentWoredas = masterData.geographicHierarchy[selectedZone] || [];
-        if (currentWoredas.includes(wName)) {
-            alert(`Woreda "${wName}" already exists in ${selectedZone}.`);
+
+    // Modal add with details
+    const handleModalSubmit = (e) => {
+        e.preventDefault();
+        const cleanName = modalItemName.trim();
+        if (!cleanName) return;
+
+        const updated = addMasterDataItem(masterData, modalCategory, {
+            name: cleanName,
+            code: modalItemCode.trim() || undefined,
+            description: modalItemDesc.trim() || undefined
+        });
+
+        onUpdateMasterData(updated);
+        setIsAddModalOpen(false);
+        setModalItemName('');
+        setModalItemCode('');
+        setModalItemDesc('');
+        setActiveCategory(modalCategory);
+        showToast(`"${cleanName}" successfully registered in Master Data.`);
+    };
+
+    // Delete item
+    const handleDeleteItem = (itemName) => {
+        if (!window.confirm(`Are you sure you want to remove "${itemName}" from Master Data?`)) {
             return;
         }
-        const updatedHierarchy = {
-            ...masterData.geographicHierarchy,
-            [selectedZone]: [...currentWoredas, wName]
-        };
-        const updatedData = recordHistory({ ...masterData, geographicHierarchy: updatedHierarchy }, 'ITEM', `WOR_${wName.toUpperCase().slice(0, 10)}`, wName, 'CREATED', `${effectiveUser?.username || 'Administrator'} added Woreda "${wName}" under ${selectedZone}.`);
-        onUpdateMasterData(updatedData);
+        const updated = removeMasterDataItem(masterData, activeCategory, itemName);
+        onUpdateMasterData(updated);
+        showToast(`"${itemName}" removed.`);
+    };
+
+    // Add Woreda to Zone
+    const handleAddWoreda = (e) => {
+        e?.preventDefault();
+        const clean = (newWoredaName || '').trim();
+        if (!clean || !selectedZone) return;
+
+        const updated = addWoredaToZone(masterData, selectedZone, clean);
+        onUpdateMasterData(updated);
         setNewWoredaName('');
-        showToast(`Woreda "${wName}" added to ${selectedZone}.`);
+        showToast(`Woreda "${clean}" added to ${selectedZone} Zone.`);
     };
-    // 6. Broadcast Push to All Modules
-    const handleConfirmPush = () => {
-        const notes = pushNotes.trim() || 'Master data catalog and centralized system configurations updated and pushed to all active modules.';
-        const synced = pushMasterDataToAllModules(masterData, effectiveUser?.username || 'Administrator');
-        onPushToAll(synced);
-        setIsPushModalOpen(false);
-        setPushNotes('');
-        showToast(`Master Data v${synced.version} broadcasted across all modules!`);
-    };
-    const handleConfirmReset = () => {
-        if (onResetToBaseline) {
-            onResetToBaseline();
-        }
-        else {
-            onUpdateMasterData(INITIAL_MASTER_DATA);
-        }
-        setIsResetConfirmOpen(false);
-        showToast('Master data catalog restored to regional baseline defaults.');
-    };
-    return (<div className="flex flex-col h-full bg-slate-100 p-6 overflow-y-auto text-slate-800 animate-fade-in relative">
-      {/* Toast Notification */}
-      {toastMessage && (<div className="fixed top-5 right-5 z-50 bg-emerald-950 text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-400/40 flex items-center gap-2.5 text-xs font-bold animate-fade-in">
-          <CheckCheck className="w-4 h-4 text-emerald-300"/>
-          <span>{toastMessage}</span>
-        </div>)}
 
-      {/* Global Brand Header & Synchronization Bar */}
-      <div className="bg-gradient-to-r from-[#06203c] via-[#083359] to-[#041a30] rounded-3xl p-6 sm:p-7 text-white shadow-xl mb-6 border border-cyan-900/60 relative overflow-hidden">
-        {/* Ambient Shimmer */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"/>
+    // Export Master Data as JSON
+    const handleExport = () => {
+        const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", jsonStr);
+        downloadAnchor.setAttribute("download", `OWEB_Master_Data_v${masterData.version || '2.0.0'}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showToast("Master Data exported successfully.");
+    };
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
-                <ShieldCheck className="w-3.5 h-3.5"/>
-                OWEB Central Architecture &bull; Single Source of Truth
-              </span>
-              <span className="text-xs bg-cyan-500/30 text-cyan-200 px-2.5 py-0.5 rounded-full border border-cyan-400/40 font-mono font-bold">
-                v{masterData.version}
-              </span>
+    // Total count calculation
+    const totalCount = useMemo(() => {
+        let sum = 0;
+        sum += getWaterSources(masterData).length;
+        sum += getEnergySources(masterData).length;
+        sum += getProjectTypes(masterData).length;
+        sum += getInterventionTypes(masterData).length;
+        sum += getFundingSources(masterData).length;
+        sum += getProcurementMethods(masterData).length;
+        sum += getDeliverableCategories(masterData).length;
+        sum += getAmendmentTypes(masterData).length;
+        sum += getImplementingBodies(masterData).length;
+        sum += getInspectionStages(masterData).length;
+        sum += getDocumentCategories(masterData).length;
+        return sum;
+    }, [masterData]);
+
+    const activeCatMeta = CATEGORIES.find(c => c.id === activeCategory) || CATEGORIES[0];
+    const ActiveIcon = activeCatMeta.icon;
+
+    return (
+        <div className="space-y-6 animate-fade-in">
+            {/* Toast Feedback */}
+            {toastMessage && (
+                <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-cyan-500/40 flex items-center gap-3 animate-slide-up">
+                    <CheckCircle2 className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+                    <span className="text-sm font-semibold">{toastMessage}</span>
+                </div>
+            )}
+
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+                <div className="absolute right-0 top-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+                
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                OWEB Central Single Source of Truth
+                            </span>
+                            <span className="text-xs bg-cyan-500/30 text-cyan-200 px-2.5 py-0.5 rounded-full border border-cyan-400/40 font-mono font-bold">
+                                v{masterData.version || '2.0.0'}
+                            </span>
+                        </div>
+
+                        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                            <Database className="w-7 h-7 text-cyan-400" />
+                            Master Data &amp; System Dropdown Registry
+                        </h1>
+                        <p className="text-sky-200/80 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+                            Centralized authority controlling every dropdown in the system (Water Sources, Pumping &amp; Solar, Donors, Tenders, Contracts, Inspections, and Zonal Hierarchy). Any option added here instantly populates across Planning, Procurement, and Field supervision.
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-sky-200/90 mt-4 pt-3 border-t border-cyan-900/60 font-medium">
+                            <span className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                Status: <strong className="text-emerald-300">Live Active</strong>
+                            </span>
+                            <span className="text-cyan-800">•</span>
+                            <span>Total Dropdown Options: <strong className="text-white font-mono">{totalCount}</strong></span>
+                            <span className="text-cyan-800">•</span>
+                            <span>Oromia Administrative Zones: <strong className="text-white font-mono">{zones.length}</strong></span>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleExport}
+                            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                            <Download className="w-4 h-4 text-cyan-300" />
+                            <span>Export Backup</span>
+                        </button>
+
+                        {canEdit && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setModalCategory(activeCategory);
+                                        setIsAddModalOpen(true);
+                                    }}
+                                    className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span>+ Add New Dropdown Item</span>
+                                </button>
+
+                                {onPushToAll && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onPushToAll(masterData);
+                                            showToast("Master Data broadcasted and synchronized across all subsystems.");
+                                        }}
+                                        className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+                                    >
+                                        <Radio className="w-4 h-4" />
+                                        <span>Broadcast Changes</span>
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
-              Master Data Catalog &amp; System Configuration
-            </h1>
-            <p className="text-sky-200/80 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-              Centralized repository for all reference data, classifications, administrative hierarchies, configurable system parameters, workflow pipelines, and approval threshold governance.
-            </p>
+            {/* Main Interactive Work Area: Left Categories List, Right Items Viewer */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left Category Selection Navigation (4 Cols) */}
+                <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div className="p-4 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            System Dropdown Registries
+                        </span>
+                        <span className="text-xs font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">
+                            {CATEGORIES.length}
+                        </span>
+                    </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-sky-200/90 mt-3 pt-3 border-t border-cyan-900/60">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"/>
-                Status: <strong className="text-emerald-300">Live Synchronized</strong>
-              </span>
-              <span className="text-cyan-800">•</span>
-              <span>Last Pushed: <strong>{new Date(masterData.lastPushedAt).toLocaleDateString()}</strong></span>
-              <span className="text-cyan-800">•</span>
-              <span>Pushed By: <strong className="text-white">{masterData.lastPushedBy}</strong></span>
-              <span className="text-cyan-800">•</span>
-              <span>Total Active Records: <strong className="text-white font-mono">{totalRegisteredItems}</strong></span>
+                    <div className="divide-y divide-slate-100">
+                        {CATEGORIES.map(cat => {
+                            const Icon = cat.icon;
+                            const isSelected = activeCategory === cat.id;
+                            
+                            // Calculate live count
+                            let count = 0;
+                            if (cat.id === 'waterSources') count = getWaterSources(masterData).length;
+                            else if (cat.id === 'energySources') count = getEnergySources(masterData).length;
+                            else if (cat.id === 'projectCategories') count = getProjectTypes(masterData).length;
+                            else if (cat.id === 'interventionTypes') count = getInterventionTypes(masterData).length;
+                            else if (cat.id === 'fundingSources') count = getFundingSources(masterData).length;
+                            else if (cat.id === 'procurementMethods') count = getProcurementMethods(masterData).length;
+                            else if (cat.id === 'deliverableCategories') count = getDeliverableCategories(masterData).length;
+                            else if (cat.id === 'amendmentTypes') count = getAmendmentTypes(masterData).length;
+                            else if (cat.id === 'implementingBodies') count = getImplementingBodies(masterData).length;
+                            else if (cat.id === 'inspectionStages') count = getInspectionStages(masterData).length;
+                            else if (cat.id === 'documentCategories') count = getDocumentCategories(masterData).length;
+                            else if (cat.id === 'geographicHierarchy') count = zones.length;
+
+                            return (
+                                <button
+                                    key={cat.id}
+                                    type="button"
+                                    onClick={() => {
+                                        setActiveCategory(cat.id);
+                                        setSearchQuery('');
+                                    }}
+                                    className={`w-full text-left p-3.5 transition-all flex items-center justify-between cursor-pointer ${
+                                        isSelected
+                                            ? 'bg-cyan-50/70 border-l-4 border-cyan-600 font-bold'
+                                            : 'hover:bg-slate-50/80'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-xl border ${cat.color}`}>
+                                            <Icon className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <div className={`text-sm ${isSelected ? 'text-cyan-950 font-black' : 'text-slate-800 font-semibold'}`}>
+                                                {cat.label}
+                                            </div>
+                                            <div className="text-[11px] text-slate-400 line-clamp-1 max-w-[200px]">
+                                                {cat.description}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${
+                                            isSelected ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-600'
+                                        }`}>
+                                            {count}
+                                        </span>
+                                        <ChevronRight className={`w-4 h-4 ${isSelected ? 'text-cyan-600' : 'text-slate-300'}`} />
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Right Content Panel (8 Cols) */}
+                <div className="lg:col-span-8 space-y-4">
+                    {/* Category Detail Card */}
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2.5 rounded-2xl border ${activeCatMeta.color}`}>
+                                    <ActiveIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                                        {activeCatMeta.label}
+                                        <span className="text-xs bg-slate-100 text-slate-700 font-mono px-2 py-0.5 rounded-full">
+                                            {filteredItems.length} options
+                                        </span>
+                                    </h3>
+                                    <p className="text-xs text-slate-500">
+                                        {activeCatMeta.description}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Search Filter */}
+                            <div className="relative min-w-[220px]">
+                                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                                <input
+                                    type="text"
+                                    placeholder={`Filter ${activeCatMeta.label}...`}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-cyan-500 outline-none transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Special Case: Geographic Hierarchy (Zones & Woredas) */}
+                        {activeCategory === 'geographicHierarchy' ? (
+                            <div className="mt-5 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                                    {/* Zones List (5 Cols) */}
+                                    <div className="md:col-span-5 border border-slate-200 rounded-2xl p-4 bg-slate-50/50">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                                                Select Zone ({zones.length})
+                                            </span>
+                                            {canEdit && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsAddingZone(!isAddingZone)}
+                                                    className="text-xs font-bold text-cyan-700 hover:text-cyan-800"
+                                                >
+                                                    {isAddingZone ? 'Cancel' : '+ New Zone'}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {isAddingZone && (
+                                            <div className="flex items-center gap-1.5 mb-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Zone name..."
+                                                    value={newZoneName}
+                                                    onChange={(e) => setNewZoneName(e.target.value)}
+                                                    className="flex-1 px-2.5 py-1 text-xs border border-slate-300 rounded-lg outline-none"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (newZoneName.trim()) {
+                                                            const updated = addZone(masterData, newZoneName.trim());
+                                                            onUpdateMasterData(updated);
+                                                            setSelectedZone(newZoneName.trim());
+                                                            setNewZoneName('');
+                                                            setIsAddingZone(false);
+                                                            showToast(`Zone "${newZoneName.trim()}" created.`);
+                                                        }
+                                                    }}
+                                                    className="px-2.5 py-1 text-xs font-bold bg-cyan-600 text-white rounded-lg"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <div className="max-h-96 overflow-y-auto space-y-1 pr-1">
+                                            {zones.map(z => {
+                                                const woredas = getWoredasForZone(masterData, z);
+                                                const isSel = selectedZone === z;
+                                                return (
+                                                    <button
+                                                        key={z}
+                                                        type="button"
+                                                        onClick={() => setSelectedZone(z)}
+                                                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                                            isSel ? 'bg-cyan-600 text-white font-bold' : 'hover:bg-slate-200/70 text-slate-700'
+                                                        }`}
+                                                    >
+                                                        <span>{z}</span>
+                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                                                            isSel ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                                                        }`}>
+                                                            {woredas.length}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Woredas for selected Zone (7 Cols) */}
+                                    <div className="md:col-span-7 border border-slate-200 rounded-2xl p-4 bg-white">
+                                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                                            <div>
+                                                <span className="text-xs font-extrabold text-slate-900 block">
+                                                    Woredas in {selectedZone} Zone
+                                                </span>
+                                                <span className="text-[11px] text-slate-400">
+                                                    {getWoredasForZone(masterData, selectedZone).length} registered administrative woredas
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Inline Add Woreda */}
+                                        {canEdit && (
+                                            <form onSubmit={handleAddWoreda} className="flex items-center gap-2 mb-4">
+                                                <input
+                                                    type="text"
+                                                    placeholder={`Add new woreda to ${selectedZone}...`}
+                                                    value={newWoredaName}
+                                                    onChange={(e) => setNewWoredaName(e.target.value)}
+                                                    className="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-cyan-500 outline-none"
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    disabled={!newWoredaName.trim()}
+                                                    className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1 shadow-xs cursor-pointer"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                    <span>Add Woreda</span>
+                                                </button>
+                                            </form>
+                                        )}
+
+                                        {/* Woredas Tag List */}
+                                        <div className="flex flex-wrap gap-2 max-h-80 overflow-y-auto p-1">
+                                            {getWoredasForZone(masterData, selectedZone).map(w => (
+                                                <div
+                                                    key={w}
+                                                    className="px-2.5 py-1 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg text-xs font-medium text-slate-700 flex items-center gap-1.5"
+                                                >
+                                                    <MapPin className="w-3 h-3 text-red-500" />
+                                                    <span>{w}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Standard Dropdown Category Items List */
+                            <div className="mt-5 space-y-4">
+                                {/* Quick Add Bar */}
+                                {canEdit && (
+                                    <form onSubmit={handleQuickAdd} className="flex items-center gap-2 p-2 bg-slate-50 rounded-2xl border border-slate-200/80">
+                                        <div className="p-2 text-slate-400">
+                                            <Plus className="w-4 h-4 text-cyan-600" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder={`Quick add new ${activeCatMeta.label.slice(0, -1)} option...`}
+                                            value={newItemName}
+                                            onChange={(e) => setNewItemName(e.target.value)}
+                                            className="flex-1 bg-transparent text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 outline-none"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!newItemName.trim()}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                        >
+                                            <span>Add to Dropdown</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </button>
+                                    </form>
+                                )}
+
+                                {/* Items Grid / Cards */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[500px] overflow-y-auto pr-1">
+                                    {filteredItems.length === 0 ? (
+                                        <div className="col-span-2 py-12 text-center text-slate-400 text-xs">
+                                            <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                                            No options found matching "{searchQuery}".
+                                        </div>
+                                    ) : (
+                                        filteredItems.map((item, idx) => {
+                                            const itemName = typeof item === 'object' ? item.name : String(item);
+                                            const itemCode = typeof item === 'object' ? item.code : undefined;
+                                            const itemDesc = typeof item === 'object' ? item.description : undefined;
+
+                                            return (
+                                                <div
+                                                    key={`${itemName}-${idx}`}
+                                                    className="p-3 bg-white rounded-xl border border-slate-200/90 hover:border-cyan-300 hover:shadow-xs transition-all flex items-start justify-between gap-3 group"
+                                                >
+                                                    <div className="flex items-start gap-2.5">
+                                                        <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                                                        <div>
+                                                            <div className="text-xs sm:text-sm font-bold text-slate-800">
+                                                                {itemName}
+                                                            </div>
+                                                            {itemCode && (
+                                                                <span className="text-[10px] font-mono text-cyan-700 bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-100 inline-block mt-0.5">
+                                                                    {itemCode}
+                                                                </span>
+                                                            )}
+                                                            {itemDesc && (
+                                                                <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
+                                                                    {itemDesc}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {canEdit && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDeleteItem(itemName)}
+                                                            className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                                                            title="Remove option"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Information Note */}
+                    <div className="bg-sky-50/60 border border-sky-200/70 rounded-2xl p-4 text-xs text-sky-900 flex items-start gap-3">
+                        <Tag className="w-4 h-4 text-sky-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <strong className="font-bold text-sky-950">Immediate Subsystem Availability:</strong>
+                            <p className="text-sky-800 mt-0.5">
+                                All entries created or edited in this Master Data Registry are automatically dispatched to the form dropdowns in Planning, Technical Review, Tenders, Contract Management, and Field Inspections. No application reloads or manual recompilations are necessary.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button onClick={() => setIsImportModalOpen(true)} className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer">
-              <Upload className="w-4 h-4 text-cyan-300"/>
-              <span>Import / Export Center</span>
-            </button>
+            {/* Modal for detailed addition */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <form
+                        onSubmit={handleModalSubmit}
+                        className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-in"
+                    >
+                        <div className="p-6 bg-gradient-to-r from-slate-900 to-sky-950 text-white flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-black flex items-center gap-2">
+                                    <Plus className="w-5 h-5 text-cyan-400" />
+                                    Add New Dropdown Option
+                                </h3>
+                                <p className="text-xs text-slate-300 mt-0.5">
+                                    Register reference item for central bureau use
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="p-1 rounded-xl text-slate-400 hover:text-white hover:bg-white/10"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
 
-            {canEdit && (<>
-                <button onClick={() => setIsResetConfirmOpen(true)} className="px-3.5 py-2.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-200 border border-rose-800/50 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                  <RotateCcw className="w-3.5 h-3.5"/>
-                  <span>Reset Baseline</span>
-                </button>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                                    Target Dropdown Category *
+                                </label>
+                                <select
+                                    value={modalCategory}
+                                    onChange={(e) => setModalCategory(e.target.value)}
+                                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-slate-50 font-semibold text-slate-800 outline-none focus:border-cyan-500"
+                                >
+                                    {CATEGORIES.filter(c => c.id !== 'geographicHierarchy').map(c => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                <button onClick={() => setIsPushModalOpen(true)} className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition-all cursor-pointer">
-                  <Radio className="w-4 h-4"/>
-                  <span>Broadcast to Subsystems</span>
-                </button>
-              </>)}
-          </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                                    Option Name / Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Deep Aquifer Geothermal Well, Bilateral Donor X..."
+                                    value={modalItemName}
+                                    onChange={(e) => setModalItemName(e.target.value)}
+                                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-cyan-500 font-semibold"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                                    Code / Abbreviation (Optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. DAGW-01, DONOR_XYZ..."
+                                    value={modalItemCode}
+                                    onChange={(e) => setModalItemCode(e.target.value)}
+                                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-cyan-500 font-mono"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                                    Description / Remarks (Optional)
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    placeholder="Technical specification or administrative notes..."
+                                    value={modalItemDesc}
+                                    onChange={(e) => setModalItemDesc(e.target.value)}
+                                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-cyan-500"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={!modalItemName.trim()}
+                                className="px-5 py-2 text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl shadow-md disabled:opacity-50"
+                            >
+                                Register &amp; Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
-
-        {/* Primary Navigation Tabs */}
-        <div className="flex items-center gap-1.5 mt-6 pt-5 border-t border-cyan-900/60 overflow-x-auto relative z-10">
-          {[
-            { id: 'catalog', label: 'Master Data Catalog', icon: <Database className="w-4 h-4"/> },
-            { id: 'orgUnits', label: `Organization Units (${(masterData.woredas || []).length} Woredas)`, icon: <FolderTree className="w-4 h-4"/> },
-            { id: 'systemConfig', label: 'System Configuration', icon: <Settings className="w-4 h-4"/> },
-            { id: 'workflows', label: 'Workflow Rules', icon: <GitFork className="w-4 h-4"/> },
-            { id: 'thresholds', label: 'Approval Thresholds', icon: <Scale className="w-4 h-4"/> },
-            { id: 'geography', label: `Zonal Registry (${totalZones})`, icon: <MapPin className="w-4 h-4"/> },
-            { id: 'projectTaxonomy', label: 'Taxonomy & Technical', icon: <Layers className="w-4 h-4"/> },
-            { id: 'auditLogs', label: `Audit Trail (${masterData.historyEntries?.length || 0})`, icon: <History className="w-4 h-4"/> },
-            { id: 'pushLogs', label: `Push Logs (${masterData.pushLogs?.length || 0})`, icon: <Radio className="w-4 h-4"/> }
-        ].map(tab => (<button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeTab === tab.id
-                ? 'bg-white text-slate-900 shadow-md font-extrabold'
-                : 'bg-white/10 text-sky-200 hover:bg-white/20 hover:text-white'}`}>
-              {tab.icon}
-              {tab.label}
-            </button>))}
-        </div>
-      </div>
-
-      {/* TAB 1: MASTER DATA CATALOG ITEMS DIRECTORY */}
-      {activeTab === 'catalog' && (<CatalogItemsTable masterData={masterData} onUpdateItem={handleUpdateItem} onCreateItem={handleCreateItem} onDeleteItem={handleDeleteItem} onOpenImport={() => setIsImportModalOpen(true)} onExport={() => setIsImportModalOpen(true)} currentUser={effectiveUser} canEdit={canEdit} projects={projects} contracts={contracts} procurements={procurements}/>)}
-
-      {/* TAB 1.5: ORGANIZATION UNITS (REGION -> WOREDA -> KEBELE) */}
-      {activeTab === 'orgUnits' && (<OrganizationUnitsModule masterData={masterData} onUpdateMasterData={onUpdateMasterData} canEdit={canEdit} currentUser={effectiveUser} projects={projects} contracts={contracts} users={users}/>)}
-
-      {/* TAB 2: SYSTEM CONFIGURATION */}
-      {activeTab === 'systemConfig' && (<SystemConfigSection configs={masterData.systemConfigurations || []} onUpdateConfig={handleUpdateConfig} onResetAllConfigs={handleResetAllConfigs} canEdit={canEdit} currentUser={effectiveUser}/>)}
-
-      {/* TAB 3: WORKFLOW CONFIGURATION */}
-      {activeTab === 'workflows' && (<WorkflowConfigSection workflows={masterData.workflowDefinitions || []} steps={masterData.workflowSteps || []} onUpdateWorkflow={handleUpdateWorkflow} onUpdateSteps={handleUpdateWorkflowSteps} canEdit={canEdit} currentUser={effectiveUser}/>)}
-
-      {/* TAB 4: APPROVAL THRESHOLDS */}
-      {activeTab === 'thresholds' && (<ApprovalThresholdSection thresholds={masterData.approvalThresholds || []} onUpdateThresholds={handleUpdateThresholds} canEdit={canEdit} currentUser={effectiveUser}/>)}
-
-      {/* TAB 5: GEOGRAPHIC HIERARCHY */}
-      {activeTab === 'geography' && (<div className="bg-white rounded-3xl border border-sky-100 shadow-2xs p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-            <div>
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-cyan-600"/>
-                Oromia Regional Geographic Tree (Region &rarr; Zones &rarr; Woredas)
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Hierarchical administrative structure linking capital water schemes to their exact woreda desk jurisdictions.
-              </p>
-            </div>
-
-            {canEdit && (<button type="button" onClick={() => setIsAddingZone(true)} className="px-3.5 py-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                <Plus className="w-4 h-4"/>
-                <span>Add Administrative Zone</span>
-              </button>)}
-          </div>
-
-          {/* Add Zone Inline Box */}
-          {isAddingZone && (<div className="p-4 bg-sky-50 rounded-2xl border border-sky-200 flex items-center gap-3 animate-fade-in text-xs">
-              <input type="text" value={newZoneName} onChange={(e) => setNewZoneName(e.target.value)} placeholder="Enter new zone title (e.g. East Bale)..." className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none"/>
-              <button onClick={handleAddZone} className="px-4 py-2 bg-cyan-700 text-white rounded-xl font-bold cursor-pointer hover:bg-cyan-800">
-                Save Zone
-              </button>
-              <button onClick={() => setIsAddingZone(false)} className="px-3 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer">
-                Cancel
-              </button>
-            </div>)}
-
-          {/* Zones & Woredas 2-Column Split */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Zones List */}
-            <div className="border border-slate-200 rounded-2xl p-3 bg-slate-50 space-y-1.5 max-h-[500px] overflow-y-auto custom-scrollbar">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 px-2 py-1">
-                Zones ({totalZones})
-              </h4>
-              {Object.keys(masterData.geographicHierarchy || {}).map(z => (<button key={z} type="button" onClick={() => setSelectedZone(z)} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${selectedZone === z
-                    ? 'bg-cyan-700 text-white shadow-xs'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-100'}`}>
-                  <span>{z}</span>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md ${selectedZone === z ? 'bg-cyan-800 text-cyan-100' : 'bg-slate-100 text-slate-500'}`}>
-                    {(masterData.geographicHierarchy[z] || []).length} Woredas
-                  </span>
-                </button>))}
-            </div>
-
-            {/* Woredas Grid for Selected Zone */}
-            <div className="md:col-span-2 border border-slate-200 rounded-2xl p-4 bg-white space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div>
-                  <h4 className="text-sm font-black text-slate-900">
-                    Woredas in <span className="text-cyan-800">{selectedZone}</span>
-                  </h4>
-                  <p className="text-[11px] text-slate-500">
-                    {(masterData.geographicHierarchy[selectedZone] || []).length} registered districts
-                  </p>
-                </div>
-
-                {canEdit && (<div className="flex items-center gap-2">
-                    <input type="text" value={newWoredaName} onChange={(e) => setNewWoredaName(e.target.value)} placeholder="New Woreda name..." className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 focus:outline-none"/>
-                    <button type="button" onClick={handleAddWoreda} className="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl text-xs font-bold cursor-pointer">
-                      Add
-                    </button>
-                  </div>)}
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[420px] overflow-y-auto custom-scrollbar">
-                {(masterData.geographicHierarchy[selectedZone] || []).map(w => (<div key={w} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 flex items-center justify-between">
-                    <span>{w}</span>
-                    <span className="text-[10px] text-cyan-700 bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-100">
-                      Woreda
-                    </span>
-                  </div>))}
-              </div>
-            </div>
-          </div>
-        </div>)}
-
-      {/* TAB 6: PROJECT TAXONOMY */}
-      {activeTab === 'projectTaxonomy' && (<div className="bg-white rounded-3xl border border-sky-100 shadow-2xs p-6 space-y-6">
-          <div>
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-cyan-600"/>
-              Project Taxonomies &amp; Technical Classifications
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Sectoral classifications, water sources, and water pumping technical configurations.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Water Sources */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <h4 className="font-extrabold text-xs text-slate-900">Hydrological Water Sources</h4>
-              <div className="space-y-1.5">
-                {(masterData.waterSources || []).map((ws, i) => (<div key={i} className="p-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold text-slate-800">
-                    {ws}
-                  </div>))}
-              </div>
-            </div>
-
-            {/* Energy Sources */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <h4 className="font-extrabold text-xs text-slate-900">Pumping &amp; Power Sources</h4>
-              <div className="space-y-1.5">
-                {(masterData.energySources || []).map((es, i) => (<div key={i} className="p-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold text-slate-800">
-                    {es}
-                  </div>))}
-              </div>
-            </div>
-
-            {/* Intervention Types */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <h4 className="font-extrabold text-xs text-slate-900">Intervention Typology</h4>
-              <div className="space-y-1.5">
-                {(masterData.interventionTypes || []).map((it, i) => (<div key={i} className="p-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold text-slate-800">
-                    {it}
-                  </div>))}
-              </div>
-            </div>
-          </div>
-        </div>)}
-
-      {/* TAB 7: AUDIT LOGS */}
-      {activeTab === 'auditLogs' && (<AuditHistorySection historyEntries={masterData.historyEntries || []}/>)}
-
-      {/* TAB 8: PUSH LOGS */}
-      {activeTab === 'pushLogs' && (<div className="bg-white rounded-3xl border border-sky-100 shadow-2xs p-6 space-y-5">
-          <div>
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <Radio className="w-5 h-5 text-cyan-600"/>
-              Subsystem Broadcast Synchronization Logs
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Historical ledger of all master data push actions broadcasting parameter updates to Planning, Review, Procurement, and Contract modules.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {(masterData.pushLogs || []).map((log) => (<div key={log.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-cyan-100 text-cyan-900 font-mono">
-                      v{log.version}
-                    </span>
-                    <span className="font-bold text-slate-900">{log.changeSummary}</span>
-                  </div>
-                  <span className="font-mono text-[10px] text-slate-400">
-                    {new Date(log.timestamp).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
-                  <span>Pushed by: <strong className="text-slate-700">{log.pushedBy}</strong></span>
-                  <span>&bull;</span>
-                  <span>Items Affected: <strong className="text-cyan-900">{log.totalItems}</strong></span>
-                  <span>&bull;</span>
-                  <span>Modules: {log.modulesAffected?.join(', ')}</span>
-                </div>
-              </div>))}
-          </div>
-        </div>)}
-
-      {/* PUSH BROADCAST CONFIRMATION MODAL */}
-      {isPushModalOpen && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-cyan-200 shadow-2xl w-full max-w-md p-6 space-y-4 text-slate-800">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-2xl">
-                <Radio className="w-6 h-6"/>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
-                  Broadcast Synchronization
-                </span>
-                <h3 className="text-base font-black text-slate-900">
-                  Push Master Data to All Modules
-                </h3>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-600 leading-relaxed">
-              This action will increment the master data release version and propagate updated catalog items, system parameters, workflow rules, and approval thresholds across all active subsystems.
-            </p>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Release Change Notes <span className="text-slate-400 font-normal">(Mandatory)</span>
-              </label>
-              <textarea rows={3} required value={pushNotes} onChange={(e) => setPushNotes(e.target.value)} placeholder="Describe modifications included in this master data release..." className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none"/>
-            </div>
-
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-              <button type="button" onClick={() => setIsPushModalOpen(false)} className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
-                Cancel
-              </button>
-              <button type="button" onClick={handleConfirmPush} className="flex-1 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white rounded-xl text-xs font-black shadow-md cursor-pointer">
-                Confirm &amp; Broadcast
-              </button>
-            </div>
-          </div>
-        </div>)}
-
-      {/* RESET TO BASELINE MODAL */}
-      {isResetConfirmOpen && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-rose-300 shadow-2xl w-full max-w-md p-6 space-y-4 text-slate-800">
-            <div className="w-12 h-12 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-6 h-6"/>
-            </div>
-
-            <div className="text-center space-y-1">
-              <h3 className="text-base font-black text-slate-900">
-                Confirm Master Data Baseline Reset
-              </h3>
-              <p className="text-xs text-slate-600">
-                This will reset all master reference catalogs, system configuration parameters, and approval rules back to official OWEB Regional Bureau factory baseline defaults.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <button type="button" onClick={() => setIsResetConfirmOpen(false)} className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
-                Cancel
-              </button>
-              <button type="button" onClick={handleConfirmReset} className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md cursor-pointer">
-                Confirm Reset Baseline
-              </button>
-            </div>
-          </div>
-        </div>)}
-
-      {/* IMPORT / EXPORT MODAL */}
-      {isImportModalOpen && (<ImportExportModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} masterData={masterData} onImportComplete={(updated) => {
-                onUpdateMasterData(updated);
-                showToast('Master data import completed successfully.');
-            }} currentUser={effectiveUser}/>)}
-    </div>);
+    );
 };
+
 export default MasterDataModule;

@@ -1,17 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { Role } from '../types';
 import { ZONES, PROGRAMS, ICONS } from '../constants';
+import { getInspectionStages, getZones } from '../services/masterDataLookups';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { WeeklyTrackingSection } from './WeeklyTrackingSection';
 const STAGE_BADGES = {
     'Pre-Construction': { bg: 'bg-slate-100 border-slate-300', text: 'text-slate-700' },
+    'Pre-Construction & Site Handover': { bg: 'bg-slate-100 border-slate-300', text: 'text-slate-700' },
     'Excavation & Foundations': { bg: 'bg-amber-50 border-amber-300', text: 'text-amber-800' },
     'Pipelaying & Pressure Test': { bg: 'bg-sky-50 border-sky-300', text: 'text-sky-800' },
+    'Pipelaying & Hydrostatic Pressure Test': { bg: 'bg-sky-50 border-sky-300', text: 'text-sky-800' },
     'Electromechanical Installation': { bg: 'bg-indigo-50 border-indigo-300', text: 'text-indigo-800' },
+    'Electromechanical & Solar Installation': { bg: 'bg-indigo-50 border-indigo-300', text: 'text-indigo-800' },
+    'Reservoir Masonry & Structural Works': { bg: 'bg-cyan-50 border-cyan-300', text: 'text-cyan-800' },
     'Pre-Commissioning': { bg: 'bg-purple-50 border-purple-300', text: 'text-purple-800' },
+    'Pre-Commissioning & Water Quality Disinfection': { bg: 'bg-purple-50 border-purple-300', text: 'text-purple-800' },
     'Final Handover & Defect Liability': { bg: 'bg-emerald-50 border-emerald-300', text: 'text-emerald-800' },
+    'Final Handover & Defects Liability': { bg: 'bg-emerald-50 border-emerald-300', text: 'text-emerald-800' },
 };
 const RATING_BADGES = {
     'Exceptional': { bg: 'bg-emerald-100 text-emerald-800', text: 'text-emerald-800' },
@@ -19,8 +26,10 @@ const RATING_BADGES = {
     'Needs Improvement': { bg: 'bg-amber-100 text-amber-800', text: 'text-amber-800' },
     'Unacceptable': { bg: 'bg-rose-100 text-rose-800', text: 'text-rose-800' },
 };
-const FieldInspectionModule = ({ projects = [], user, inspections: propsInspections, onAddInspection, onUpdateInspection, onNavigate, weeklyPlans = [], weeklyReports = [], onAddWeeklyPlan, onUpdateWeeklyPlan, onAddWeeklyReport, onUpdateWeeklyReport, }) => {
+const FieldInspectionModule = ({ projects = [], user, inspections: propsInspections, onAddInspection, onUpdateInspection, onNavigate, weeklyPlans = [], weeklyReports = [], onAddWeeklyPlan, onUpdateWeeklyPlan, onAddWeeklyReport, onUpdateWeeklyReport, masterData }) => {
     const safeProjects = useMemo(() => Array.isArray(projects) ? projects : [], [projects]);
+    const inspectionStages = useMemo(() => getInspectionStages(masterData), [masterData]);
+    const availableZones = useMemo(() => getZones(masterData), [masterData]);
     const [activeSection, setActiveSection] = useState('inspections');
     // Live database-backed inspections synchronized with backend API
     const [inspectionList, setInspectionList] = useState(propsInspections || []);
@@ -361,14 +370,14 @@ const FieldInspectionModule = ({ projects = [], user, inspections: propsInspecti
                     <div>
                         <select value={selectedZone} onChange={(e) => setSelectedZone(e.target.value)} className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-slate-800">
                             <option value="">All Zones</option>
-                            {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+                            {availableZones.map(z => <option key={z} value={z}>{z}</option>)}
                         </select>
                     </div>
 
                     <div>
                         <select value={selectedStage} onChange={(e) => setSelectedStage(e.target.value)} className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-slate-800">
                             <option value="">All Inspection Stages</option>
-                            {Object.keys(STAGE_BADGES).map(stg => (<option key={stg} value={stg}>{stg}</option>))}
+                            {inspectionStages.map(stg => (<option key={stg} value={stg}>{stg}</option>))}
                         </select>
                     </div>
 
@@ -613,7 +622,7 @@ const FieldInspectionModule = ({ projects = [], user, inspections: propsInspecti
                                 <div>
                                     <label className="block font-semibold text-slate-700 mb-1">Inspection Stage</label>
                                     <select value={newLogStage} onChange={(e) => setNewLogStage(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800">
-                                        {Object.keys(STAGE_BADGES).map(stg => (<option key={stg} value={stg}>{stg}</option>))}
+                                        {inspectionStages.map(stg => (<option key={stg} value={stg}>{stg}</option>))}
                                     </select>
                                 </div>
                                 <div>

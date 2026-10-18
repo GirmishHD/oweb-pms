@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Priority } from '../types';
 import { CURRENCIES, DELIVERABLE_CATEGORIES, AMENDMENT_TYPES, VARIATION_STATUSES, CLAIM_SOURCES, CLAIM_STATUSES, ICONS, PRIORITIES } from '../constants';
+import { getDeliverableCategories, getAmendmentTypes, getCurrencies } from '../services/masterDataLookups';
 import { Section, Input, Select, Checkbox, TextArea } from './FormControls';
 import ContractTimeline from './ContractTimeline';
 import { GanttTimelineChart } from './GanttTimelineChart';
@@ -75,13 +76,17 @@ const ContractFinancialSummary = ({ contractAmount, variations, payments }) => {
             </div>
         </div>);
 };
-const ContractModule = ({ procurements, onAddContract, onUpdateContract, contractToEdit, users, documents: allDocuments, projects = [], contracts = [] }) => {
+const ContractModule = ({ procurements, onAddContract, onUpdateContract, contractToEdit, users, documents: allDocuments, projects = [], contracts = [], masterData }) => {
     const isEditMode = !!contractToEdit;
     const [contractViewMode, setContractViewMode] = useState('form');
     const [selectedProcurementId, setSelectedProcurementId] = useState('');
     const [contract, setContract] = useState(initialContractState);
     const [activeTab, setActiveTab] = useState('formation');
     const [priorityFilter, setPriorityFilter] = useState('All');
+
+    const deliverableCategoryOptions = useMemo(() => getDeliverableCategories(masterData).map(c => ({ value: c, label: c })), [masterData]);
+    const amendmentTypeOptions = useMemo(() => getAmendmentTypes(masterData).map(t => ({ value: t, label: t })), [masterData]);
+    const currencyOptions = useMemo(() => getCurrencies(masterData).map(c => ({ value: c, label: c })), [masterData]);
     useEffect(() => {
         if (contractToEdit) {
             setContract(contractToEdit);
@@ -343,7 +348,7 @@ const ContractModule = ({ procurements, onAddContract, onUpdateContract, contrac
                                     <Input label="Actual Submission Date" name="performanceSecurityActualDate" type="date" value={contract.performanceSecurityActualDate || ''} onChange={handleContractChange}/>
                                     <Input label="Expiry Date" name="performanceSecurityExpiryDate" type="date" value={contract.performanceSecurityExpiryDate || ''} onChange={handleContractChange}/>
                                     <Input label="Bond Amount" name="performanceBondAmount" type="number" value={contract.performanceBondAmount || ''} onChange={handleContractChange}/>
-                                    <Select label="Currency" name="performanceBondCurrency" options={CURRENCIES} value={contract.performanceBondCurrency} onChange={handleContractChange}/>
+                                    <Select label="Currency" name="performanceBondCurrency" options={currencyOptions} value={contract.performanceBondCurrency} onChange={handleContractChange}/>
                                     <Input label="Guarantee Document URL" name="performanceGuaranteeUrl" value={contract.performanceGuaranteeUrl || ''} onChange={handleContractChange}/>
                                 </div>
                             </div>
@@ -416,7 +421,7 @@ const ContractModule = ({ procurements, onAddContract, onUpdateContract, contrac
                                             <div className="lg:col-span-3">
                                                 <Input label="Deliverable Name" value={d.name} onChange={e => updateDeliverable(index, 'name', e.target.value)} disabled={isPlanFinalized}/>
                                             </div>
-                                            <Select label="Category" options={DELIVERABLE_CATEGORIES} value={d.category} onChange={e => updateDeliverable(index, 'category', e.target.value)} disabled={isPlanFinalized}/>
+                                            <Select label="Category" options={deliverableCategoryOptions} value={d.category} onChange={e => updateDeliverable(index, 'category', e.target.value)} disabled={isPlanFinalized}/>
                                             <div>
                                                 <div className="flex items-center justify-between mb-2">
                                                     <label htmlFor={`priority-${d.id}`} className="block text-sm font-medium text-text-light">Priority</label>
@@ -476,7 +481,7 @@ const ContractModule = ({ procurements, onAddContract, onUpdateContract, contrac
                                 {variations.map((v, index) => (<div key={v.id} className="grid md:grid-cols-3 gap-4 p-4 border rounded-xl mb-4 relative border-light-border bg-light-main fade-in">
                                          <button onClick={() => removeVariation(index)} className="absolute top-3 right-3 text-danger hover:text-opacity-80 font-bold text-2xl">&times;</button>
                                          <Input label="Date" type="date" value={v.date} onChange={e => updateVariation(index, 'date', e.target.value)}/>
-                                         <Select label="Type" options={AMENDMENT_TYPES} value={v.type} onChange={e => updateVariation(index, 'type', e.target.value)}/>
+                                         <Select label="Type" options={amendmentTypeOptions} value={v.type} onChange={e => updateVariation(index, 'type', e.target.value)}/>
                                          <Select label="Status" options={VARIATION_STATUSES} value={v.status} onChange={e => updateVariation(index, 'status', e.target.value)}/>
                                          <Input label="Cost Impact (ETB)" type="number" value={v.costImpact} onChange={e => updateVariation(index, 'costImpact', parseFloat(e.target.value))}/>
                                          <Input label="Time Impact (Days)" type="number" value={v.timeImpactDays} onChange={e => updateVariation(index, 'timeImpactDays', parseInt(e.target.value, 10))}/>

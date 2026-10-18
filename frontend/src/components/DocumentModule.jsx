@@ -1,10 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { DocumentCategory, Role, ProjectStatus } from '../types';
 import { ICONS, DOCUMENT_CATEGORIES } from '../constants';
+import { getDocumentCategories } from '../services/masterDataLookups';
 import { Select, FileInput } from './FormControls';
-const UploadModal = ({ project, user, onClose, onAddDocument }) => {
+const UploadModal = ({ project, user, onClose, onAddDocument, categories = [] }) => {
     const [file, setFile] = useState(null);
-    const [category, setCategory] = useState(DocumentCategory.OTHER);
+    const categoryOptions = useMemo(() => {
+        const list = categories.length > 0 ? categories : DOCUMENT_CATEGORIES;
+        return list.map(c => (typeof c === 'object' ? c : { value: c, label: c }));
+    }, [categories]);
+    const [category, setCategory] = useState(() => (categoryOptions[0]?.value || DocumentCategory.OTHER));
     const handleFileChange = (e) => {
         setFile(e.target.files?.[0] || null);
     };
@@ -33,7 +38,7 @@ const UploadModal = ({ project, user, onClose, onAddDocument }) => {
                 </div>
                 <div className="p-6 space-y-4">
                     <FileInput label="Select Document" id="document-upload" name="document-upload" onChange={handleFileChange} fileName={file?.name} required/>
-                    <Select label="Document Category" id="category" name="category" value={category} onChange={e => setCategory(e.target.value)} options={DOCUMENT_CATEGORIES}/>
+                    <Select label="Document Category" id="category" name="category" value={category} onChange={e => setCategory(e.target.value)} options={categoryOptions}/>
                 </div>
                 <div className="p-4 border-t border-light-border flex justify-end space-x-3 bg-light-main rounded-b-2xl">
                     <button type="button" onClick={onClose} className="px-5 py-2.5 bg-light-border text-text-dark rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
@@ -72,13 +77,15 @@ const ProjectDetailModal = ({ project, onClose }) => {
             </div>
         </div>);
 };
-const DocumentModule = ({ projects, documents, user, onAddDocument, onDeleteDocument }) => {
+const DocumentModule = ({ projects, documents, user, onAddDocument, onDeleteDocument, masterData }) => {
     const [selectedProject, setSelectedProject] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    const documentCategories = useMemo(() => getDocumentCategories(masterData), [masterData]);
     const filteredProjects = useMemo(() => {
         return projects.filter(p => {
             const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -152,7 +159,7 @@ const DocumentModule = ({ projects, documents, user, onAddDocument, onDeleteDocu
                             <label htmlFor="category-filter" className="text-sm font-medium text-text-light flex-shrink-0">Filter by Category:</label>
                             <select id="category-filter" name="category-filter" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full md:w-auto md:max-w-xs px-3 py-1.5 bg-white border border-light-border rounded-lg text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                 <option value="">All Categories</option>
-                                {DOCUMENT_CATEGORIES.map((cat) => (<option key={cat} value={cat}>
+                                {documentCategories.map((cat) => (<option key={cat} value={cat}>
                                         {cat}
                                     </option>))}
                             </select>
@@ -199,7 +206,7 @@ const DocumentModule = ({ projects, documents, user, onAddDocument, onDeleteDocu
                     </div>)}
             </main>
 
-            {isUploadModalOpen && selectedProject && (<UploadModal project={selectedProject} user={user} onClose={() => setIsUploadModalOpen(false)} onAddDocument={onAddDocument}/>)}
+            {isUploadModalOpen && selectedProject && (<UploadModal project={selectedProject} user={user} onClose={() => setIsUploadModalOpen(false)} onAddDocument={onAddDocument} categories={documentCategories}/>)}
             {isDetailModalOpen && selectedProject && (<ProjectDetailModal project={selectedProject} onClose={() => setIsDetailModalOpen(false)}/>)}
         </div>);
 };

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { PROC_TYPES, PROCUREMENT_METHODS, DEFAULT_SAMPLE_COMMITTEE_MEMBERS, ZONES } from '../constants';
 import { formatCurrencyETB, validateProcurementThreshold, getBidSecurityStatus } from '../utils/procurementThresholds';
+import { getProcurementMethods, getProcurementTypes, getZones } from '../services/masterDataLookups';
 import { CommitteeBuilder } from './procurement/CommitteeBuilder';
 import { BidderEvaluationTable } from './procurement/BidderEvaluationTable';
 import { CommitteeDossierModal } from './procurement/CommitteeDossierModal';
@@ -15,11 +16,14 @@ import { ProcurementDocumentGeneratorModal } from './procurement/ProcurementDocu
 import { CpoReleaseModal } from './procurement/CpoReleaseModal';
 import { ProcurementThresholdAdvisor } from './procurement/ProcurementThresholdAdvisor';
 import { Briefcase, Plus, Search, FileText, Layers, ShieldCheck, Users, Award, FileSignature, CheckCircle2, AlertTriangle, ChevronRight, RefreshCw, Eye, FileSpreadsheet, X, TrendingUp, Scale, FolderSync, Megaphone, CheckCheck } from 'lucide-react';
-export const ProcurementModule = ({ projects = [], allProjects, procurements = [], contracts = [], users = [], onAddProcurement, onUpdateProcurement, onAddContract, onNavigate, currentUser }) => {
+export const ProcurementModule = ({ projects = [], allProjects, procurements = [], contracts = [], users = [], onAddProcurement, onUpdateProcurement, onAddContract, onNavigate, currentUser, masterData }) => {
     // Navigation View State
     const [activeView, setActiveView] = useState('packages');
     // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
+    const procurementMethodsList = useMemo(() => getProcurementMethods(masterData), [masterData]);
+    const procurementTypesList = useMemo(() => getProcurementTypes(masterData), [masterData]);
+    const availableZones = useMemo(() => getZones(masterData), [masterData]);
     const [filterMethod, setFilterMethod] = useState('ALL');
     const [filterStage, setFilterStage] = useState('ALL');
     const [filterType, setFilterType] = useState('ALL');
@@ -524,7 +528,7 @@ export const ProcurementModule = ({ projects = [], allProjects, procurements = [
 
                 <select value={filterZone} onChange={(e) => setFilterZone(e.target.value)} className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/30">
                   <option value="ALL">All Oromia Zones</option>
-                  {ZONES.map(z => (<option key={z} value={z}>{z}</option>))}
+                  {availableZones.map(z => (<option key={z} value={z}>{z}</option>))}
                 </select>
 
                 {(searchTerm || filterMethod !== 'ALL' || filterStage !== 'ALL' || filterZone !== 'ALL') && (<button onClick={() => {
@@ -905,14 +909,14 @@ export const ProcurementModule = ({ projects = [], allProjects, procurements = [
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Procurement Category</label>
                   <select value={procurementType} onChange={(e) => setProcurementType(e.target.value)} className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:outline-none">
-                    {PROC_TYPES.map(t => (<option key={t} value={t}>{t}</option>))}
+                    {procurementTypesList.map(t => (<option key={t} value={t}>{t}</option>))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Procurement Method</label>
                   <select value={procurementMethod} onChange={(e) => setProcurementMethod(e.target.value)} className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:outline-none">
-                    {PROCUREMENT_METHODS.map(m => (<option key={m} value={m}>{m}</option>))}
+                    {procurementMethodsList.map(m => (<option key={m} value={m}>{m}</option>))}
                   </select>
                 </div>
               </div>

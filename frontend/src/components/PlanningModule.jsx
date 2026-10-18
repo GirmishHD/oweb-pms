@@ -12,6 +12,10 @@ import { GanttTimelineChart } from './GanttTimelineChart';
 import { CascadingLocationSelector } from './common/CascadingLocationSelector';
 import { loadPrograms } from '../services/programService';
 import { loadNgos } from '../services/ngoService';
+import {
+    getWaterSources, getEnergySources, getProjectTypes,
+    getInterventionTypes, getFundingSources, getImplementingBodies
+} from '../services/masterDataLookups';
 
 const AUTOSAVE_DRAFT_KEY = 'oweb_pms_planning_draft_v2';
 
@@ -310,8 +314,10 @@ export const PlanningModule = ({
     const projectTypeOptions = useMemo(() => Object.keys(projectCategoriesMap), [projectCategoriesMap]);
     const subTypeOptions = useMemo(() => projectCategoriesMap[project.projectType] || [], [projectCategoriesMap, project.projectType]);
     const woredaOptions = useMemo(() => hierarchyMap[project.zone] || [], [hierarchyMap, project.zone]);
-    const interventionTypesOptions = useMemo(() => masterData?.interventionTypes || INTERVENTION_TYPES, [masterData]);
-    const fundingSourcesOptions = useMemo(() => extractFundingSources(masterData), [masterData]);
+    const waterSourcesOptions = useMemo(() => getWaterSources(masterData), [masterData]);
+    const powerPumpingOptions = useMemo(() => getEnergySources(masterData), [masterData]);
+    const interventionTypesOptions = useMemo(() => getInterventionTypes(masterData), [masterData]);
+    const fundingSourcesOptions = useMemo(() => getFundingSources(masterData), [masterData]);
 
     const registeredPrograms = useMemo(() => loadPrograms(), []);
     const registeredNgos = useMemo(() => loadNgos(), []);
@@ -340,7 +346,7 @@ export const PlanningModule = ({
     }, [project.program, programOptions, registeredPrograms]);
 
     const implementingBodiesOptions = useMemo(() => {
-        const baseBodies = masterData ? masterData.implementingBodies : IMPLEMENTING_BODIES;
+        const baseBodies = getImplementingBodies(masterData);
         const activeNgoNames = registeredNgos
             .filter(n => n.status === 'Active')
             .map(n => `NGO: ${n.name}`);
@@ -1362,7 +1368,7 @@ export const PlanningModule = ({
                                                 name="sourceOfWater"
                                                 value={project.sourceOfWater}
                                                 onChange={handleChange}
-                                                options={WATER_SOURCE_OPTIONS}
+                                                options={waterSourcesOptions}
                                             />
 
                                             <Select
@@ -1378,7 +1384,7 @@ export const PlanningModule = ({
                                                 name="energySource"
                                                 value={project.energySource}
                                                 onChange={handleChange}
-                                                options={POWER_PUMPING_OPTIONS}
+                                                options={powerPumpingOptions}
                                             />
                                         </div>
                                     </div>
