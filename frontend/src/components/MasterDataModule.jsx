@@ -8,6 +8,7 @@ import {
     getZones, getWoredasForZone, addMasterDataItem, removeMasterDataItem,
     addWoredaToZone, addZone
 } from '../services/masterDataLookups';
+import { OrganizationUnitsModule } from './masterdata/OrganizationUnitsModule';
 import {
     Database, Droplets, Zap, FolderKanban, RefreshCw, Landmark,
     Gavel, PackageCheck, FileEdit, Building2, ClipboardCheck,
@@ -28,7 +29,7 @@ const CATEGORIES = [
     { id: 'implementingBodies', label: 'Implementing Agencies', icon: Building2, color: 'text-blue-600 bg-blue-50 border-blue-200', countKey: 'implementingBodies', description: 'Executing bureau directorates, zonal offices, utilities, and WASHCOs' },
     { id: 'inspectionStages', label: 'Inspection Stages', icon: ClipboardCheck, color: 'text-cyan-600 bg-cyan-50 border-cyan-200', countKey: 'inspectionStages', description: 'Field QA/QC supervision and construction lifecycle phases' },
     { id: 'documentCategories', label: 'Document Vault Categories', icon: FileText, color: 'text-slate-600 bg-slate-50 border-slate-200', countKey: 'documentCategories', description: 'Classification categories for drawings, deeds, and technical reports' },
-    { id: 'geographicHierarchy', label: 'Zones & Woredas', icon: MapPin, color: 'text-red-600 bg-red-50 border-red-200', countKey: 'geographicHierarchy', description: 'Administrative geographic hierarchy across Oromia Regional State' },
+    { id: 'geographicHierarchy', label: 'Clusters & Org Units', icon: MapPin, color: 'text-red-600 bg-red-50 border-red-200', countKey: 'geographicHierarchy', description: 'Region → Cluster → Woreda / Town → Kebele administrative organizational hierarchy' },
 ];
 
 export const MasterDataModule = ({
@@ -37,7 +38,10 @@ export const MasterDataModule = ({
     onPushToAll,
     currentUser,
     user,
-    originalUser
+    originalUser,
+    projects = [],
+    contracts = [],
+    users = []
 }) => {
     const effectiveUser = currentUser || user;
     const canEdit = effectiveUser?.role === Role.ADMIN || (originalUser && originalUser.role === Role.ADMIN);
@@ -391,128 +395,18 @@ export const MasterDataModule = ({
                             </div>
                         </div>
 
-                        {/* Special Case: Geographic Hierarchy (Zones & Woredas) */}
+                        {/* Special Case: Geographic Hierarchy (Region -> Cluster -> Woreda / Town -> Kebele) */}
                         {activeCategory === 'geographicHierarchy' ? (
-                            <div className="mt-5 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                                    {/* Zones List (5 Cols) */}
-                                    <div className="md:col-span-5 border border-slate-200 rounded-2xl p-4 bg-slate-50/50">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                                                Select Zone ({zones.length})
-                                            </span>
-                                            {canEdit && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsAddingZone(!isAddingZone)}
-                                                    className="text-xs font-bold text-cyan-700 hover:text-cyan-800"
-                                                >
-                                                    {isAddingZone ? 'Cancel' : '+ New Zone'}
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {isAddingZone && (
-                                            <div className="flex items-center gap-1.5 mb-3">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Zone name..."
-                                                    value={newZoneName}
-                                                    onChange={(e) => setNewZoneName(e.target.value)}
-                                                    className="flex-1 px-2.5 py-1 text-xs border border-slate-300 rounded-lg outline-none"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (newZoneName.trim()) {
-                                                            const updated = addZone(masterData, newZoneName.trim());
-                                                            onUpdateMasterData(updated);
-                                                            setSelectedZone(newZoneName.trim());
-                                                            setNewZoneName('');
-                                                            setIsAddingZone(false);
-                                                            showToast(`Zone "${newZoneName.trim()}" created.`);
-                                                        }
-                                                    }}
-                                                    className="px-2.5 py-1 text-xs font-bold bg-cyan-600 text-white rounded-lg"
-                                                >
-                                                    Add
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        <div className="max-h-96 overflow-y-auto space-y-1 pr-1">
-                                            {zones.map(z => {
-                                                const woredas = getWoredasForZone(masterData, z);
-                                                const isSel = selectedZone === z;
-                                                return (
-                                                    <button
-                                                        key={z}
-                                                        type="button"
-                                                        onClick={() => setSelectedZone(z)}
-                                                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
-                                                            isSel ? 'bg-cyan-600 text-white font-bold' : 'hover:bg-slate-200/70 text-slate-700'
-                                                        }`}
-                                                    >
-                                                        <span>{z}</span>
-                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                                                            isSel ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                                                        }`}>
-                                                            {woredas.length}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    {/* Woredas for selected Zone (7 Cols) */}
-                                    <div className="md:col-span-7 border border-slate-200 rounded-2xl p-4 bg-white">
-                                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                                            <div>
-                                                <span className="text-xs font-extrabold text-slate-900 block">
-                                                    Woredas in {selectedZone} Zone
-                                                </span>
-                                                <span className="text-[11px] text-slate-400">
-                                                    {getWoredasForZone(masterData, selectedZone).length} registered administrative woredas
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Inline Add Woreda */}
-                                        {canEdit && (
-                                            <form onSubmit={handleAddWoreda} className="flex items-center gap-2 mb-4">
-                                                <input
-                                                    type="text"
-                                                    placeholder={`Add new woreda to ${selectedZone}...`}
-                                                    value={newWoredaName}
-                                                    onChange={(e) => setNewWoredaName(e.target.value)}
-                                                    className="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-cyan-500 outline-none"
-                                                />
-                                                <button
-                                                    type="submit"
-                                                    disabled={!newWoredaName.trim()}
-                                                    className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1 shadow-xs cursor-pointer"
-                                                >
-                                                    <Plus className="w-3.5 h-3.5" />
-                                                    <span>Add Woreda</span>
-                                                </button>
-                                            </form>
-                                        )}
-
-                                        {/* Woredas Tag List */}
-                                        <div className="flex flex-wrap gap-2 max-h-80 overflow-y-auto p-1">
-                                            {getWoredasForZone(masterData, selectedZone).map(w => (
-                                                <div
-                                                    key={w}
-                                                    className="px-2.5 py-1 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg text-xs font-medium text-slate-700 flex items-center gap-1.5"
-                                                >
-                                                    <MapPin className="w-3 h-3 text-red-500" />
-                                                    <span>{w}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="mt-5">
+                                <OrganizationUnitsModule
+                                    masterData={masterData}
+                                    onUpdateMasterData={onUpdateMasterData}
+                                    canEdit={canEdit}
+                                    currentUser={effectiveUser}
+                                    projects={projects}
+                                    contracts={contracts}
+                                    users={users}
+                                />
                             </div>
                         ) : (
                             /* Standard Dropdown Category Items List */

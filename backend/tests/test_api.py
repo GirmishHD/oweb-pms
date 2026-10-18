@@ -439,4 +439,85 @@ class PMSComprehensiveBackendTests(APITestCase):
         self.assertEqual(res_update.status_code, status.HTTP_200_OK)
         self.assertEqual(res_update.data['contract_manager'], 'Manager Updated')
 
+    # 12. Organizational Unit Restructuring Tests (Region -> Cluster -> Woreda / Town -> Kebele)
+    def test_org_unit_summary_endpoint(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get('/api/masterdata/org-units/summary/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('total', response.data)
+        self.assertIn('clusters', response.data)
+        self.assertIn('woredas', response.data)
+        self.assertIn('towns', response.data)
+        self.assertIn('kebeles', response.data)
+        self.assertIn('active', response.data)
+        self.assertEqual(response.data['clusters'], 6)
+
+    def test_org_unit_tree_endpoint(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get('/api/masterdata/org-units/tree/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response.data, list)
+        self.assertGreaterEqual(len(response.data), 1)
+        # Region root
+        root = response.data[0]
+        self.assertEqual(root['unit_type'], 'REGION')
+        # Exactly 6 clusters under Region
+        self.assertEqual(len(root['children']), 6)
+        cluster_names = [c['name'] for c in root['children']]
+        self.assertIn('Eastern Oromia', cluster_names)
+        self.assertIn('Southeastern Oromia', cluster_names)
+        self.assertIn('Southern Oromia', cluster_names)
+        self.assertIn('Southwestern Oromia', cluster_names)
+        self.assertIn('Western Oromia', cluster_names)
+        self.assertIn('Central Oromia', cluster_names)
+
+    def test_org_unit_parent_child_validation(self):
+        from apps.masterdata.models import OrgUnit
+        self.client.force_authenticate(user=self.admin)
+        region = OrgUnit.objects.filter(unit_type='REGION').first()
+        cluster = OrgUnit.objects.filter(unit_type='CLUSTER').first()
+
+        # Valid woreda creation under cluster
+        res_valid = self.client.post('/api/masterdata/org-units/', {
+            'code': 'WOR_TEST_VAL_01',
+            'name': 'Test Woreda Valid',
+            'local_name': 'Aanaa Qormaataa',
+            'unit_type': 'WOREDA',
+            'parent': cluster.id,
+            'status': 'Active'
+        }, format='json')
+        self.assertEqual(res_valid.status_code, status.HTTP_201_CREATED)
+
+        # Invalid: Woreda cannot have Region as parent directly
+        res_invalid = self.client.post('/api/masterdata/org-units/', {
+            'code': 'WOR_TEST_INV_01',
+            'name': 'Test Woreda Invalid',
+            'unit_type': 'WOREDA',
+            'parent': region.id,
+            'status': 'Active'
+        }, format='json')
+        self.assertEqual(res_invalid.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('parent', res_invalid.data)
+
+        # Invalid: Duplicate code rejection
+        res_dup = self.client.post('/api/masterdata/org-units/', {
+            'code': 'WOR_TEST_VAL_01',
+            'name': 'Duplicate Code Woreda',
+            'unit_type': 'WOREDA',
+            'parent': cluster.id,
+            'status': 'Active'
+        }, format='json')
+        self.assertEqual(res_dup.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_org_unit_audit_migration_report(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get('/api/masterdata/org-units/audit_migration_report/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('clusters_configured', response.data)
+        self.assertEqual(response.data['clusters_configured'], 6)
+        self.assertIn('former_zone_types_detected', response.data)
+        self.assertEqual(response.data['former_zone_types_detected'], 0)
+        self.assertIn('city_admin_as_town_count', response.data)
+        self.assertGreaterEqual(response.data['city_admin_as_town_count'], 15)
+
 

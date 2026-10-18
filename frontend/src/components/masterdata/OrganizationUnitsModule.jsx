@@ -1,983 +1,1248 @@
-import React, { useState, useMemo } from 'react';
-import { INITIAL_REGIONS, INITIAL_WOREDAS, INITIAL_KEBELES, checkOrgUnitUsage, buildHierarchyTree } from '../../services/orgUnitService';
-import { FolderTree, MapPin, Compass, CheckCircle2, XCircle, Search, Plus, Edit3, Trash2, ChevronRight, ChevronDown, ShieldAlert, X, AlertTriangle, Globe } from 'lucide-react';
-export const OrganizationUnitsModule = ({ masterData, onUpdateMasterData, canEdit, currentUser, projects = [], contracts = [], users = [] }) => {
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+    INITIAL_REGIONS, INITIAL_CLUSTERS, INITIAL_WOREDAS, INITIAL_TOWNS, INITIAL_KEBELES,
+    checkOrgUnitUsage, buildHierarchyTree, fetchOrgUnitTree, fetchOrgUnitSummary,
+    fetchAuditMigrationReport, createOrgUnit, updateOrgUnit, deleteOrgUnit
+} from '../../services/orgUnitService';
+import {
+    FolderTree, MapPin, Compass, CheckCircle2, XCircle, Search, Plus, Edit3, Trash2,
+    ChevronRight, ChevronDown, ShieldAlert, X, AlertTriangle, Globe, Layers, Building2,
+    RefreshCw, Download, FileSpreadsheet, Info, ShieldCheck, CheckCheck
+} from 'lucide-react';
+
+export const OrganizationUnitsModule = ({
+    masterData,
+    onUpdateMasterData,
+    canEdit,
+    currentUser,
+    projects = [],
+    contracts = [],
+    users = []
+}) => {
     const [activeTab, setActiveTab] = useState('tree');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+
     // Specific filters
-    const [selectedRegionFilter, setSelectedRegionFilter] = useState('ALL');
-    const [selectedWoredaFilter, setSelectedWoredaFilter] = useState('ALL');
+    const [selectedClusterFilter, setSelectedClusterFilter] = useState('ALL');
+    const [selectedParentFilter, setSelectedParentFilter] = useState('ALL');
+
     // Tree state
     const [expandedNodes, setExpandedNodes] = useState({
         'reg-oromia': true,
-        'wor-adama': true,
-        'wor-sebeta': true
+        'clust-central': true,
+        'clust-southeastern': true,
+        'clust-southern': true,
+        'clust-southwestern': true,
+        'clust-western': true,
+        'clust-eastern': true
     });
-    // Modal states
-    const [modalType, setModalType] = useState(null);
+
+    // Modals & Drawers
+    const [modalType, setModalType] = useState(null); // 'CLUSTER' | 'WOREDA' | 'TOWN' | 'KEBELE' | 'REGION'
     const [editingItem, setEditingItem] = useState(null);
     const [usageBlockedModal, setUsageBlockedModal] = useState(null);
+    const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+    const [auditReport, setAuditReport] = useState(null);
+    const [toastMessage, setToastMessage] = useState(null);
+
     // Form states
     const [formCode, setFormCode] = useState('');
     const [formName, setFormName] = useState('');
     const [formLocalName, setFormLocalName] = useState('');
     const [formDescription, setFormDescription] = useState('');
-    const [formRegionId, setFormRegionId] = useState('');
-    const [formWoredaId, setFormWoredaId] = useState('');
+    const [formUnitType, setFormUnitType] = useState('WOREDA');
+    const [formClassification, setFormClassification] = useState('Administrative Woreda');
+    const [formParentId, setFormParentId] = useState('');
+    const [formClusterId, setFormClusterId] = useState('');
+    const [formFormerZone, setFormFormerZone] = useState('');
     const [formStatus, setFormStatus] = useState('Active');
     const [formError, setFormError] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
+
     // Data sets from masterData or fallback
-    const regions = useMemo(() => masterData.regions || INITIAL_REGIONS, [masterData.regions]);
-    const woredas = useMemo(() => masterData.woredas || INITIAL_WOREDAS, [masterData.woredas]);
-    const kebeles = useMemo(() => masterData.kebeles || INITIAL_KEBELES, [masterData.kebeles]);
+    const regions = useMemo(() => masterData?.regions?.length ? masterData.regions : INITIAL_REGIONS, [masterData?.regions]);
+    const clusters = useMemo(() => masterData?.clusters?.length ? masterData.clusters : INITIAL_CLUSTERS, [masterData?.clusters]);
+    const woredas = useMemo(() => masterData?.woredas?.length ? masterData.woredas : INITIAL_WOREDAS, [masterData?.woredas]);
+    const towns = useMemo(() => masterData?.towns?.length ? masterData.towns : INITIAL_TOWNS, [masterData?.towns]);
+    const kebeles = useMemo(() => masterData?.kebeles?.length ? masterData.kebeles : INITIAL_KEBELES, [masterData?.kebeles]);
+
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 12;
+
+    const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3500);
+    };
+
+    // Load audit report
+    const handleOpenAuditModal = async () => {
+        setIsAuditModalOpen(true);
+        const report = await fetchAuditMigrationReport();
+        setAuditReport(report);
+    };
+
     // Reset page when filters change
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         setCurrentPage(1);
         setSearchQuery('');
     };
-    // Helper to record history
-    const logAudit = (data, entityType, code, name, action, summary, prev, next) => {
-        const entry = {
-            id: `hist-org-${Date.now()}`,
-            entityType: 'ITEM',
-            entityCode: code,
-            entityName: name,
-            action: action,
-            changedBy: currentUser?.username || 'Administrator',
-            timestamp: new Date().toISOString(),
-            previousValue: prev,
-            newValue: next,
-            changeSummary: summary
-        };
-        return {
-            ...data,
-            historyEntries: [entry, ...(data.historyEntries || [])],
-            lastUpdated: new Date().toISOString()
-        };
-    };
-    // Tree toggle
+
+    // Tree toggling
     const toggleNode = (nodeId) => {
         setExpandedNodes(prev => ({
             ...prev,
             [nodeId]: !prev[nodeId]
         }));
     };
+
     const expandAll = () => {
         const map = {};
         regions.forEach(r => { map[r.id] = true; });
+        clusters.forEach(c => { map[c.id] = true; });
         woredas.forEach(w => { map[w.id] = true; });
+        towns.forEach(t => { map[t.id] = true; });
         setExpandedNodes(map);
     };
+
     const collapseAll = () => {
         setExpandedNodes({});
     };
-    // Hierarchy Tree structure
+
+    // Hierarchy Tree structure: Region -> Cluster -> [Woreda, Town] -> Kebele
     const hierarchyTree = useMemo(() => {
-        let tree = buildHierarchyTree(regions, woredas, kebeles);
+        let tree = buildHierarchyTree(regions, clusters, woredas, towns, kebeles);
         if (statusFilter !== 'ALL') {
             tree = tree.filter(r => r.status === statusFilter);
         }
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
-            // Filter tree where region, woreda, or kebele matches
             return tree.map(r => {
-                const matchesReg = r.name.toLowerCase().includes(q) || r.localName.toLowerCase().includes(q) || r.code.toLowerCase().includes(q);
-                const filteredWoredas = (r.children || []).map(w => {
-                    const matchesWor = w.name.toLowerCase().includes(q) || w.localName.toLowerCase().includes(q) || w.code.toLowerCase().includes(q);
-                    const filteredKebeles = (w.children || []).filter(k => k.name.toLowerCase().includes(q) || k.localName.toLowerCase().includes(q) || k.code.toLowerCase().includes(q));
-                    if (matchesWor || filteredKebeles.length > 0) {
-                        return { ...w, children: matchesWor ? w.children : filteredKebeles };
+                const matchesReg = (r.name && r.name.toLowerCase().includes(q)) || (r.code && r.code.toLowerCase().includes(q));
+                const filteredClusters = (r.children || []).map(c => {
+                    const matchesClust = (c.name && c.name.toLowerCase().includes(q)) || (c.code && c.code.toLowerCase().includes(q));
+                    const filteredUnits = (c.children || []).map(u => {
+                        const matchesUnit = (u.name && u.name.toLowerCase().includes(q)) || (u.code && u.code.toLowerCase().includes(q)) || (u.formerZone && u.formerZone.toLowerCase().includes(q));
+                        const filteredKebeles = (u.children || []).filter(k => (k.name && k.name.toLowerCase().includes(q)) || (k.code && k.code.toLowerCase().includes(q)));
+                        if (matchesUnit || filteredKebeles.length > 0) {
+                            return { ...u, children: matchesUnit ? u.children : filteredKebeles };
+                        }
+                        return null;
+                    }).filter(Boolean);
+
+                    if (matchesClust || filteredUnits.length > 0) {
+                        return { ...c, children: matchesClust ? c.children : filteredUnits };
                     }
                     return null;
                 }).filter(Boolean);
-                if (matchesReg || filteredWoredas.length > 0) {
-                    return { ...r, children: matchesReg ? r.children : filteredWoredas };
+
+                if (matchesReg || filteredClusters.length > 0) {
+                    return { ...r, children: matchesReg ? r.children : filteredClusters };
                 }
                 return null;
             }).filter(Boolean);
         }
         return tree;
-    }, [regions, woredas, kebeles, statusFilter, searchQuery]);
-    // Filtered lists for table tabs
-    const filteredRegions = useMemo(() => {
-        return regions.filter(r => {
-            if (statusFilter !== 'ALL' && r.status !== statusFilter)
-                return false;
-            if (searchQuery.trim()) {
-                const q = searchQuery.toLowerCase();
-                return r.name.toLowerCase().includes(q) || r.localName.toLowerCase().includes(q) || r.code.toLowerCase().includes(q);
-            }
-            return true;
-        });
-    }, [regions, statusFilter, searchQuery]);
-    const filteredWoredas = useMemo(() => {
-        return woredas.filter(w => {
-            if (selectedRegionFilter !== 'ALL' && w.regionId !== selectedRegionFilter)
-                return false;
-            if (statusFilter !== 'ALL' && w.status !== statusFilter)
-                return false;
-            if (searchQuery.trim()) {
-                const q = searchQuery.toLowerCase();
-                return w.name.toLowerCase().includes(q) || w.localName.toLowerCase().includes(q) || w.code.toLowerCase().includes(q);
-            }
-            return true;
-        });
-    }, [woredas, selectedRegionFilter, statusFilter, searchQuery]);
-    const filteredKebeles = useMemo(() => {
-        return kebeles.filter(k => {
-            if (selectedRegionFilter !== 'ALL') {
-                const parentWoreda = woredas.find(w => w.id === k.woredaId);
-                if (parentWoreda?.regionId !== selectedRegionFilter)
-                    return false;
-            }
-            if (selectedWoredaFilter !== 'ALL' && k.woredaId !== selectedWoredaFilter)
-                return false;
-            if (statusFilter !== 'ALL' && k.status !== statusFilter)
-                return false;
-            if (searchQuery.trim()) {
-                const q = searchQuery.toLowerCase();
-                return k.name.toLowerCase().includes(q) || k.localName.toLowerCase().includes(q) || k.code.toLowerCase().includes(q);
-            }
-            return true;
-        });
-    }, [kebeles, woredas, selectedRegionFilter, selectedWoredaFilter, statusFilter, searchQuery]);
-    // Open Create Modal
+    }, [regions, clusters, woredas, towns, kebeles, statusFilter, searchQuery]);
+
+    // Open Modal for Create
     const handleOpenCreate = (type) => {
         setModalType(type);
         setEditingItem(null);
+        setFormUnitType(type);
         setFormCode('');
         setFormName('');
         setFormLocalName('');
         setFormDescription('');
+        setFormFormerZone('');
         setFormStatus('Active');
         setFormError(null);
-        if (type === 'WOREDA') {
-            setFormRegionId(selectedRegionFilter !== 'ALL' ? selectedRegionFilter : (regions[0]?.id || 'reg-oromia'));
-        }
-        else if (type === 'KEBELE') {
-            const defaultWoreda = selectedWoredaFilter !== 'ALL' ? selectedWoredaFilter : (woredas[0]?.id || 'wor-adama');
-            setFormWoredaId(defaultWoreda);
-            const wObj = woredas.find(w => w.id === defaultWoreda);
-            setFormRegionId(wObj?.regionId || regions[0]?.id || 'reg-oromia');
+
+        if (type === 'CLUSTER') {
+            setFormParentId(regions[0]?.id || 'reg-oromia');
+            setFormClassification('Regional Administrative Cluster');
+        } else if (type === 'WOREDA') {
+            setFormParentId(clusters[0]?.id || 'clust-central');
+            setFormClusterId(clusters[0]?.id || 'clust-central');
+            setFormClassification('Administrative Woreda');
+        } else if (type === 'TOWN') {
+            setFormParentId(clusters[0]?.id || 'clust-central');
+            setFormClusterId(clusters[0]?.id || 'clust-central');
+            setFormClassification('City Administration');
+        } else if (type === 'KEBELE') {
+            setFormParentId(woredas[0]?.id || towns[0]?.id || '');
+            setFormClassification('Kebele Administration');
         }
     };
-    // Open Edit Modal
+
+    // Open Modal for Edit
     const handleOpenEdit = (type, item) => {
         setModalType(type);
         setEditingItem(item);
-        setFormCode(item.code);
-        setFormName(item.name);
-        setFormLocalName(item.localName);
+        setFormUnitType(type);
+        setFormCode(item.code || '');
+        setFormName(item.name || '');
+        setFormLocalName(item.localName || '');
         setFormDescription(item.description || '');
-        setFormStatus(item.status);
+        setFormFormerZone(item.formerZone || '');
+        setFormParentId(item.parentId || item.clusterId || item.woredaId || item.regionId || '');
+        setFormClusterId(item.clusterId || '');
+        setFormClassification(item.classification || (type === 'TOWN' ? 'City Administration' : type === 'WOREDA' ? 'Administrative Woreda' : ''));
+        setFormStatus(item.status || 'Active');
         setFormError(null);
-        if (type === 'WOREDA') {
-            setFormRegionId(item.regionId);
-        }
-        else if (type === 'KEBELE') {
-            setFormWoredaId(item.woredaId);
-            setFormRegionId(item.regionId || '');
-        }
     };
-    // Save Modal Form
-    const handleSaveForm = (e) => {
+
+    // Save Create / Edit
+    const handleSaveUnit = async (e) => {
         e.preventDefault();
         setFormError(null);
-        if (!formCode.trim() || !formName.trim() || !formLocalName.trim()) {
-            setFormError('Code, English Name, and Afaan Oromoo Local Name are required.');
+
+        if (!formName.trim()) {
+            setFormError('Official Unit Name is required.');
             return;
         }
-        const cleanCode = formCode.toUpperCase().trim().replace(/[^A-Z0-9_-]/g, '_');
-        const now = new Date().toISOString();
-        const actor = currentUser?.username || 'Administrator';
-        if (modalType === 'REGION') {
-            // Check duplicate code
-            const duplicate = regions.find(r => r.code === cleanCode && (!editingItem || r.id !== editingItem.id));
-            if (duplicate) {
-                setFormError(`Region code "${cleanCode}" is already in use.`);
-                return;
-            }
-            let updatedRegions;
-            let updatedData;
-            if (editingItem) {
-                updatedRegions = regions.map(r => r.id === editingItem.id ? {
-                    ...r,
-                    code: cleanCode,
-                    name: formName.trim(),
-                    localName: formLocalName.trim(),
-                    description: formDescription.trim(),
-                    status: formStatus,
-                    updatedAt: now
-                } : r);
-                updatedData = logAudit({ ...masterData, regions: updatedRegions }, 'REGION', cleanCode, formName, 'UPDATED', `${actor} updated Region "${formName}" (${cleanCode}).`);
-            }
-            else {
-                const newReg = {
-                    id: `reg-${cleanCode.toLowerCase()}`,
-                    code: cleanCode,
-                    name: formName.trim(),
-                    localName: formLocalName.trim(),
-                    description: formDescription.trim(),
-                    status: formStatus,
-                    createdAt: now,
-                    updatedAt: now
-                };
-                updatedRegions = [...regions, newReg];
-                updatedData = logAudit({ ...masterData, regions: updatedRegions }, 'REGION', cleanCode, formName, 'CREATED', `${actor} registered new Region "${formName}" (${cleanCode}).`);
-            }
-            onUpdateMasterData(updatedData);
+        if (!formCode.trim()) {
+            setFormError('Unique Organizational Code is required.');
+            return;
         }
-        else if (modalType === 'WOREDA') {
-            if (!formRegionId) {
-                setFormError('Please select a parent Region.');
-                return;
-            }
-            const duplicate = woredas.find(w => w.regionId === formRegionId && w.code === cleanCode && (!editingItem || w.id !== editingItem.id));
-            if (duplicate) {
-                setFormError(`Woreda code "${cleanCode}" already exists within this region.`);
-                return;
-            }
-            const parentRegion = regions.find(r => r.id === formRegionId);
-            let updatedWoredas;
-            let updatedData;
-            if (editingItem) {
-                updatedWoredas = woredas.map(w => w.id === editingItem.id ? {
-                    ...w,
-                    code: cleanCode,
-                    name: formName.trim(),
-                    localName: formLocalName.trim(),
-                    regionId: formRegionId,
-                    regionName: parentRegion?.name,
-                    description: formDescription.trim(),
-                    status: formStatus,
-                    updatedAt: now
-                } : w);
-                updatedData = logAudit({ ...masterData, woredas: updatedWoredas }, 'WOREDA', cleanCode, formName, 'UPDATED', `${actor} updated Woreda "${formName}" (${cleanCode}).`);
-            }
-            else {
-                const newWor = {
-                    id: `wor-${cleanCode.toLowerCase()}`,
-                    code: cleanCode,
-                    name: formName.trim(),
-                    localName: formLocalName.trim(),
-                    regionId: formRegionId,
-                    regionName: parentRegion?.name,
-                    description: formDescription.trim(),
-                    status: formStatus,
-                    createdAt: now,
-                    updatedAt: now
-                };
-                updatedWoredas = [...woredas, newWor];
-                updatedData = logAudit({ ...masterData, woredas: updatedWoredas }, 'WOREDA', cleanCode, formName, 'CREATED', `${actor} added Woreda "${formName}" (${cleanCode}) under ${parentRegion?.name}.`);
-            }
-            onUpdateMasterData(updatedData);
+
+        // Permitted parent validation
+        if (formUnitType === 'CLUSTER' && !formParentId) {
+            setFormError('Cluster must belong to a Region.');
+            return;
         }
-        else if (modalType === 'KEBELE') {
-            if (!formWoredaId) {
-                setFormError('Please select a parent Woreda.');
-                return;
-            }
-            const duplicate = kebeles.find(k => k.woredaId === formWoredaId && k.code === cleanCode && (!editingItem || k.id !== editingItem.id));
-            if (duplicate) {
-                setFormError(`Kebele code "${cleanCode}" already exists within this woreda.`);
-                return;
-            }
-            const parentWoreda = woredas.find(w => w.id === formWoredaId);
-            let updatedKebeles;
-            let updatedData;
-            if (editingItem) {
-                updatedKebeles = kebeles.map(k => k.id === editingItem.id ? {
-                    ...k,
-                    code: cleanCode,
-                    name: formName.trim(),
-                    localName: formLocalName.trim(),
-                    woredaId: formWoredaId,
-                    woredaName: parentWoreda?.name,
-                    regionId: parentWoreda?.regionId,
-                    description: formDescription.trim(),
-                    status: formStatus,
-                    updatedAt: now
-                } : k);
-                updatedData = logAudit({ ...masterData, kebeles: updatedKebeles }, 'KEBELE', cleanCode, formName, 'UPDATED', `${actor} updated Kebele "${formName}" (${cleanCode}).`);
-            }
-            else {
-                const newKeb = {
-                    id: `keb-${cleanCode.toLowerCase()}`,
-                    code: cleanCode,
-                    name: formName.trim(),
-                    localName: formLocalName.trim(),
-                    woredaId: formWoredaId,
-                    woredaName: parentWoreda?.name,
-                    regionId: parentWoreda?.regionId,
-                    description: formDescription.trim(),
-                    status: formStatus,
-                    createdAt: now,
-                    updatedAt: now
-                };
-                updatedKebeles = [...kebeles, newKeb];
-                updatedData = logAudit({ ...masterData, kebeles: updatedKebeles }, 'KEBELE', cleanCode, formName, 'CREATED', `${actor} added Kebele "${formName}" under ${parentWoreda?.name}.`);
-            }
-            onUpdateMasterData(updatedData);
+        if ((formUnitType === 'WOREDA' || formUnitType === 'TOWN') && !formParentId) {
+            setFormError(`${formUnitType === 'TOWN' ? 'Town / City Administration' : 'Woreda'} must belong directly to a Cluster.`);
+            return;
         }
-        setModalType(null);
-        setEditingItem(null);
+        if (formUnitType === 'KEBELE' && !formParentId) {
+            setFormError('Kebele must belong to a Woreda or Town / City Administration.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const unitId = editingItem ? editingItem.id : `${formUnitType.toLowerCase()}-${Date.now().toString(36)}`;
+            
+            // Resolve parent and cluster
+            let parentObj = null;
+            let clusterId = formClusterId;
+            let parentName = '';
+
+            if (formUnitType === 'CLUSTER') {
+                parentObj = regions.find(r => r.id === formParentId);
+                parentName = parentObj?.name || 'Oromia National Regional State';
+                clusterId = unitId;
+            } else if (formUnitType === 'WOREDA' || formUnitType === 'TOWN') {
+                parentObj = clusters.find(c => c.id === formParentId);
+                clusterId = formParentId;
+                parentName = parentObj?.name || 'Cluster';
+            } else if (formUnitType === 'KEBELE') {
+                parentObj = woredas.find(w => w.id === formParentId) || towns.find(t => t.id === formParentId);
+                parentName = parentObj?.name || 'Parent Unit';
+                clusterId = parentObj?.clusterId || '';
+            }
+
+            const unitPayload = {
+                id: unitId,
+                code: formCode.trim().toUpperCase(),
+                name: formName.trim(),
+                localName: formLocalName.trim(),
+                unitType: formUnitType,
+                classification: formClassification,
+                parentId: formParentId,
+                parentName: parentName,
+                clusterId: clusterId,
+                formerZone: formFormerZone.trim(),
+                status: formStatus,
+                description: formDescription.trim()
+            };
+
+            // Call API
+            if (editingItem) {
+                await updateOrgUnit(editingItem.id, unitPayload);
+            } else {
+                await createOrgUnit(unitPayload);
+            }
+
+            // Update masterData in local state
+            const updated = { ...masterData };
+            if (formUnitType === 'CLUSTER') {
+                const list = [...clusters];
+                const idx = list.findIndex(c => c.id === unitId);
+                if (idx >= 0) list[idx] = unitPayload;
+                else list.push(unitPayload);
+                updated.clusters = list;
+            } else if (formUnitType === 'WOREDA') {
+                const list = [...woredas];
+                const idx = list.findIndex(w => w.id === unitId);
+                if (idx >= 0) list[idx] = unitPayload;
+                else list.push(unitPayload);
+                updated.woredas = list;
+            } else if (formUnitType === 'TOWN') {
+                const list = [...towns];
+                const idx = list.findIndex(t => t.id === unitId);
+                if (idx >= 0) list[idx] = unitPayload;
+                else list.push(unitPayload);
+                updated.towns = list;
+            } else if (formUnitType === 'KEBELE') {
+                const list = [...kebeles];
+                const idx = list.findIndex(k => k.id === unitId);
+                if (idx >= 0) list[idx] = unitPayload;
+                else list.push(unitPayload);
+                updated.kebeles = list;
+            }
+
+            if (onUpdateMasterData) {
+                onUpdateMasterData(updated);
+            }
+
+            showToast(`${formUnitType} "${formName}" saved successfully.`);
+            setModalType(null);
+            setEditingItem(null);
+        } catch (err) {
+            console.error('Error saving unit:', err);
+            setFormError(err.response?.data?.message || err.message || 'Failed to save organizational unit.');
+        } finally {
+            setIsSaving(false);
+        }
     };
-    // Toggle Active/Inactive
-    const handleToggleStatus = (type, item) => {
-        const nextStatus = item.status === 'Active' ? 'Inactive' : 'Active';
-        const actor = currentUser?.username || 'Administrator';
-        const now = new Date().toISOString();
-        let updatedData;
-        if (type === 'REGION') {
-            const updated = regions.map(r => r.id === item.id ? { ...r, status: nextStatus, updatedAt: now } : r);
-            updatedData = logAudit({ ...masterData, regions: updated }, 'REGION', item.code, item.name, nextStatus === 'Active' ? 'ACTIVATED' : 'DEACTIVATED', `${actor} changed Region "${item.name}" status to ${nextStatus}.`);
+
+    // Toggle Unit Status (Activate / Deactivate)
+    const handleToggleStatus = async (type, item) => {
+        const newStatus = item.status === 'Active' ? 'Inactive' : 'Active';
+        try {
+            await updateOrgUnit(item.id, { status: newStatus });
+            
+            const updated = { ...masterData };
+            if (type === 'CLUSTER') {
+                updated.clusters = clusters.map(c => c.id === item.id ? { ...c, status: newStatus } : c);
+            } else if (type === 'WOREDA') {
+                updated.woredas = woredas.map(w => w.id === item.id ? { ...w, status: newStatus } : w);
+            } else if (type === 'TOWN') {
+                updated.towns = towns.map(t => t.id === item.id ? { ...t, status: newStatus } : t);
+            } else if (type === 'KEBELE') {
+                updated.kebeles = kebeles.map(k => k.id === item.id ? { ...k, status: newStatus } : k);
+            }
+            if (onUpdateMasterData) onUpdateMasterData(updated);
+            showToast(`${item.name} set to ${newStatus}.`);
+        } catch (err) {
+            console.error('Error toggling status:', err);
+            showToast(`Failed to update status: ${err.message}`);
         }
-        else if (type === 'WOREDA') {
-            const updated = woredas.map(w => w.id === item.id ? { ...w, status: nextStatus, updatedAt: now } : w);
-            updatedData = logAudit({ ...masterData, woredas: updated }, 'WOREDA', item.code, item.name, nextStatus === 'Active' ? 'ACTIVATED' : 'DEACTIVATED', `${actor} changed Woreda "${item.name}" status to ${nextStatus}.`);
-        }
-        else {
-            const updated = kebeles.map(k => k.id === item.id ? { ...k, status: nextStatus, updatedAt: now } : k);
-            updatedData = logAudit({ ...masterData, kebeles: updated }, 'KEBELE', item.code, item.name, nextStatus === 'Active' ? 'ACTIVATED' : 'DEACTIVATED', `${actor} changed Kebele "${item.name}" status to ${nextStatus}.`);
-        }
-        onUpdateMasterData(updatedData);
     };
-    // Safe delete with referential integrity check
-    const handleDeleteAttempt = (type, item) => {
-        // 1. Check child organizational unit relationships first
-        if (type === 'REGION') {
-            const childWoredas = woredas.filter(w => w.regionId === item.id);
-            if (childWoredas.length > 0) {
-                setUsageBlockedModal({
-                    unitType: 'REGION',
-                    name: item.name,
-                    usage: {
-                        isUsed: true,
-                        usageCount: childWoredas.length,
-                        details: [`${childWoredas.length} Woreda(s) currently registered under this Region (e.g. ${childWoredas.slice(0, 3).map(w => w.name).join(', ')})`]
-                    }
-                });
-                return;
-            }
-        }
-        else if (type === 'WOREDA') {
-            const childKebeles = kebeles.filter(k => k.woredaId === item.id);
-            if (childKebeles.length > 0) {
-                setUsageBlockedModal({
-                    unitType: 'WOREDA',
-                    name: item.name,
-                    usage: {
-                        isUsed: true,
-                        usageCount: childKebeles.length,
-                        details: [`${childKebeles.length} Kebele(s) currently registered under this Woreda`]
-                    }
-                });
-                return;
-            }
-        }
-        // 2. Check business usage (Projects, Contracts, Users)
+
+    // Delete Unit
+    const handleDeleteUnit = async (type, item) => {
         const usage = checkOrgUnitUsage(type, item.name, projects, contracts, users);
         if (usage.isUsed) {
-            setUsageBlockedModal({
-                unitType: type,
-                name: item.name,
-                usage
-            });
+            setUsageBlockedModal({ item, type, usage });
             return;
         }
-        // 3. Confirm deletion
-        if (confirm(`Are you sure you want to permanently delete ${type.toLowerCase()} "${item.name}" (${item.code})?`)) {
-            const actor = currentUser?.username || 'Administrator';
-            let updatedData;
-            if (type === 'REGION') {
-                const updated = regions.filter(r => r.id !== item.id);
-                updatedData = logAudit({ ...masterData, regions: updated }, 'REGION', item.code, item.name, 'DELETED', `${actor} permanently deleted Region "${item.name}" (${item.code}).`);
+
+        if (confirm(`Are you sure you want to delete ${type} "${item.name}"? This action cannot be undone.`)) {
+            try {
+                await deleteOrgUnit(item.id);
+                const updated = { ...masterData };
+                if (type === 'CLUSTER') {
+                    updated.clusters = clusters.filter(c => c.id !== item.id);
+                } else if (type === 'WOREDA') {
+                    updated.woredas = woredas.filter(w => w.id !== item.id);
+                } else if (type === 'TOWN') {
+                    updated.towns = towns.filter(t => t.id !== item.id);
+                } else if (type === 'KEBELE') {
+                    updated.kebeles = kebeles.filter(k => k.id !== item.id);
+                }
+                if (onUpdateMasterData) onUpdateMasterData(updated);
+                showToast(`${item.name} deleted.`);
+            } catch (err) {
+                console.error('Error deleting unit:', err);
+                showToast(`Failed to delete: ${err.message}`);
             }
-            else if (type === 'WOREDA') {
-                const updated = woredas.filter(w => w.id !== item.id);
-                updatedData = logAudit({ ...masterData, woredas: updated }, 'WOREDA', item.code, item.name, 'DELETED', `${actor} permanently deleted Woreda "${item.name}" (${item.code}).`);
-            }
-            else {
-                const updated = kebeles.filter(k => k.id !== item.id);
-                updatedData = logAudit({ ...masterData, kebeles: updated }, 'KEBELE', item.code, item.name, 'DELETED', `${actor} permanently deleted Kebele "${item.name}" (${item.code}).`);
-            }
-            onUpdateMasterData(updatedData);
         }
     };
-    return (<div className="space-y-6 animate-fade-in text-slate-800">
-      {/* Top Banner & Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4 rounded-2xl border border-sky-100 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Regions</span>
-            <Globe className="w-4 h-4 text-cyan-700"/>
-          </div>
-          <p className="text-2xl font-black text-slate-900 mt-1">{regions.length}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">{regions.filter(r => r.status === 'Active').length} Active Administrative States</p>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-sky-100 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Woredas (Districts)</span>
-            <Compass className="w-4 h-4 text-sky-700"/>
-          </div>
-          <p className="text-2xl font-black text-slate-900 mt-1">{woredas.length}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Centralized District Desks</p>
-        </div>
+    // Paginated list for table tabs
+    const activeList = useMemo(() => {
+        let list = [];
+        if (activeTab === 'clusters') list = clusters;
+        else if (activeTab === 'woredas') list = woredas;
+        else if (activeTab === 'towns') list = towns;
+        else if (activeTab === 'kebeles') list = kebeles;
 
-        <div className="bg-white p-4 rounded-2xl border border-sky-100 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Kebeles (Communities)</span>
-            <MapPin className="w-4 h-4 text-emerald-700"/>
-          </div>
-          <p className="text-2xl font-black text-slate-900 mt-1">{kebeles.length}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Grassroots Beneficiary Sites</p>
-        </div>
+        if (selectedClusterFilter !== 'ALL') {
+            list = list.filter(item => item.clusterId === selectedClusterFilter || item.parentId === selectedClusterFilter);
+        }
+        if (statusFilter !== 'ALL') {
+            list = list.filter(item => item.status === statusFilter);
+        }
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            list = list.filter(item => (item.name && item.name.toLowerCase().includes(q)) ||
+                (item.code && item.code.toLowerCase().includes(q)) ||
+                (item.localName && item.localName.toLowerCase().includes(q)) ||
+                (item.formerZone && item.formerZone.toLowerCase().includes(q)));
+        }
+        return list;
+    }, [activeTab, clusters, woredas, towns, kebeles, selectedClusterFilter, statusFilter, searchQuery]);
 
-        <div className="bg-white p-4 rounded-2xl border border-sky-100 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Scheme Sites</span>
-            <CheckCircle2 className="w-4 h-4 text-indigo-700"/>
-          </div>
-          <p className="text-2xl font-black text-slate-900 mt-1">{projects.length}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Linked to Central Hierarchy</p>
-        </div>
-      </div>
+    const totalPages = Math.ceil(activeList.length / pageSize) || 1;
+    const paginatedItems = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return activeList.slice(start, start + pageSize);
+    }, [activeList, currentPage, pageSize]);
 
-      {/* Main Container */}
-      <div className="bg-white rounded-3xl border border-sky-100 shadow-2xs overflow-hidden">
-        {/* Navigation Tabs Bar */}
-        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
-          <div className="flex items-center gap-1.5 overflow-x-auto">
-            <button onClick={() => handleTabChange('tree')} className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'tree'
-            ? 'bg-cyan-800 text-white shadow-2xs'
-            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>
-              <FolderTree className="w-4 h-4"/>
-              <span>Hierarchical Tree View</span>
-            </button>
+    return (
+        <div className="space-y-6">
+            {/* Toast */}
+            {toastMessage && (
+                <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-semibold animate-slide-up border border-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>{toastMessage}</span>
+                </div>
+            )}
 
-            <button onClick={() => handleTabChange('regions')} className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'regions'
-            ? 'bg-cyan-800 text-white shadow-2xs'
-            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>
-              <Globe className="w-4 h-4"/>
-              <span>Regions ({regions.length})</span>
-            </button>
-
-            <button onClick={() => handleTabChange('woredas')} className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'woredas'
-            ? 'bg-cyan-800 text-white shadow-2xs'
-            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>
-              <Compass className="w-4 h-4"/>
-              <span>Woredas ({woredas.length})</span>
-            </button>
-
-            <button onClick={() => handleTabChange('kebeles')} className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'kebeles'
-            ? 'bg-cyan-800 text-white shadow-2xs'
-            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>
-              <MapPin className="w-4 h-4"/>
-              <span>Kebeles ({kebeles.length})</span>
-            </button>
-          </div>
-
-          {/* Action button */}
-          {canEdit && (<div className="flex items-center gap-2 self-start md:self-auto">
-              {activeTab === 'regions' && (<button type="button" onClick={() => handleOpenCreate('REGION')} className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-sky-700 hover:from-cyan-500 hover:to-sky-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                  <Plus className="w-4 h-4"/>
-                  <span>Register Region</span>
-                </button>)}
-              {activeTab === 'woredas' && (<button type="button" onClick={() => handleOpenCreate('WOREDA')} className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-sky-700 hover:from-cyan-500 hover:to-sky-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                  <Plus className="w-4 h-4"/>
-                  <span>Add Woreda</span>
-                </button>)}
-              {activeTab === 'kebeles' && (<button type="button" onClick={() => handleOpenCreate('KEBELE')} className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-sky-700 hover:from-cyan-500 hover:to-sky-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                  <Plus className="w-4 h-4"/>
-                  <span>Add Kebele</span>
-                </button>)}
-              {activeTab === 'tree' && (<div className="flex items-center gap-2">
-                  <button onClick={expandAll} className="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-bold cursor-pointer">
-                    Expand All
-                  </button>
-                  <button onClick={collapseAll} className="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-bold cursor-pointer">
-                    Collapse All
-                  </button>
-                </div>)}
-            </div>)}
-        </div>
-
-        {/* Filter Controls Bar */}
-        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row items-center gap-3 justify-between bg-white">
-          <div className="flex flex-1 items-center gap-2 w-full">
-            {/* Search Box */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"/>
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search unit by English name, Afaan Oromoo name, or statutory code..." className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"/>
-              {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  <X className="w-3.5 h-3.5"/>
-                </button>)}
-            </div>
-
-            {/* Region Filter (when in Woredas or Kebeles tab) */}
-            {(activeTab === 'woredas' || activeTab === 'kebeles') && (<select value={selectedRegionFilter} onChange={(e) => {
-                setSelectedRegionFilter(e.target.value);
-                setSelectedWoredaFilter('ALL');
-            }} className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none">
-                <option value="ALL">All Regions</option>
-                {regions.map(r => (<option key={r.id} value={r.id}>{r.name}</option>))}
-              </select>)}
-
-            {/* Woreda Filter (when in Kebeles tab) */}
-            {activeTab === 'kebeles' && (<select value={selectedWoredaFilter} onChange={(e) => setSelectedWoredaFilter(e.target.value)} className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none">
-                <option value="ALL">All Woredas</option>
-                {(selectedRegionFilter === 'ALL' ? woredas : woredas.filter(w => w.regionId === selectedRegionFilter)).map(w => (<option key={w.id} value={w.id}>{w.name}</option>))}
-              </select>)}
-
-            {/* Status Filter */}
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none">
-              <option value="ALL">All Status</option>
-              <option value="Active">Active Only</option>
-              <option value="Inactive">Inactive Only</option>
-            </select>
-          </div>
-        </div>
-
-        {/* TAB CONTENT */}
-
-        {/* 1. HIERARCHICAL TREE VIEW */}
-        {activeTab === 'tree' && (<div className="p-6 space-y-4">
-            <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
-              <span className="font-semibold">Interactive Administrative Organizational Tree</span>
-              <span>Showing {hierarchyTree.length} Regional Roots</span>
-            </div>
-
-            <div className="space-y-3">
-              {hierarchyTree.map((reg) => {
-                const isRegExpanded = !!expandedNodes[reg.id];
-                const childWoredas = reg.children || [];
-                return (<div key={reg.id} className="border border-sky-100 rounded-2xl overflow-hidden bg-white shadow-2xs">
-                    {/* Region Header */}
-                    <div onClick={() => toggleNode(reg.id)} className="p-3.5 bg-gradient-to-r from-sky-50/80 to-white hover:bg-sky-100/50 cursor-pointer flex items-center justify-between transition-colors">
-                      <div className="flex items-center gap-2.5">
-                        <button type="button" className="text-cyan-800 p-0.5">
-                          {isRegExpanded ? <ChevronDown className="w-4 h-4"/> : <ChevronRight className="w-4 h-4"/>}
-                        </button>
-                        <Globe className="w-4 h-4 text-cyan-700 flex-shrink-0"/>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-black text-xs text-slate-900">{reg.name}</span>
-                            <span className="text-[11px] font-medium text-slate-500">({reg.localName})</span>
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 bg-sky-100 text-sky-800 rounded font-bold">
-                              {reg.code}
+            {/* Top Organizational Summary Bar */}
+            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl border border-indigo-900/50">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-white/10">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                Official Oromia Administrative Hierarchy
                             </span>
-                          </div>
+                            <span className="text-xs text-slate-400 font-mono">
+                                Region &rarr; Cluster &rarr; Woreda / Town &rarr; Kebele
+                            </span>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <span className="text-[11px] text-slate-500 font-medium">
-                          {childWoredas.length} Woredas
-                        </span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${reg.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                          {reg.status}
-                        </span>
-                      </div>
+                        <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                            <span>Organizational Unit Architecture</span>
+                        </h2>
+                        <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+                            Six regional clusters operationalized under Oromia Regional State. Former zones eliminated as hierarchy levels; City Administrations equated to Town level.
+                        </p>
                     </div>
 
-                    {/* Child Woredas */}
-                    {isRegExpanded && (<div className="p-3 pl-8 space-y-2 border-t border-sky-100/80 bg-slate-50/30">
-                        {childWoredas.length === 0 ? (<p className="text-xs text-slate-400 italic py-1">No woredas registered under this region.</p>) : (childWoredas.map((wor) => {
-                            const isWorExpanded = !!expandedNodes[wor.id];
-                            const childKebeles = wor.children || [];
-                            return (<div key={wor.id} className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-                                {/* Woreda Row */}
-                                <div onClick={() => toggleNode(wor.id)} className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors">
-                                  <div className="flex items-center gap-2">
-                                    <button type="button" className="text-slate-500 p-0.5">
-                                      {isWorExpanded ? <ChevronDown className="w-3.5 h-3.5"/> : <ChevronRight className="w-3.5 h-3.5"/>}
-                                    </button>
-                                    <Compass className="w-3.5 h-3.5 text-sky-600 flex-shrink-0"/>
-                                    <span className="font-bold text-xs text-slate-800">{wor.name}</span>
-                                    <span className="text-[11px] text-slate-400">({wor.localName})</span>
-                                    <span className="text-[10px] font-mono text-slate-500">[{wor.code}]</span>
-                                  </div>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                        <button
+                            type="button"
+                            onClick={handleOpenAuditModal}
+                            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-all border border-white/15 flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                            <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                            <span>Audit &amp; Migration Report</span>
+                        </button>
 
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] text-slate-400 font-medium">
-                                      {childKebeles.length} Kebeles
+                        {canEdit && (
+                            <button
+                                type="button"
+                                onClick={() => handleOpenCreate('WOREDA')}
+                                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Add Org Unit</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* 4 Stat Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-5">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                            <span className="font-semibold">Regional Clusters</span>
+                            <Layers className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <div className="text-2xl font-black text-white">{clusters.length}</div>
+                        <div className="text-[10px] text-cyan-300 mt-1 font-medium">Baha, Kibba Baha, Kibba, Kibba Lixa, Lixa, Giddu Galeessa</div>
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                            <span className="font-semibold">Administrative Woredas</span>
+                            <Compass className="w-4 h-4 text-cyan-400" />
+                        </div>
+                        <div className="text-2xl font-black text-white">{woredas.length}</div>
+                        <div className="text-[10px] text-slate-400 mt-1 font-medium">Direct children of Clusters</div>
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                            <span className="font-semibold">Towns / City Administrations</span>
+                            <Building2 className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div className="text-2xl font-black text-white">{towns.length}</div>
+                        <div className="text-[10px] text-emerald-300 mt-1 font-medium">Equated to Town level</div>
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                            <span className="font-semibold">Registered Kebeles</span>
+                            <CheckCircle2 className="w-4 h-4 text-teal-400" />
+                        </div>
+                        <div className="text-2xl font-black text-white">{kebeles.length}</div>
+                        <div className="text-[10px] text-slate-400 mt-1 font-medium">Under Woredas and Towns</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Tabs Navigation */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                            type="button"
+                            onClick={() => handleTabChange('tree')}
+                            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                                activeTab === 'tree' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                        >
+                            <FolderTree className="w-3.5 h-3.5" />
+                            <span>Hierarchy Tree</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleTabChange('clusters')}
+                            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                                activeTab === 'clusters' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                        >
+                            <Layers className="w-3.5 h-3.5" />
+                            <span>Clusters ({clusters.length})</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleTabChange('woredas')}
+                            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                                activeTab === 'woredas' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                        >
+                            <Compass className="w-3.5 h-3.5" />
+                            <span>Woredas ({woredas.length})</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleTabChange('towns')}
+                            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                                activeTab === 'towns' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                        >
+                            <Building2 className="w-3.5 h-3.5" />
+                            <span>Towns &amp; Cities ({towns.length})</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleTabChange('kebeles')}
+                            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                                activeTab === 'kebeles' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                        >
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>Kebeles ({kebeles.length})</span>
+                        </button>
+                    </div>
+
+                    {activeTab === 'tree' && (
+                        <div className="flex items-center gap-2">
+                            <button onClick={expandAll} className="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-bold cursor-pointer">
+                                Expand All
+                            </button>
+                            <button onClick={collapseAll} className="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-bold cursor-pointer">
+                                Collapse All
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Filter Controls Bar */}
+                <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row items-center gap-3 justify-between bg-white">
+                    <div className="flex flex-1 items-center gap-2 w-full">
+                        <div className="relative flex-1">
+                            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search by English name, Afaan Oromoo name, statutory code, or former zone..."
+                                className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                            />
+                            {searchQuery && (
+                                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Cluster Filter */}
+                        {activeTab !== 'clusters' && (
+                            <select
+                                value={selectedClusterFilter}
+                                onChange={(e) => {
+                                    setSelectedClusterFilter(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none"
+                            >
+                                <option value="ALL">All Clusters</option>
+                                {clusters.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                        )}
+
+                        {/* Status Filter */}
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none"
+                        >
+                            <option value="ALL">All Status</option>
+                            <option value="Active">Active Only</option>
+                            <option value="Inactive">Inactive Only</option>
+                        </select>
+                    </div>
+
+                    {canEdit && activeTab !== 'tree' && (
+                        <button
+                            type="button"
+                            onClick={() => handleOpenCreate(activeTab === 'clusters' ? 'CLUSTER' : activeTab === 'towns' ? 'TOWN' : activeTab === 'kebeles' ? 'KEBELE' : 'WOREDA')}
+                            className="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add {activeTab.slice(0, -1)}</span>
+                        </button>
+                    )}
+                </div>
+
+                {/* TAB 1: HIERARCHICAL TREE VIEW */}
+                {activeTab === 'tree' && (
+                    <div className="p-6 space-y-4">
+                        <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
+                            <span className="font-semibold">Interactive Organizational Tree (Region &rarr; Cluster &rarr; Woreda / Town &rarr; Kebele)</span>
+                            <span>{hierarchyTree.length} Regional Root</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            {hierarchyTree.map((reg) => {
+                                const isRegExpanded = !!expandedNodes[reg.id];
+                                const childClusters = reg.children || [];
+
+                                return (
+                                    <div key={reg.id} className="border border-sky-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                                        {/* Region Row */}
+                                        <div onClick={() => toggleNode(reg.id)} className="p-4 bg-gradient-to-r from-sky-50 via-cyan-50/50 to-white hover:bg-sky-100/50 cursor-pointer flex items-center justify-between transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <button type="button" className="text-cyan-800 p-0.5">
+                                                    {isRegExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                                </button>
+                                                <Globe className="w-5 h-5 text-cyan-700 flex-shrink-0" />
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-black text-sm text-slate-900">{reg.name}</span>
+                                                        <span className="text-xs font-semibold text-slate-500">({reg.localName})</span>
+                                                        <span className="text-[10px] font-mono px-2 py-0.5 bg-cyan-100 text-cyan-800 rounded font-bold">
+                                                            {reg.code}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs text-indigo-700 font-bold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                                                    {childClusters.length} Clusters
+                                                </span>
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${reg.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
+                                                    {reg.status}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Child Clusters */}
+                                        {isRegExpanded && (
+                                            <div className="p-4 pl-8 space-y-3 border-t border-sky-100 bg-slate-50/40">
+                                                {childClusters.map((clust) => {
+                                                    const isClustExpanded = !!expandedNodes[clust.id];
+                                                    const childUnits = clust.children || [];
+
+                                                    return (
+                                                        <div key={clust.id} className="border border-indigo-100 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                                            {/* Cluster Row */}
+                                                            <div onClick={() => toggleNode(clust.id)} className="p-3 bg-gradient-to-r from-indigo-50/60 to-white hover:bg-indigo-50 cursor-pointer flex items-center justify-between transition-colors">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <button type="button" className="text-indigo-800 p-0.5">
+                                                                        {isClustExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                                                    </button>
+                                                                    <Layers className="w-4 h-4 text-indigo-700 flex-shrink-0" />
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-extrabold text-xs text-slate-900">{clust.name}</span>
+                                                                            <span className="text-[11px] text-slate-500 font-medium">({clust.localName})</span>
+                                                                            <span className="text-[10px] font-mono px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded font-bold">
+                                                                                {clust.code}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-[11px] text-slate-600 font-semibold bg-slate-100 px-2 py-0.5 rounded-md">
+                                                                        {childUnits.length} Woredas / Towns
+                                                                    </span>
+                                                                    {canEdit && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleOpenEdit('CLUSTER', clust);
+                                                                            }}
+                                                                            className="p-1 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 rounded"
+                                                                            title="Edit Cluster"
+                                                                        >
+                                                                            <Edit3 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Child Units under Cluster */}
+                                                            {isClustExpanded && (
+                                                                <div className="p-3 pl-8 space-y-2 border-t border-indigo-50 bg-slate-50/30">
+                                                                    {childUnits.length === 0 ? (
+                                                                        <p className="text-xs text-slate-400 italic py-1">No woredas or towns registered under this cluster.</p>
+                                                                    ) : (
+                                                                        childUnits.map((unit) => {
+                                                                            const isUnitExpanded = !!expandedNodes[unit.id];
+                                                                            const childKebeles = unit.children || [];
+                                                                            const isTown = unit.unitType === 'TOWN';
+
+                                                                            return (
+                                                                                <div key={unit.id} className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                                                                                    {/* Woreda / Town Row */}
+                                                                                    <div onClick={() => toggleNode(unit.id)} className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors">
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <button type="button" className="text-slate-500 p-0.5">
+                                                                                                {isUnitExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                                                                                            </button>
+                                                                                            {isTown ? (
+                                                                                                <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                                                                                            ) : (
+                                                                                                <Compass className="w-3.5 h-3.5 text-cyan-600 flex-shrink-0" />
+                                                                                            )}
+                                                                                            <span className="font-bold text-xs text-slate-800">{unit.name}</span>
+                                                                                            <span className="text-[10px] font-mono px-1 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                                                                                {unit.code}
+                                                                                            </span>
+                                                                                            {isTown && (
+                                                                                                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">
+                                                                                                    City Admin
+                                                                                                </span>
+                                                                                            )}
+                                                                                            {unit.formerZone && (
+                                                                                                <span className="text-[10px] text-slate-400 italic">
+                                                                                                    (historical {unit.formerZone})
+                                                                                                </span>
+                                                                                            )}
+                                                                                        </div>
+
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <span className="text-[10px] text-slate-500">
+                                                                                                {childKebeles.length} Kebeles
+                                                                                            </span>
+                                                                                            {canEdit && (
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        handleOpenEdit(isTown ? 'TOWN' : 'WOREDA', unit);
+                                                                                                    }}
+                                                                                                    className="p-1 text-slate-400 hover:text-cyan-700 hover:bg-slate-100 rounded"
+                                                                                                >
+                                                                                                    <Edit3 className="w-3.5 h-3.5" />
+                                                                                                </button>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    {/* Child Kebeles */}
+                                                                                    {isUnitExpanded && (
+                                                                                        <div className="p-2.5 pl-8 border-t border-slate-100 bg-slate-50/50">
+                                                                                            {childKebeles.length === 0 ? (
+                                                                                                <p className="text-[11px] text-slate-400 italic">No kebeles registered under this unit.</p>
+                                                                                            ) : (
+                                                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                                                                    {childKebeles.map((keb) => (
+                                                                                                        <div key={keb.id} className="p-2 bg-white rounded-lg border border-slate-200 flex items-center justify-between text-xs">
+                                                                                                            <div className="flex items-center gap-1.5">
+                                                                                                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                                                                                                <span className="font-semibold text-slate-800">{keb.name}</span>
+                                                                                                            </div>
+                                                                                                            <span className="text-[10px] font-mono text-slate-400">{keb.code}</span>
+                                                                                                        </div>
+                                                                                                    ))}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB 2, 3, 4, 5: TABULAR LIST VIEWS */}
+                {activeTab !== 'tree' && (
+                    <div className="p-6">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                                        <th className="p-3">Statutory Code</th>
+                                        <th className="p-3">English Name</th>
+                                        <th className="p-3">Afaan Oromoo Name</th>
+                                        {activeTab !== 'clusters' && <th className="p-3">Parent Cluster</th>}
+                                        {activeTab === 'towns' && <th className="p-3">Classification</th>}
+                                        {activeTab === 'woredas' && <th className="p-3">Historical Zone</th>}
+                                        <th className="p-3 text-center">Status</th>
+                                        <th className="p-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {paginatedItems.map((item) => (
+                                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                                            <td className="p-3 font-mono font-bold text-cyan-800">{item.code}</td>
+                                            <td className="p-3 font-bold text-slate-900">{item.name}</td>
+                                            <td className="p-3 text-slate-600 font-medium">{item.localName || '-'}</td>
+                                            {activeTab !== 'clusters' && (
+                                                <td className="p-3 text-slate-700 font-semibold">{item.clusterName || item.parentName || '-'}</td>
+                                            )}
+                                            {activeTab === 'towns' && (
+                                                <td className="p-3">
+                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                                                        {item.classification || 'City Administration'}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {activeTab === 'woredas' && (
+                                                <td className="p-3 text-slate-500 italic">{item.formerZone || '-'}</td>
+                                            )}
+                                            <td className="p-3 text-center">
+                                                <button
+                                                    type="button"
+                                                    disabled={!canEdit}
+                                                    onClick={() => handleToggleStatus(activeTab.toUpperCase().slice(0, -1), item)}
+                                                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold cursor-pointer transition-all ${
+                                                        item.status === 'Active'
+                                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                                            : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
+                                                    }`}
+                                                >
+                                                    {item.status}
+                                                </button>
+                                            </td>
+                                            <td className="p-3 text-right">
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    {canEdit && (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleOpenEdit(activeTab.toUpperCase().slice(0, -1), item)}
+                                                                className="p-1 text-slate-400 hover:text-cyan-700 hover:bg-cyan-50 rounded"
+                                                                title="Edit Unit"
+                                                            >
+                                                                <Edit3 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteUnit(activeTab.toUpperCase().slice(0, -1), item)}
+                                                                className="p-1 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded"
+                                                                title="Delete Unit"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {paginatedItems.length === 0 && (
+                                        <tr>
+                                            <td colSpan={8} className="p-8 text-center text-slate-400 italic">
+                                                No organizational records match the active criteria.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination Bar */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs text-slate-500">
+                                <div>
+                                    Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, activeList.length)} of {activeList.length} items
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold"
+                                    >
+                                        Prev
+                                    </button>
+                                    <span className="px-2 font-mono font-bold text-slate-700">
+                                        {currentPage} / {totalPages}
                                     </span>
-                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${wor.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                                      {wor.status}
-                                    </span>
-                                  </div>
+                                    <button
+                                        type="button"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Create / Edit Modal with Strict Parent Dropdowns */}
+            {modalType && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                    <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-4 my-8 animate-scale-in">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 className="text-base font-black text-slate-900">
+                                    {editingItem ? `Edit ${formUnitType}` : `Create New ${formUnitType}`}
+                                </h3>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    {formUnitType === 'CLUSTER' && 'Belongs directly to Region (Oromia National Regional State)'}
+                                    {formUnitType === 'WOREDA' && 'Belongs directly to an administrative Cluster'}
+                                    {formUnitType === 'TOWN' && 'Town / City Administration equated to Town level'}
+                                    {formUnitType === 'KEBELE' && 'Belongs directly to a Woreda or Town'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setModalType(null)}
+                                className="text-slate-400 hover:text-slate-600 p-1"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {formError && (
+                            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                <span>{formError}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSaveUnit} className="space-y-3.5 text-xs">
+                            {/* Parent Selector restricted strictly to permitted unit types */}
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">
+                                    Permitted Parent Unit <span className="text-rose-500">*</span>
+                                </label>
+                                {formUnitType === 'CLUSTER' && (
+                                    <select
+                                        value={formParentId}
+                                        onChange={(e) => setFormParentId(e.target.value)}
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                                        required
+                                    >
+                                        {regions.map(r => (
+                                            <option key={r.id} value={r.id}>{r.name} (Region)</option>
+                                        ))}
+                                    </select>
+                                )}
+
+                                {(formUnitType === 'WOREDA' || formUnitType === 'TOWN') && (
+                                    <select
+                                        value={formParentId}
+                                        onChange={(e) => {
+                                            setFormParentId(e.target.value);
+                                            setFormClusterId(e.target.value);
+                                        }}
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                                        required
+                                    >
+                                        <option value="">-- Choose Cluster --</option>
+                                        {clusters.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name} ({c.localName})</option>
+                                        ))}
+                                    </select>
+                                )}
+
+                                {formUnitType === 'KEBELE' && (
+                                    <select
+                                        value={formParentId}
+                                        onChange={(e) => setFormParentId(e.target.value)}
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                                        required
+                                    >
+                                        <option value="">-- Choose Woreda or Town --</option>
+                                        <optgroup label="Woredas">
+                                            {woredas.map(w => (
+                                                <option key={w.id} value={w.id}>{w.name} ({w.clusterName || 'Woreda'})</option>
+                                            ))}
+                                        </optgroup>
+                                        <optgroup label="Towns / City Administrations">
+                                            {towns.map(t => (
+                                                <option key={t.id} value={t.id}>{t.name} [City Admin]</option>
+                                            ))}
+                                        </optgroup>
+                                    </select>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">
+                                        Statutory Code <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formCode}
+                                        onChange={(e) => setFormCode(e.target.value)}
+                                        placeholder="e.g. WOR_ADAMA"
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono uppercase font-bold text-slate-900"
+                                        required
+                                    />
                                 </div>
 
-                                {/* Child Kebeles */}
-                                {isWorExpanded && (<div className="p-2.5 pl-9 border-t border-slate-100 bg-slate-50/50">
-                                    {childKebeles.length === 0 ? (<p className="text-[11px] text-slate-400 italic">No kebeles registered under this woreda.</p>) : (<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                        {childKebeles.map((keb) => (<div key={keb.id} className="p-2 bg-white rounded-lg border border-slate-200 flex items-center justify-between text-xs">
-                                            <div className="flex items-center gap-1.5 min-w-0">
-                                              <MapPin className="w-3 h-3 text-emerald-600 flex-shrink-0"/>
-                                              <div className="truncate">
-                                                <p className="font-bold text-slate-800 text-[11px] truncate">{keb.name}</p>
-                                                <p className="text-[10px] text-slate-400 truncate">{keb.localName}</p>
-                                              </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">
+                                        Classification
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formClassification}
+                                        onChange={(e) => setFormClassification(e.target.value)}
+                                        placeholder="e.g. City Administration"
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">
+                                    Official English Name <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formName}
+                                    onChange={(e) => setFormName(e.target.value)}
+                                    placeholder="e.g. Adama Woreda"
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">
+                                    Afaan Oromoo Name (Maqaa Afaan Oromoo)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formLocalName}
+                                    onChange={(e) => setFormLocalName(e.target.value)}
+                                    placeholder="e.g. Aanaa Adaamaa"
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-medium"
+                                />
+                            </div>
+
+                            {formUnitType === 'WOREDA' && (
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">
+                                        Historical / Former Zone Reference
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formFormerZone}
+                                        onChange={(e) => setFormFormerZone(e.target.value)}
+                                        placeholder="e.g. East Shewa (preserved for historical auditing)"
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-700"
+                                    />
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">
+                                    Description / Remarks
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    value={formDescription}
+                                    onChange={(e) => setFormDescription(e.target.value)}
+                                    placeholder="Hydrological basin characteristics, urban status..."
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                                <div className="flex items-center gap-2">
+                                    <label className="font-bold text-slate-700">Status:</label>
+                                    <select
+                                        value={formStatus}
+                                        onChange={(e) => setFormStatus(e.target.value)}
+                                        className="px-2.5 py-1 text-xs border border-slate-300 rounded-lg font-bold"
+                                    >
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setModalType(null)}
+                                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-xs"
+                                    >
+                                        {isSaving ? 'Saving...' : editingItem ? 'Save Changes' : 'Create Unit'}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Audit & Migration Report Modal */}
+            {isAuditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                    <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 space-y-4 my-8 animate-scale-in">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                                <h3 className="text-base font-black text-slate-900">
+                                    Oromia Cluster Restructure Audit Report
+                                </h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsAuditModalOpen(false)}
+                                className="text-slate-400 hover:text-slate-600 p-1"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-3.5 text-xs text-slate-700">
+                            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2">
+                                <CheckCheck className="w-5 h-5 text-emerald-700 flex-shrink-0" />
+                                <div>
+                                    <span className="font-bold text-emerald-900 block">Restructure Verified &amp; Version-Controlled</span>
+                                    <span className="text-emerald-700 text-[11px]">
+                                        Hierarchy: Region &rarr; Cluster &rarr; Woreda / Town &rarr; Kebele. Former zones removed as hierarchy level.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-slate-900 uppercase text-[11px] tracking-wide">
+                                    Configured Regional Clusters (6 of 6 Active)
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {clusters.map(c => {
+                                        const cWoredas = woredas.filter(w => w.clusterId === c.id || w.parentId === c.id);
+                                        const cTowns = towns.filter(t => t.clusterId === c.id || t.parentId === c.id);
+                                        return (
+                                            <div key={c.id} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-slate-900">{c.name}</span>
+                                                    <span className="font-mono text-[10px] text-cyan-800">{c.code}</span>
+                                                </div>
+                                                <p className="text-[11px] text-slate-500 font-medium">{c.localName}</p>
+                                                <div className="text-[10px] text-slate-600 pt-1 border-t border-slate-200 flex justify-between">
+                                                    <span>{cWoredas.length} Woredas</span>
+                                                    <span>{cTowns.length} Towns / City Admins</span>
+                                                </div>
                                             </div>
-                                            <span className={`text-[9px] font-mono font-bold px-1 rounded ml-1 flex-shrink-0 ${keb.status === 'Active' ? 'text-emerald-700 bg-emerald-50' : 'text-slate-500 bg-slate-100'}`}>
-                                              {keb.code}
-                                            </span>
-                                          </div>))}
-                                      </div>)}
-                                  </div>)}
-                              </div>);
-                        }))}
-                      </div>)}
-                  </div>);
-            })}
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
-              {hierarchyTree.length === 0 && (<div className="text-center py-12 text-slate-400">
-                  <FolderTree className="w-10 h-10 mx-auto mb-2 opacity-30 text-slate-400"/>
-                  <p className="text-xs font-semibold">No administrative units match your search query.</p>
-                </div>)}
-            </div>
-          </div>)}
-
-        {/* 2. REGIONS DATA TABLE */}
-        {activeTab === 'regions' && (<div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-slate-700 uppercase font-extrabold text-[10px] border-b border-slate-200">
-                <tr>
-                  <th className="p-3">Statutory Code</th>
-                  <th className="p-3">Region Name (English)</th>
-                  <th className="p-3">Local Name (Afaan Oromoo)</th>
-                  <th className="p-3">Description</th>
-                  <th className="p-3 text-center">Woredas</th>
-                  <th className="p-3 text-center">Status</th>
-                  <th className="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredRegions.map((reg) => {
-                const woredaCount = woredas.filter(w => w.regionId === reg.id).length;
-                return (<tr key={reg.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-3 font-mono font-bold text-cyan-900">{reg.code}</td>
-                      <td className="p-3 font-bold text-slate-900">{reg.name}</td>
-                      <td className="p-3 text-slate-600 font-medium">{reg.localName}</td>
-                      <td className="p-3 text-slate-500 max-w-xs truncate">{reg.description || '—'}</td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-700">{woredaCount}</td>
-                      <td className="p-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${reg.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                          {reg.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {canEdit ? (<>
-                              <button onClick={() => handleOpenEdit('REGION', reg)} className="p-1 hover:bg-slate-200 text-slate-600 rounded cursor-pointer" title="Edit Region">
-                                <Edit3 className="w-3.5 h-3.5"/>
-                              </button>
-                              <button onClick={() => handleToggleStatus('REGION', reg)} className={`p-1 rounded cursor-pointer ${reg.status === 'Active' ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'}`} title={reg.status === 'Active' ? 'Deactivate Region' : 'Activate Region'}>
-                                {reg.status === 'Active' ? <XCircle className="w-3.5 h-3.5"/> : <CheckCircle2 className="w-3.5 h-3.5"/>}
-                              </button>
-                              <button onClick={() => handleDeleteAttempt('REGION', reg)} className="p-1 hover:bg-rose-50 text-rose-600 rounded cursor-pointer" title="Delete Region">
-                                <Trash2 className="w-3.5 h-3.5"/>
-                              </button>
-                            </>) : (<span className="text-[10px] text-slate-400 font-medium">Read Only</span>)}
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                                <span className="font-bold text-slate-900 block">Town / City Administration Status:</span>
+                                <p className="text-[11px] text-slate-600">
+                                    {towns.length} Town-level units configured across the 6 clusters with "City Administration" classification (Asella, Dodola, Bule Hora, Moyale, Shakiso, Agaro, Mattu, Nejo, Ambo, Batu, Holeta, Mojo, Sandafa Bakkee, Sheno, Waliso). No duplicate hierarchy levels created.
+                                </p>
+                            </div>
                         </div>
-                      </td>
-                    </tr>);
-            })}
-                {filteredRegions.length === 0 && (<tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
-                      No regions match the selected criteria.
-                    </td>
-                  </tr>)}
-              </tbody>
-            </table>
-          </div>)}
 
-        {/* 3. WOREDAS DATA TABLE */}
-        {activeTab === 'woredas' && (<div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-slate-700 uppercase font-extrabold text-[10px] border-b border-slate-200">
-                <tr>
-                  <th className="p-3">Woreda Code</th>
-                  <th className="p-3">Woreda Name (English)</th>
-                  <th className="p-3">Local Name (Afaan Oromoo)</th>
-                  <th className="p-3">Parent Region</th>
-                  <th className="p-3 text-center">Kebeles</th>
-                  <th className="p-3 text-center">Status</th>
-                  <th className="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredWoredas.map((wor) => {
-                const kebeleCount = kebeles.filter(k => k.woredaId === wor.id).length;
-                const parentRegion = regions.find(r => r.id === wor.regionId);
-                return (<tr key={wor.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-3 font-mono font-bold text-sky-900">{wor.code}</td>
-                      <td className="p-3 font-bold text-slate-900">{wor.name}</td>
-                      <td className="p-3 text-slate-600 font-medium">{wor.localName}</td>
-                      <td className="p-3 text-slate-700 font-semibold">{parentRegion?.name || wor.regionName || 'Oromia'}</td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-700">{kebeleCount}</td>
-                      <td className="p-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${wor.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                          {wor.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {canEdit ? (<>
-                              <button onClick={() => handleOpenEdit('WOREDA', wor)} className="p-1 hover:bg-slate-200 text-slate-600 rounded cursor-pointer" title="Edit Woreda">
-                                <Edit3 className="w-3.5 h-3.5"/>
-                              </button>
-                              <button onClick={() => handleToggleStatus('WOREDA', wor)} className={`p-1 rounded cursor-pointer ${wor.status === 'Active' ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'}`} title={wor.status === 'Active' ? 'Deactivate Woreda' : 'Activate Woreda'}>
-                                {wor.status === 'Active' ? <XCircle className="w-3.5 h-3.5"/> : <CheckCircle2 className="w-3.5 h-3.5"/>}
-                              </button>
-                              <button onClick={() => handleDeleteAttempt('WOREDA', wor)} className="p-1 hover:bg-rose-50 text-rose-600 rounded cursor-pointer" title="Delete Woreda">
-                                <Trash2 className="w-3.5 h-3.5"/>
-                              </button>
-                            </>) : (<span className="text-[10px] text-slate-400 font-medium">Read Only</span>)}
+                        <div className="flex justify-end pt-3 border-t border-slate-100">
+                            <button
+                                type="button"
+                                onClick={() => setIsAuditModalOpen(false)}
+                                className="px-5 py-2 bg-slate-900 text-white font-bold rounded-xl text-xs"
+                            >
+                                Close Report
+                            </button>
                         </div>
-                      </td>
-                    </tr>);
-            })}
-                {filteredWoredas.length === 0 && (<tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
-                      No woredas match the selected criteria.
-                    </td>
-                  </tr>)}
-              </tbody>
-            </table>
-          </div>)}
+                    </div>
+                </div>
+            )}
 
-        {/* 4. KEBELES DATA TABLE */}
-        {activeTab === 'kebeles' && (<div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-slate-700 uppercase font-extrabold text-[10px] border-b border-slate-200">
-                <tr>
-                  <th className="p-3">Kebele Code</th>
-                  <th className="p-3">Kebele Name (English)</th>
-                  <th className="p-3">Local Name (Afaan Oromoo)</th>
-                  <th className="p-3">Parent Woreda</th>
-                  <th className="p-3">Region</th>
-                  <th className="p-3 text-center">Status</th>
-                  <th className="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredKebeles.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((keb) => {
-                const parentWor = woredas.find(w => w.id === keb.woredaId);
-                const parentReg = regions.find(r => r.id === parentWor?.regionId);
-                return (<tr key={keb.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-3 font-mono font-bold text-emerald-900">{keb.code}</td>
-                      <td className="p-3 font-bold text-slate-900">{keb.name}</td>
-                      <td className="p-3 text-slate-600 font-medium">{keb.localName}</td>
-                      <td className="p-3 text-slate-700 font-semibold">{parentWor?.name || keb.woredaName || '—'}</td>
-                      <td className="p-3 text-slate-500">{parentReg?.name || 'Oromia'}</td>
-                      <td className="p-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${keb.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                          {keb.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {canEdit ? (<>
-                              <button onClick={() => handleOpenEdit('KEBELE', keb)} className="p-1 hover:bg-slate-200 text-slate-600 rounded cursor-pointer" title="Edit Kebele">
-                                <Edit3 className="w-3.5 h-3.5"/>
-                              </button>
-                              <button onClick={() => handleToggleStatus('KEBELE', keb)} className={`p-1 rounded cursor-pointer ${keb.status === 'Active' ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'}`} title={keb.status === 'Active' ? 'Deactivate Kebele' : 'Activate Kebele'}>
-                                {keb.status === 'Active' ? <XCircle className="w-3.5 h-3.5"/> : <CheckCircle2 className="w-3.5 h-3.5"/>}
-                              </button>
-                              <button onClick={() => handleDeleteAttempt('KEBELE', keb)} className="p-1 hover:bg-rose-50 text-rose-600 rounded cursor-pointer" title="Delete Kebele">
-                                <Trash2 className="w-3.5 h-3.5"/>
-                              </button>
-                            </>) : (<span className="text-[10px] text-slate-400 font-medium">Read Only</span>)}
+            {/* Usage Blocked Modal */}
+            {usageBlockedModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl border border-rose-200 shadow-2xl max-w-md w-full p-6 space-y-3">
+                        <div className="flex items-center gap-2 text-rose-600">
+                            <ShieldAlert className="w-5 h-5 flex-shrink-0" />
+                            <h3 className="text-sm font-black">Deletion Blocked - Active Business Usage</h3>
                         </div>
-                      </td>
-                    </tr>);
-            })}
-                {filteredKebeles.length === 0 && (<tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
-                      No kebeles match the selected criteria.
-                    </td>
-                  </tr>)}
-              </tbody>
-            </table>
-
-            {/* Pagination Controls */}
-            {filteredKebeles.length > pageSize && (<div className="p-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span>
-                  Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredKebeles.length)} of {filteredKebeles.length} Kebeles
-                </span>
-                <div className="flex items-center gap-1">
-                  <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className="px-2.5 py-1 bg-white border border-slate-200 rounded disabled:opacity-40 cursor-pointer">
-                    Previous
-                  </button>
-                  <span className="px-2 font-mono font-bold text-slate-800">
-                    Page {currentPage} of {Math.ceil(filteredKebeles.length / pageSize)}
-                  </span>
-                  <button disabled={currentPage >= Math.ceil(filteredKebeles.length / pageSize)} onClick={() => setCurrentPage(p => p + 1)} className="px-2.5 py-1 bg-white border border-slate-200 rounded disabled:opacity-40 cursor-pointer">
-                    Next
-                  </button>
+                        <p className="text-xs text-slate-600">
+                            Cannot delete {usageBlockedModal.type} <strong>"{usageBlockedModal.item.name}"</strong> because it is referenced by {usageBlockedModal.usage.usageCount} active business record(s):
+                        </p>
+                        <ul className="list-disc pl-5 text-xs text-slate-700 space-y-1">
+                            {usageBlockedModal.usage.details.map((d, i) => (
+                                <li key={i}>{d}</li>
+                            ))}
+                        </ul>
+                        <div className="flex justify-end pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setUsageBlockedModal(null)}
+                                className="px-4 py-2 bg-slate-900 text-white font-bold rounded-xl text-xs"
+                            >
+                                Understood
+                            </button>
+                        </div>
+                    </div>
                 </div>
-              </div>)}
-          </div>)}
-      </div>
-
-      {/* CREATE / EDIT MODAL */}
-      {modalType && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-sky-100 shadow-2xl w-full max-w-lg p-6 space-y-4 text-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-cyan-100 text-cyan-800 rounded-xl">
-                  {modalType === 'REGION' ? <Globe className="w-5 h-5"/> : modalType === 'WOREDA' ? <Compass className="w-5 h-5"/> : <MapPin className="w-5 h-5"/>}
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900">
-                    {editingItem ? `Edit ${modalType}` : `Create New ${modalType}`}
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    {modalType === 'REGION' ? 'Regional State administrative unit' : modalType === 'WOREDA' ? 'Woreda district subordinate to Region' : 'Kebele community unit subordinate to Woreda'}
-                  </p>
-                </div>
-              </div>
-              <button onClick={() => setModalType(null)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer">
-                <X className="w-5 h-5"/>
-              </button>
-            </div>
-
-            {formError && (<div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0"/>
-                <span>{formError}</span>
-              </div>)}
-
-            <form onSubmit={handleSaveForm} className="space-y-3.5 text-xs">
-              {/* Parent Region Select (for Woreda or Kebele) */}
-              {modalType === 'WOREDA' && (<div>
-                  <label className="block font-bold text-slate-700 mb-1">
-                    Parent Region <span className="text-rose-500">*</span>
-                  </label>
-                  <select required value={formRegionId} onChange={(e) => setFormRegionId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none">
-                    <option value="">-- Select Parent Region --</option>
-                    {regions.map(r => (<option key={r.id} value={r.id}>{r.name} ({r.localName})</option>))}
-                  </select>
-                </div>)}
-
-              {/* Parent Woreda Select (for Kebele) */}
-              {modalType === 'KEBELE' && (<div className="space-y-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">
-                      Parent Region <span className="text-rose-500">*</span>
-                    </label>
-                    <select value={formRegionId} onChange={(e) => {
-                    setFormRegionId(e.target.value);
-                    setFormWoredaId('');
-                }} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none">
-                      <option value="">-- Filter by Region --</option>
-                      {regions.map(r => (<option key={r.id} value={r.id}>{r.name}</option>))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">
-                      Parent Woreda <span className="text-rose-500">*</span>
-                    </label>
-                    <select required value={formWoredaId} onChange={(e) => setFormWoredaId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none">
-                      <option value="">-- Select Parent Woreda --</option>
-                      {(formRegionId ? woredas.filter(w => w.regionId === formRegionId) : woredas).map(w => (<option key={w.id} value={w.id}>{w.name} ({w.localName})</option>))}
-                    </select>
-                  </div>
-                </div>)}
-
-              {/* Statutory Code */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  Statutory Administrative Code <span className="text-rose-500">*</span>
-                </label>
-                <input type="text" required placeholder={modalType === 'REGION' ? 'e.g. REG_OROMIA' : modalType === 'WOREDA' ? 'e.g. WOR_ADAMA' : 'e.g. KEB_ADM_01'} value={formCode} onChange={(e) => setFormCode(e.target.value)} className="w-full font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none"/>
-              </div>
-
-              {/* English Name */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  Unit Name (English) <span className="text-rose-500">*</span>
-                </label>
-                <input type="text" required placeholder={modalType === 'REGION' ? 'e.g. Oromia National Regional State' : modalType === 'WOREDA' ? 'e.g. Adama Woreda' : 'e.g. Kebele 01 (Boku Shenen)'} value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none"/>
-              </div>
-
-              {/* Afaan Oromoo Local Name */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  Local / Afaan Oromoo Name <span className="text-rose-500">*</span>
-                </label>
-                <input type="text" required placeholder={modalType === 'REGION' ? 'e.g. Mootummaa Naannoo Oromiyaa' : modalType === 'WOREDA' ? 'e.g. Aanaa Adaamaa' : 'e.g. Ganda 01 Boqqoo Shanan'} value={formLocalName} onChange={(e) => setFormLocalName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none"/>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Description / Notes</label>
-                <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Geographic boundaries, watershed notes, or administrative specifications..." className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none"/>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Status</label>
-                <select value={formStatus} onChange={(e) => setFormStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none">
-                  <option value="Active">Active (Available for Projects and Contracts)</option>
-                  <option value="Inactive">Inactive (Archived / Decommissioned)</option>
-                </select>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setModalType(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" className="flex-1 py-2.5 bg-gradient-to-r from-cyan-600 to-sky-700 hover:from-cyan-500 hover:to-sky-600 text-white rounded-xl font-bold transition-all shadow-md cursor-pointer">
-                  {editingItem ? 'Save Changes' : 'Create Unit'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>)}
-
-      {/* REFERENTIAL USAGE BLOCKED MODAL */}
-      {usageBlockedModal && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-rose-200 shadow-2xl w-full max-w-md p-6 space-y-4 text-slate-800">
-            <div className="w-12 h-12 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center mx-auto">
-              <ShieldAlert className="w-6 h-6"/>
-            </div>
-
-            <div className="text-center space-y-1">
-              <h3 className="text-base font-black text-slate-900">
-                Destructive Deletion Prevented
-              </h3>
-              <p className="text-xs text-slate-600">
-                Administrative Unit <strong>"{usageBlockedModal.name}"</strong> cannot be physically deleted because it is actively referenced by existing system records.
-              </p>
-            </div>
-
-            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 space-y-2 text-xs">
-              <div className="font-bold text-rose-900 flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-rose-600"/>
-                <span>Active References ({usageBlockedModal.usage.usageCount})</span>
-              </div>
-              <ul className="list-disc list-inside space-y-1 text-slate-700 text-[11px]">
-                {usageBlockedModal.usage.details.map((det, idx) => (<li key={idx}>{det}</li>))}
-              </ul>
-            </div>
-
-            <p className="text-[11px] text-slate-500 leading-relaxed text-center">
-              To retire this administrative unit without breaking historical audit trails or scheme linkages, please use <strong>Soft Deactivation</strong> to mark it as Inactive instead.
-            </p>
-
-            <button type="button" onClick={() => setUsageBlockedModal(null)} className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer">
-              Understood
-            </button>
-          </div>
-        </div>)}
-    </div>);
+            )}
+        </div>
+    );
 };

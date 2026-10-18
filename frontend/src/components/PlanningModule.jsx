@@ -1271,6 +1271,7 @@ export const PlanningModule = ({
                                             <CascadingLocationSelector
                                                 masterData={masterData}
                                                 selectedRegion={project.region || 'Oromia National Regional State'}
+                                                selectedCluster={project.cluster}
                                                 selectedWoreda={project.woreda}
                                                 selectedKebele={project.kebele}
                                                 selectedZone={project.zone}
@@ -1279,9 +1280,10 @@ export const PlanningModule = ({
                                                     setProject(prev => ({
                                                         ...prev,
                                                         region: loc.region,
+                                                        cluster: loc.cluster,
                                                         woreda: loc.woreda,
                                                         kebele: loc.kebele,
-                                                        ...(detectedZone ? { zone: detectedZone } : {})
+                                                        zone: loc.zone || detectedZone || prev.zone
                                                     }));
                                                 }}
                                             />

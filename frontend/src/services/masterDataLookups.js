@@ -293,7 +293,7 @@ export const getInspectionStages = (masterData) => {
     return Array.from(list);
 };
 
-// 13. Geographic Hierarchy (Zones & Woredas)
+// 13. Geographic Hierarchy (Clusters -> Woredas & Towns)
 export const getGeographicHierarchy = (masterData) => {
     if (masterData?.geographicHierarchy && Object.keys(masterData.geographicHierarchy).length > 0) {
         return masterData.geographicHierarchy;
@@ -301,15 +301,38 @@ export const getGeographicHierarchy = (masterData) => {
     return OROMIA_HIERARCHY;
 };
 
-export const getZones = (masterData) => {
+export const getClusters = (masterData) => {
+    if (Array.isArray(masterData?.clusters) && masterData.clusters.length > 0) {
+        return masterData.clusters.map(c => (typeof c === 'object' ? c.name : c));
+    }
     const hierarchy = getGeographicHierarchy(masterData);
-    return Object.keys(hierarchy);
+    const keys = Object.keys(hierarchy);
+    const clusterNames = ['Central Oromia', 'Eastern Oromia', 'Southeastern Oromia', 'Southern Oromia', 'Southwestern Oromia', 'Western Oromia'];
+    const matched = keys.filter(k => clusterNames.includes(k));
+    if (matched.length > 0) return matched;
+    return clusterNames;
 };
 
-export const getWoredasForZone = (masterData, zoneName) => {
-    if (!zoneName) return [];
+export const getTowns = (masterData) => {
+    if (Array.isArray(masterData?.towns) && masterData.towns.length > 0) {
+        return masterData.towns.map(t => (typeof t === 'object' ? t.name : t));
+    }
+    return [];
+};
+
+export const getZones = (masterData) => {
+    // Replaces former zone list with the 6 Clusters
+    return getClusters(masterData);
+};
+
+export const getWoredasForZone = (masterData, clusterOrZoneName) => {
+    if (!clusterOrZoneName) return [];
     const hierarchy = getGeographicHierarchy(masterData);
-    return hierarchy[zoneName] || [];
+    if (hierarchy[clusterOrZoneName]) return hierarchy[clusterOrZoneName];
+    // Check if cluster name maps to units
+    const clusterUnits = (masterData?.woredas || []).filter(w => w.clusterName === clusterOrZoneName || w.clusterId === clusterOrZoneName);
+    if (clusterUnits.length > 0) return clusterUnits.map(u => u.name);
+    return [];
 };
 
 // 14. Currencies
