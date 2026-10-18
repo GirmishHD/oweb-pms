@@ -489,22 +489,7 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                             </div>
                         </div>
 
-                        {/* Persona Applied Flash Badge */}
-                        {appliedPersonaName && (
-                            <div className="mb-4 p-2.5 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-900 flex items-center justify-between animate-fade-in">
-                                <span className="font-bold flex items-center gap-1.5">
-                                    <Zap className="w-3.5 h-3.5 text-sky-600" />
-                                    <span>{t.personaApplied} <strong className="text-sky-700">{appliedPersonaName}</strong></span>
-                                </span>
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleSignInSubmit()} 
-                                    className="px-2 py-0.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-[10px] transition"
-                                >
-                                    {t.launchNow}
-                                </button>
-                            </div>
-                        )}
+
 
                         {/* Error Feedback */}
                         {error && (
