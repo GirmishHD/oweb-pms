@@ -848,18 +848,18 @@ const App = () => {
             performance: criticalOverruns > 0 ? { label: `! ${criticalOverruns}`, color: 'bg-rose-500 text-white animate-pulse' } : undefined,
         };
     }, [projects, procurements, contracts, ngosList, staffList]);
-    // Navigation item groups for professional taxonomy
+    // Navigation item groups for professional water & energy bureau taxonomy
     const navGroups = useMemo(() => [
         {
-            title: 'Portfolios & Operations',
+            title: 'Water Portfolios & Operations',
             items: visibleNavigationItems.filter(item => ['dashboard', 'developmentPartners', 'ngos', 'staff', 'gisMap', 'planning'].includes(item.id))
         },
         {
-            title: 'Execution & Quality',
+            title: 'Tenders, Works & QA/QC',
             items: visibleNavigationItems.filter(item => ['review', 'procurement', 'contract'].includes(item.id))
         },
         {
-            title: 'Governance & Analytics',
+            title: 'Governance, Telemetry & Registry',
             items: visibleNavigationItems.filter(item => ['performance', 'documents', 'reporting', 'masterdata', 'training', 'usermanagement'].includes(item.id))
         }
     ], [visibleNavigationItems]);

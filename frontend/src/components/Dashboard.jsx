@@ -426,10 +426,10 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
     }, [safeProjects]);
     const AdminDashboard = () => (<div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 <Card title="Total Projects" value={filteredProjects.length} icon={ICONS.briefcase} iconBg="bg-primary-500"/>
-                 <Card title="Pending Reviews" value={safeProjects.filter(p => p.status === ProjectStatus.SUBMITTED).length} icon={ICONS.clock} iconBg="bg-warning-500"/>
-                 <Card title="Total Budget (ETB)" value={filteredProjects.reduce((sum, p) => sum + p.estimatedBudget, 0).toLocaleString()} icon={ICONS.dollarSign} iconBg="bg-success-500"/>
-                 <Card title="Active Contracts" value={safeContracts.filter(c => !c.completionDate).length} icon={ICONS.fileSignature} iconBg="bg-danger-500"/>
+                 <Card title="Water Infrastructure Schemes" value={filteredProjects.length} icon={ICONS.waterDrop || ICONS.briefcase} iconBg="bg-primary-500" subtext="Boreholes, piped systems, dams"/>
+                 <Card title="Schemes Pending Review" value={safeProjects.filter(p => p.status === ProjectStatus.SUBMITTED).length} icon={ICONS.clock} iconBg="bg-warning-500" subtext="Technical audit queue"/>
+                 <Card title="Capital Commitment (ETB)" value={`${filteredProjects.reduce((sum, p) => sum + (p.estimatedBudget || 0), 0).toLocaleString()} ETB`} icon={ICONS.dollarSign} iconBg="bg-success-500" subtext="Regional capital allocation"/>
+                 <Card title="Active Works Contracts" value={safeContracts.filter(c => !c.completionDate).length} icon={ICONS.fileSignature} iconBg="bg-danger-500" subtext="Under active site supervision"/>
             </div>
 
             {/* Quick Timeline & Schedule Health Banner - Water Identity */}
