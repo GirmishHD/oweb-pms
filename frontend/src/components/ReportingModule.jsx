@@ -5,9 +5,6 @@ import { Section, FileInput } from './FormControls';
 import GanttTimelineChart from './GanttTimelineChart';
 import PhaseCostBreakdownTable from './PhaseCostBreakdownTable';
 import BudgetVarianceTable from './BudgetVarianceTable';
-import PerformanceDashboard from './PerformanceDashboard';
-import { ProgramPortfolioReportsSection } from './ProgramPortfolioReportsSection';
-import { loadPrograms } from '../services/programService';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -88,7 +85,7 @@ const DATE_FIELD_OPTIONS = [
     { value: 'actualCompletion', label: 'Actual Completion Date' },
 ];
 const ReportingModule = ({ projects = [], contracts = [], procurements = [], activityLogs = [], user, onBackup, onRestore, inspections = [], weeklyPlans = [], onNavigate }) => {
-    const [activeTab, setActiveTab] = useState('performance');
+    const [activeTab, setActiveTab] = useState('analytics');
     // Global filter state for reports & analytics
     const [projectFilters, setProjectFilters] = useState({
         program: '',
@@ -716,19 +713,6 @@ const ReportingModule = ({ projects = [], contracts = [], procurements = [], act
     return (<div className="space-y-6 animate-fade-in">
             {/* Top Navigation Tabs */}
             <div className="flex border-b border-slate-200 bg-white rounded-t-xl px-4 pt-2 shadow-sm no-print overflow-x-auto">
-                <button onClick={() => setActiveTab('performance')} className={`flex items-center gap-2 px-5 py-3.5 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'performance'
-            ? 'border-primary-600 text-primary-600'
-            : 'border-transparent text-slate-600 hover:text-slate-900'}`}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    Performance Dashboard
-                    {criticalBudgetOverrunProjects.length > 0 ? (<span className="px-1.5 py-0.5 text-[10px] font-extrabold bg-rose-600 text-white rounded-full animate-pulse shadow-xs flex items-center gap-1">
-                            <span>⚠️</span> {criticalBudgetOverrunProjects.length} Overrun{criticalBudgetOverrunProjects.length > 1 ? 's' : ''}
-                        </span>) : (<span className="px-1.5 py-0.2 text-[10px] font-bold bg-primary-100 text-primary-800 rounded-full">
-                            New
-                        </span>)}
-                </button>
                 <button onClick={() => setActiveTab('analytics')} className={`flex items-center gap-2 px-5 py-3.5 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'analytics'
             ? 'border-primary-600 text-primary-600'
             : 'border-transparent text-slate-600 hover:text-slate-900'}`}>
@@ -738,14 +722,6 @@ const ReportingModule = ({ projects = [], contracts = [], procurements = [], act
                     Expenditure & Budget Analytics
                     {criticalBudgetOverrunProjects.length > 0 && (<span className="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>)}
                 </button>
-                <button onClick={() => setActiveTab('gantt')} className={`flex items-center gap-2 px-5 py-3.5 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'gantt'
-            ? 'border-primary-600 text-primary-600'
-            : 'border-transparent text-slate-600 hover:text-slate-900'}`}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    Project Timelines & Gantt
-                </button>
                 <button onClick={() => setActiveTab('projects')} className={`flex items-center gap-2 px-5 py-3.5 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'projects'
             ? 'border-primary-600 text-primary-600'
             : 'border-transparent text-slate-600 hover:text-slate-900'}`}>
@@ -754,13 +730,13 @@ const ReportingModule = ({ projects = [], contracts = [], procurements = [], act
                     </svg>
                     Project Reports & Exports
                 </button>
-                <button onClick={() => setActiveTab('programReports')} className={`flex items-center gap-2 px-5 py-3.5 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'programReports'
+                <button onClick={() => setActiveTab('gantt')} className={`flex items-center gap-2 px-5 py-3.5 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'gantt'
             ? 'border-primary-600 text-primary-600'
             : 'border-transparent text-slate-600 hover:text-slate-900'}`}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
-                    Program &amp; Partner Dossiers
+                    Project Timelines & Gantt
                 </button>
                 <button onClick={() => setActiveTab('budgetVariance')} className={`flex items-center gap-2 px-5 py-3.5 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'budgetVariance'
             ? 'border-primary-600 text-primary-600'
@@ -1005,12 +981,6 @@ const ReportingModule = ({ projects = [], contracts = [], procurements = [], act
                     </div>)}
             </div>
 
-            {/* TAB 0: PERFORMANCE DASHBOARD (Planned vs Actual Completion & Budget Utilization) */}
-            {activeTab === 'performance' && (<PerformanceDashboard projects={filteredProjects} contracts={contracts} procurements={procurements}/>)}
-
-            {/* TAB: PROGRAM & PARTNER DOSSIERS */}
-            {activeTab === 'programReports' && (<ProgramPortfolioReportsSection projects={filteredProjects} contracts={contracts} inspections={inspections} weeklyPlans={weeklyPlans} user={user} onNavigate={onNavigate}/>)}
-
             {/* TAB 1: VISUALIZATIONS & ANALYTICS (Recharts) */}
             {activeTab === 'analytics' && (<div className="space-y-6">
                     {/* Critical Budget Overrun Warning Banner */}
@@ -1035,7 +1005,7 @@ const ReportingModule = ({ projects = [], contracts = [], procurements = [], act
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={() => setActiveTab('performance')} className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors whitespace-nowrap cursor-pointer flex-shrink-0">
+                            <button onClick={() => onNavigate ? onNavigate('performance') : setActiveTab('analytics')} className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors whitespace-nowrap cursor-pointer flex-shrink-0">
                                 Open Performance Audits →
                             </button>
                         </div>)}

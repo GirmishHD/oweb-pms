@@ -6,16 +6,6 @@ import {
 } from '../constants';
 import { saveMasterData } from './masterDataService';
 
-// Default Field Inspection Stages
-export const DEFAULT_INSPECTION_STAGES = [
-    'Pre-Construction & Site Handover',
-    'Excavation & Foundations',
-    'Pipelaying & Hydrostatic Pressure Test',
-    'Electromechanical & Solar Installation',
-    'Reservoir Masonry & Structural Works',
-    'Pre-Commissioning & Water Quality Disinfection',
-    'Final Handover & Defects Liability'
-];
 
 // Helper to sanitize and normalize strings
 const cleanString = (val) => (typeof val === 'string' ? val.trim() : '');
@@ -278,20 +268,6 @@ export const getDocumentCategories = (masterData) => {
     return Array.from(list);
 };
 
-// 12. Inspection Stages
-export const getInspectionStages = (masterData) => {
-    const list = new Set();
-    if (Array.isArray(masterData?.inspectionStages)) {
-        masterData.inspectionStages.forEach(s => {
-            const str = cleanString(typeof s === 'object' ? s.name : s);
-            if (str) list.add(str);
-        });
-    }
-    if (list.size === 0) {
-        DEFAULT_INSPECTION_STAGES.forEach(s => list.add(s));
-    }
-    return Array.from(list);
-};
 
 // 13. Geographic Hierarchy (Clusters -> Woredas & Towns)
 export const getGeographicHierarchy = (masterData) => {

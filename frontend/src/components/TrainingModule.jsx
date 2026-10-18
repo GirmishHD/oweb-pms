@@ -122,35 +122,32 @@ const TRAINING_CONTENT = {
         ]
     },
     [Role.SUPERVISOR]: {
-        title: "Field Supervisor & QA/QC Guide",
+        title: "Field Supervisor & Site Verification Guide",
         topics: [
             {
-                title: "Field QA/QC Inspections & Logbooks",
+                title: "Site Progress & S-Curve Verification",
                 content: <>
-                    <p>Conduct and record site quality inspections, verify milestone delivery, and maintain standard logbooks.</p>
-                    <Step number={1}>Navigate to "QA/QC & Field Logs" from the sidebar or dashboard.</Step>
-                    <Step number={2}>Click "+ Log Field Inspection" to record site progress, workmanship quality rating, and civil works notes.</Step>
-                    <Step number={3}>Record GPS coordinates or use the device auto-detect button to link the inspection to regional maps.</Step>
-                    <Step number={4}>Upload site photos, test certificates, and inspector sign-off signatures.</Step>
+                    <p>Conduct site progress verifications, assess milestone delivery, and monitor physical progress against S-Curve baselines.</p>
+                    <Step number={1}>Navigate to "Performance & Overruns" from the sidebar or dashboard.</Step>
+                    <Step number={2}>Inspect physical progress percentages, schedule variance (SV), and milestone completion status.</Step>
+                    <Step number={3}>Use GIS & Regional Map to locate schemes geographically and review spatial attributes.</Step>
                 </>
             },
             {
-                title: "Water Quality Testing & Defect Punch Lists",
+                title: "Weekly Work Plans & Site Telemetry",
                 content: <>
-                    <p>Verify that water schemes meet WHO and Ethiopian Compulsory Drinking Water Standards (CES 58).</p>
-                    <Step number={1}>In the inspection modal, expand the "Water Quality Lab Verification" panel.</Step>
-                    <Step number={2}>Record turbidity (NTU), pH, residual free chlorine (mg/L), and E. coli / Faecal Coliform counts (CFU/100ml).</Step>
-                    <Step number={3}>Any non-conforming parameters automatically trigger a Defect Punch List item with corrective actions.</Step>
-                    <Tip>Inspection logs are accessible in both the GIS Regional Map and Contract Administration modules.</Tip>
+                    <p>Formulate weekly site execution plans and review submitted engineer progress reports.</p>
+                    <Step number={1}>Review weekly target physical progress percentages and scheduled site operations.</Step>
+                    <Step number={2}>Verify weekly accomplishment reports submitted by resident project engineers.</Step>
+                    <Step number={3}>Approve weekly site reports to maintain real-time bureau executive telemetry.</Step>
                 </>
             },
             {
-                title: "Weekly Work Plans & Progress Tracking",
+                title: "Contract Administration & Deliverable Auditing",
                 content: <>
-                    <p>Formulate weekly site execution plans and submit weekly progress reports.</p>
-                    <Step number={1}>Under "Weekly Tracking", formulate target physical progress percentages and planned manpower for the week.</Step>
-                    <Step number={2}>Submit completed weekly progress reports with cumulative progress percentages.</Step>
-                    <Step number={3}>Supervisors can review and approve weekly plans, updating project health indicators across the bureau.</Step>
+                    <p>Audit contractor deliverables against contractual specifications before payment certification.</p>
+                    <Step number={1}>Inspect itemized deliverables and milestone payment certificates under Contract Administration.</Step>
+                    <Step number={2}>Check performance security validity and flag potential delay or cost overruns early.</Step>
                 </>
             }
         ]
@@ -159,12 +156,12 @@ const TRAINING_CONTENT = {
         title: "Project & Resident Engineer Guide",
         topics: [
             {
-                title: "Site Supervision & Weekly Tracking",
+                title: "Site Supervision & Weekly Work Plans",
                 content: <>
                     <p>Resident engineers maintain continuous technical supervision over borehole drilling, spring capping, and distribution networks.</p>
-                    <Step number={1}>Log daily and weekly site logs under "QA/QC & Field Logs".</Step>
-                    <Step number={2}>Coordinate with contractor site agents on material testing and pipe pressure tests.</Step>
-                    <Step number={3}>Submit weekly work plans ahead of site inspections.</Step>
+                    <Step number={1}>Track weekly site execution milestones and align planned activities with contractor crews.</Step>
+                    <Step number={2}>Submit weekly progress logs and physical progress metrics.</Step>
+                    <Step number={3}>Coordinate pipe pressure tests, electromechanical pump tests, and concrete masonry inspections.</Step>
                 </>
             },
             {
@@ -202,33 +199,33 @@ const TRAINING_CONTENT = {
         ]
     },
     [Role.COORDINATOR]: {
-        title: "Program Coordinator & Director Guide",
+        title: "Regional Coordinator Guide",
         topics: [
             {
-                title: "Multi-Program Portfolios & Allocation",
+                title: "Regional Coordination & Performance Tracking",
                 content: <>
-                    <p>Oversee multiple program funding streams including ONE WASH (OWNP), COWASH, CR-WASH, and Basket Funds.</p>
-                    <Step number={1}>Navigate to "Programs & Portfolios" to review active programs, budgets, and beneficiary counts.</Step>
-                    <Step number={2}>Monitor program components, funding sources, and multi-year lifecycle milestones.</Step>
-                    <Step number={3}>Audit Earned Value Management (EVM) metrics including Cost Performance Index (CPI) and Schedule Performance Index (SPI).</Step>
+                    <p>Oversee regional water scheme delivery across Oromia clusters, woredas, and towns.</p>
+                    <Step number={1}>Navigate to "Performance & Overruns" to review project timelines, Earned Value Management (EVM), and schedule health.</Step>
+                    <Step number={2}>Monitor milestone delivery, critical cost overrun alerts, and S-Curve physical progress.</Step>
+                    <Step number={3}>Cross-check regional geographical distributions using the GIS & Regional Asset Map.</Step>
                 </>
             },
             {
                 title: "NGO Implementing Partners & Agreements",
                 content: <>
-                    <p>Register and coordinate accredited NGO implementing partners across Oromia zones.</p>
+                    <p>Register and coordinate accredited NGO implementing partners across Oromia.</p>
                     <Step number={1}>Open "NGOs & Partners" to inspect registered NGOs, registration credentials, and MOUs.</Step>
                     <Step number={2}>Review active water schemes assigned to each NGO and track delivery performance ratings.</Step>
-                    <Step number={3}>Export partner registry dossiers and generate cross-program coordination reports.</Step>
+                    <Step number={3}>Export partner registry dossiers and generate cross-cluster coordination reports.</Step>
                 </>
             },
             {
-                title: "Staff Classifications & Program Rosters",
+                title: "Staff Management & Deployments",
                 content: <>
-                    <p>Deploy and reassign engineers, hydrologists, and technicians across programs.</p>
+                    <p>Deploy and coordinate resident engineers, supervisors, and technical staff across Oromia clusters.</p>
                     <Step number={1}>Open "Staff Management" to review the bureau personnel directory.</Step>
-                    <Step number={2}>Use the "Transfer Program" workflow to transition staff between programs with complete audit logs.</Step>
-                    <Step number={3}>Filter personnel by job classification, duty station, and assigned schemes.</Step>
+                    <Step number={2}>Filter personnel by job classification, duty station, and assigned schemes.</Step>
+                    <Step number={3}>Assign engineers and supervisors to projects to establish site accountability.</Step>
                 </>
             }
         ]
@@ -258,31 +255,32 @@ const TRAINING_CONTENT = {
                 title: "User Management & Permissions",
                 content: <>
                     <p>As an Admin, you can manage all user accounts, roles, and fine-grained permissions.</p>
-                    <Step number={1}>Click "+ Add User" to provision a new user, specify roles, jurisdiction zones, and assigned programs.</Step>
+                    <Step number={1}>Click "+ Add User" to provision a new user, specify roles, jurisdiction zones/clusters, and departments.</Step>
                     <Step number={2}>Manage Role Definitions and customize permission matrix overrides.</Step>
                     <Step number={3}>Simulate different roles using the "Simulate Role" feature to test view constraints.</Step>
                 </>
             },
             {
-                title: "Multi-Program Portfolios & Master Registry",
+                title: "Master Data & Administrative Registry",
                 content: <>
-                    <p>Configure master data including administrative corridors, woredas, water sources, and program definitions.</p>
-                    <Step number={1}>Manage registered programs, NGOs, and staff rosters with instant real-time synchronization.</Step>
-                    <Step number={2}>Update organization units and regional hierarchies in Master Data & Registry.</Step>
+                    <p>Configure central master data controlling every dropdown in the system.</p>
+                    <Step number={1}>Manage Water Sources, Pumping & Energy Sources, Project Sectors, Intervention Types, Donors, Procurement Methods, and Contract Deliverables.</Step>
+                    <Step number={2}>Configure the Region → Cluster → Woreda / Town → Kebele administrative organizational hierarchy under Clusters &amp; Org Units.</Step>
+                    <Step number={3}>Any newly added option immediately reflects across Planning, Review, Procurement, and Contracts.</Step>
                 </>
             },
             {
                 title: "Reporting & Full System Backup",
                 content: <>
-                <p>The reporting module gives you powerful tools to analyze system data and perform backups.</p>
-                <Step number={1}>Use the "Project Reports" tab to filter projects by zone, woreda, status, or type.</Step>
-                <Step number={2}>Export reports to Excel or PDF for offline distribution or donor reporting.</Step>
-                <Step number={3}>Perform encrypted system backups and audit restore operations safely.</Step>
+                    <p>The reporting module gives you powerful tools to analyze system data and perform backups.</p>
+                    <Step number={1}>Use "Expenditure & Budget Analytics" and "Project Reports" to filter projects by cluster, woreda, status, or type.</Step>
+                    <Step number={2}>Export reports to Excel or PDF for offline distribution or donor reporting.</Step>
+                    <Step number={3}>Perform encrypted system backups and audit restore operations safely.</Step>
                 </>
             },
             {
-                title: "AI Water Assistant",
-                content: <p>The AI Chat Assistant provides instant answers to complex queries regarding water quality lab test compliance, scheme counts under ONE WASH or COWASH, staff transfers, and contract milestone deadlines.</p>
+                title: "AI Project Assistant",
+                content: <p>The AI Chat Assistant provides instant answers to queries regarding project status, contract milestones, budget overruns, and administrative units.</p>
             }
         ]
     }

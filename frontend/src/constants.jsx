@@ -67,7 +67,6 @@ export const ROLE_PERMISSIONS = {
     canViewNgos: Object.values(Role),
     canViewStaff: Object.values(Role),
     canViewGisMap: Object.values(Role),
-    canViewInspection: [Role.ADMIN, Role.SUPERVISOR, Role.ENGINEER, Role.TEAM_LEADER, Role.COORDINATOR, Role.DIRECTOR, Role.CONTRACT_MANAGER, Role.REVIEWER, Role.AUDITOR, Role.USER],
     canViewPlanning: [Role.ADMIN, Role.USER, Role.PLANNING_OFFICER, Role.ENGINEER, Role.TEAM_LEADER, Role.COORDINATOR, Role.DIRECTOR, Role.AUDITOR],
     canViewReview: [Role.ADMIN, Role.REVIEWER, Role.DIRECTOR, Role.COORDINATOR, Role.AUDITOR],
     canViewProcurement: [Role.ADMIN, Role.PROCUREMENT, Role.DIRECTOR, Role.COORDINATOR, Role.AUDITOR],

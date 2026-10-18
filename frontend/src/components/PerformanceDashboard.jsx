@@ -3,7 +3,6 @@ import { ProjectStatus } from '../types';
 import { ZONES, ICONS, PROJECT_TYPES } from '../constants';
 import { CostOverrunTracker } from './CostOverrunTracker';
 import { ProgressGauge, ProjectProgressGaugeSection } from './ProgressGauge';
-import { MultiProgramEvmAnalysis } from './MultiProgramEvmAnalysis';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid, ComposedChart, Line, ReferenceLine, Cell } from 'recharts';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -791,33 +790,21 @@ const PerformanceDashboard = ({ projects, contracts, procurements = [], user, on
                             {summaryKPIs.criticalOverrunCount} Overruns
                         </span>)}
                 </button>
-
-                <button onClick={() => setActiveSubTab('program_evm')} className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${activeSubTab === 'program_evm'
-            ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-500/30'
-            : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    <span>Multi-Program EVM &amp; Partners</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${activeSubTab === 'program_evm' ? 'bg-white text-sky-800' : 'bg-sky-100 text-sky-800'}`}>
-                        CPI / SPI
-                    </span>
-                </button>
             </div>
 
-            {/* CONDITIONAL RENDER: COST OVERRUN TRACKER, PROGRESS GAUGES, PROGRAM EVM, OR TIMELINES OVERVIEW */}
-            {activeSubTab === 'cost_overrun' ? (<CostOverrunTracker projects={projects} contracts={contracts} procurements={procurements} onSelectProject={onSelectProject} onNavigate={onNavigate}/>) : activeSubTab === 'progress_gauges' ? (<ProjectProgressGaugeSection projects={projects} contracts={contracts} procurements={procurements} onSelectProject={onSelectProject} onNavigate={onNavigate}/>) : activeSubTab === 'program_evm' ? (<MultiProgramEvmAnalysis projects={projects} contracts={contracts} user={user} inspections={inspections} onNavigate={onNavigate} onSelectProject={onSelectProject}/>) : (<>
-            {/* SITE QA/QC & WEEKLY S-CURVE EXECUTION TELEMETRY STRIP */}
-            {(inspections.length > 0 || weeklyPlans.length > 0) && (<div className="bg-gradient-to-r from-sky-900 via-indigo-950 to-slate-900 rounded-2xl p-4.5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* CONDITIONAL RENDER: COST OVERRUN TRACKER, PROGRESS GAUGES, OR TIMELINES OVERVIEW */}
+            {activeSubTab === 'cost_overrun' ? (<CostOverrunTracker projects={projects} contracts={contracts} procurements={procurements} onSelectProject={onSelectProject} onNavigate={onNavigate}/>) : activeSubTab === 'progress_gauges' ? (<ProjectProgressGaugeSection projects={projects} contracts={contracts} procurements={procurements} onSelectProject={onSelectProject} onNavigate={onNavigate}/>) : (<>
+            {/* SITE WORK PLANS & S-CURVE EXECUTION TELEMETRY STRIP */}
+            {weeklyPlans.length > 0 && (<div className="bg-gradient-to-r from-sky-900 via-indigo-950 to-slate-900 rounded-2xl p-4.5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
                         <div className="p-3 bg-white/10 rounded-xl text-xl backdrop-blur-sm flex-shrink-0">
                             🛡️
                         </div>
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-sky-300 uppercase tracking-wider">Field QA/QC &amp; Execution Telemetry</span>
+                                <span className="text-xs font-bold text-sky-300 uppercase tracking-wider">Site Execution &amp; Work Plan Telemetry</span>
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                    Live Site Control
+                                    Active Telemetry
                                 </span>
                             </div>
                             <p className="text-xs text-slate-300 mt-0.5">

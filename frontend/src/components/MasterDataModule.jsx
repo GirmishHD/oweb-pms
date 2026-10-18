@@ -4,7 +4,7 @@ import {
     getWaterSources, getEnergySources, getProjectTypes, getInterventionTypes,
     getFundingSources, getImplementingBodies, getProcurementMethods,
     getProcurementTypes, getDeliverableCategories, getAmendmentTypes,
-    getDocumentCategories, getInspectionStages, getGeographicHierarchy,
+    getDocumentCategories, getGeographicHierarchy,
     getZones, getWoredasForZone, addMasterDataItem, removeMasterDataItem,
     addWoredaToZone, addZone
 } from '../services/masterDataLookups';
@@ -27,7 +27,6 @@ const CATEGORIES = [
     { id: 'deliverableCategories', label: 'Contract Deliverables', icon: PackageCheck, color: 'text-teal-600 bg-teal-50 border-teal-200', countKey: 'deliverableCategories', description: 'Major contractual milestones and work item categories' },
     { id: 'amendmentTypes', label: 'Variation & Amendments', icon: FileEdit, color: 'text-orange-600 bg-orange-50 border-orange-200', countKey: 'amendmentTypes', description: 'Contract amendment and variation order categories' },
     { id: 'implementingBodies', label: 'Implementing Agencies', icon: Building2, color: 'text-blue-600 bg-blue-50 border-blue-200', countKey: 'implementingBodies', description: 'Executing bureau directorates, zonal offices, utilities, and WASHCOs' },
-    { id: 'inspectionStages', label: 'Inspection Stages', icon: ClipboardCheck, color: 'text-cyan-600 bg-cyan-50 border-cyan-200', countKey: 'inspectionStages', description: 'Field QA/QC supervision and construction lifecycle phases' },
     { id: 'documentCategories', label: 'Document Vault Categories', icon: FileText, color: 'text-slate-600 bg-slate-50 border-slate-200', countKey: 'documentCategories', description: 'Classification categories for drawings, deeds, and technical reports' },
     { id: 'geographicHierarchy', label: 'Clusters & Org Units', icon: MapPin, color: 'text-red-600 bg-red-50 border-red-200', countKey: 'geographicHierarchy', description: 'Region → Cluster → Woreda / Town → Kebele administrative organizational hierarchy' },
 ];
@@ -82,7 +81,6 @@ export const MasterDataModule = ({
             case 'deliverableCategories': return getDeliverableCategories(masterData);
             case 'amendmentTypes': return getAmendmentTypes(masterData);
             case 'implementingBodies': return getImplementingBodies(masterData);
-            case 'inspectionStages': return getInspectionStages(masterData);
             case 'documentCategories': return getDocumentCategories(masterData);
             case 'geographicHierarchy': return zones;
             default: return [];
@@ -187,7 +185,6 @@ export const MasterDataModule = ({
         sum += getDeliverableCategories(masterData).length;
         sum += getAmendmentTypes(masterData).length;
         sum += getImplementingBodies(masterData).length;
-        sum += getInspectionStages(masterData).length;
         sum += getDocumentCategories(masterData).length;
         return sum;
     }, [masterData]);
@@ -314,7 +311,6 @@ export const MasterDataModule = ({
                             else if (cat.id === 'deliverableCategories') count = getDeliverableCategories(masterData).length;
                             else if (cat.id === 'amendmentTypes') count = getAmendmentTypes(masterData).length;
                             else if (cat.id === 'implementingBodies') count = getImplementingBodies(masterData).length;
-                            else if (cat.id === 'inspectionStages') count = getInspectionStages(masterData).length;
                             else if (cat.id === 'documentCategories') count = getDocumentCategories(masterData).length;
                             else if (cat.id === 'geographicHierarchy') count = zones.length;
 

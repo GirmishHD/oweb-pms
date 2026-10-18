@@ -345,20 +345,13 @@ const GeographicMapModule = ({ projects, user, inspections = [], onSelectProject
                         <span className="text-xs font-semibold text-slate-600">Visualization Layer:</span>
                         <div className="inline-flex rounded-lg bg-slate-100 p-1 flex-wrap gap-1">
                             <button onClick={() => setMapLayer('standard')} className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${mapLayer === 'standard' ? 'bg-white text-primary-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'}`}>
-                                Spatial Pins & Schemes
-                            </button>
-                            <button onClick={() => setMapLayer('qa-qc')} className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${mapLayer === 'qa-qc' ? 'bg-white text-emerald-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'}`}>
-                                <span>🛡️</span>
-                                <span>QA/QC & Lab Tests</span>
-                            </button>
-                            <button onClick={() => setMapLayer('programs')} className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${mapLayer === 'programs' ? 'bg-white text-primary-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'}`}>
-                                Program Attribution
+                                Spatial Pins &amp; Status
                             </button>
                             <button onClick={() => setMapLayer('heat')} className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${mapLayer === 'heat' ? 'bg-white text-primary-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'}`}>
                                 Beneficiary Density
                             </button>
                             <button onClick={() => setMapLayer('risk')} className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${mapLayer === 'risk' ? 'bg-white text-primary-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'}`}>
-                                Risk & Delay Flags
+                                Environmental Risk Flags
                             </button>
                         </div>
                     </div>
@@ -502,35 +495,13 @@ const GeographicMapModule = ({ projects, user, inspections = [], onSelectProject
             const latestInsp = latestInspectionsByProject[project.id];
             const openDefectsCount = (latestInsp?.defects || []).filter(d => d.status === 'Open').length;
             let pinColor = statusUI.dot;
-            if (mapLayer === 'programs' && progDef) {
-                pinColor = progDef.color;
-            }
-            else if (mapLayer === 'risk') {
+            if (mapLayer === 'risk') {
                 if (project.environmentalRiskLevel === 'High')
                     pinColor = '#f43f5e';
                 else if (project.environmentalRiskLevel === 'Medium')
                     pinColor = '#f59e0b';
                 else
                     pinColor = '#10b981';
-            }
-            else if (mapLayer === 'qa-qc') {
-                if (latestInsp) {
-                    if (latestInsp.waterQualityTest?.complianceStatus === 'Compliant') {
-                        pinColor = '#10b981'; // Emerald (Safe Potable)
-                    }
-                    else if (latestInsp.waterQualityTest?.complianceStatus === 'Non-Compliant') {
-                        pinColor = '#f43f5e'; // Rose (Contaminated)
-                    }
-                    else if (latestInsp.waterQualityTest?.complianceStatus === 'Borderline') {
-                        pinColor = '#f59e0b'; // Amber (Borderline)
-                    }
-                    else {
-                        pinColor = '#0284c7'; // Sky (Inspected)
-                    }
-                }
-                else {
-                    pinColor = '#64748b'; // Slate (Pending QA/QC Inspection)
-                }
             }
             return (<g key={project.id} transform={`translate(${pos.x}, ${pos.y})`} className="cursor-pointer group" onClick={() => {
                     setSelectedProject(project);
@@ -564,34 +535,7 @@ const GeographicMapModule = ({ projects, user, inspections = [], onSelectProject
                         <div className="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
                             <div className="flex items-center gap-4 flex-wrap">
                                 <span className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Legend:</span>
-                                {mapLayer === 'programs' ? (PROGRAMS.slice(0, 4).map(p => {
-            const def = PROGRAM_DEFINITIONS[p];
-            return (<div key={p} className="flex items-center gap-1.5">
-                                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: def?.color || '#38bdf8' }}></span>
-                                                <span className="text-slate-300 text-[11px]">{def?.code || p}</span>
-                                            </div>);
-        })) : mapLayer === 'qa-qc' ? (<>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                                            <span className="text-slate-300 text-[11px]">Safe Potable Water (WHO)</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                                            <span className="text-slate-300 text-[11px]">Borderline / Open Punch List</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                                            <span className="text-slate-300 text-[11px]">Non-Compliant / Contaminated</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-                                            <span className="text-slate-300 text-[11px]">Inspected Scheme</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
-                                            <span className="text-slate-300 text-[11px]">Pending QA/QC Inspection</span>
-                                        </div>
-                                    </>) : mapLayer === 'risk' ? (<>
+                                {mapLayer === 'risk' ? (<>
                                         <div className="flex items-center gap-1.5">
                                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                                             <span className="text-slate-300 text-[11px]">Low Risk / On Track</span>
