@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Role, ProjectStatus, UserStatus, NotificationType, DocumentCategory } from './types';
 import { NAVIGATION_ITEMS, ICONS, ROLE_PERMISSIONS } from './constants';
-import { initialUsers } from './services/authService';
 import { loadRoleDefinitions, saveRoleDefinitions, getUserEffectiveScope, filterProjectsByScope, filterContractsByScope, filterProcurementsByScope, filterInspectionsByScope, filterDocumentsByScope } from './services/accessControlService';
 import { loadWeeklyPlans, saveWeeklyPlans, loadWeeklyReports, saveWeeklyReports, filterWeeklyPlansByScope, filterWeeklyReportsByScope } from './services/weeklyTrackingService';
 import { loadStaff } from './services/staffService';
@@ -369,7 +368,7 @@ const App = () => {
             if (apiClient.token) {
                 try {
                     const remoteUsers = await apiClient.getUsers();
-                    if (remoteUsers && Array.isArray(remoteUsers) && remoteUsers.length > 0) {
+                    if (remoteUsers && Array.isArray(remoteUsers)) {
                         setUsers(remoteUsers.map((u) => ({
                             ...u,
                             id: String(u.id),
@@ -397,7 +396,7 @@ const App = () => {
             }
             // Fetch projects
             const remoteProjects = await apiClient.getProjects();
-            if (remoteProjects && Array.isArray(remoteProjects) && remoteProjects.length > 0) {
+            if (remoteProjects && Array.isArray(remoteProjects)) {
                 setProjects(remoteProjects.map((p) => ({
                     ...p,
                     id: p.project_id || p.id,
@@ -488,7 +487,7 @@ const App = () => {
             }
             // Fetch NGOs
             const remoteNgos = await apiClient.getNgos();
-            if (remoteNgos && Array.isArray(remoteNgos) && remoteNgos.length > 0) {
+            if (remoteNgos && Array.isArray(remoteNgos)) {
                 setNgosList(remoteNgos.map((n) => ({
                     ...n,
                     id: n.ngo_id || n.id,
@@ -507,7 +506,7 @@ const App = () => {
             }
             // Fetch Staff
             const remoteStaff = await apiClient.getStaff();
-            if (remoteStaff && Array.isArray(remoteStaff) && remoteStaff.length > 0) {
+            if (remoteStaff && Array.isArray(remoteStaff)) {
                 setStaffList(remoteStaff.map((s) => ({
                     ...s,
                     id: s.staff_id || s.id,
@@ -526,7 +525,7 @@ const App = () => {
             }
             // Fetch Procurements
             const remoteProcurements = await apiClient.getProcurements();
-            if (remoteProcurements && Array.isArray(remoteProcurements) && remoteProcurements.length > 0) {
+            if (remoteProcurements && Array.isArray(remoteProcurements)) {
                 setProcurements(remoteProcurements.map((pr) => ({
                     ...pr,
                     id: pr.procurement_id || pr.id,
@@ -549,7 +548,7 @@ const App = () => {
             }
             // Fetch Contracts
             const remoteContracts = await apiClient.getContracts();
-            if (remoteContracts && Array.isArray(remoteContracts) && remoteContracts.length > 0) {
+            if (remoteContracts && Array.isArray(remoteContracts)) {
                 setContracts(remoteContracts.map((c) => ({
                     ...c,
                     id: c.contract_id || c.id,
@@ -575,7 +574,7 @@ const App = () => {
             }
             // Fetch Field Inspections
             const remoteInspections = await apiClient.getInspections();
-            if (remoteInspections && Array.isArray(remoteInspections) && remoteInspections.length > 0) {
+            if (remoteInspections && Array.isArray(remoteInspections)) {
                 setFieldInspections(remoteInspections.map((i) => ({
                     ...i,
                     id: i.inspection_id || i.id,
@@ -597,7 +596,7 @@ const App = () => {
             }
             // Fetch Weekly Plans
             const remotePlans = await apiClient.getWeeklyPlans();
-            if (remotePlans && Array.isArray(remotePlans) && remotePlans.length > 0) {
+            if (remotePlans && Array.isArray(remotePlans)) {
                 setWeeklyPlans(remotePlans.map((pl) => ({
                     id: pl.plan_id || String(pl.id),
                     projectId: pl.project_id || pl.projectId,
@@ -622,7 +621,7 @@ const App = () => {
             }
             // Fetch Weekly Reports
             const remoteReports = await apiClient.getWeeklyReports();
-            if (remoteReports && Array.isArray(remoteReports) && remoteReports.length > 0) {
+            if (remoteReports && Array.isArray(remoteReports)) {
                 setWeeklyReports(remoteReports.map((rp) => ({
                     id: rp.report_id || String(rp.id),
                     workPlanId: rp.work_plan_id || rp.workPlanId,

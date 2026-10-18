@@ -44,7 +44,11 @@ export const CommitteeBuilder = ({ committee, onChange }) => {
     const handleLoadDefaults = () => {
         onChange({
             ...committee,
-            members: DEFAULT_SAMPLE_COMMITTEE_MEMBERS.map(m => ({ ...m, id: `MEM-${Date.now()}-${Math.random().toString(36).substr(2, 4)}` }))
+            members: [
+                { id: `MEM-${Date.now()}-1`, fullName: '', role: 'Chairperson', departmentOrAgency: 'OWEB Relevant Directorate', specialization: '', phone: '', email: '', hasSignedDeclaration: false, declarationDate: new Date().toISOString().split('T')[0], notes: '' },
+                { id: `MEM-${Date.now()}-2`, fullName: '', role: 'Secretary', departmentOrAgency: 'OWEB Procurement Directorate', specialization: '', phone: '', email: '', hasSignedDeclaration: false, declarationDate: new Date().toISOString().split('T')[0], notes: '' },
+                { id: `MEM-${Date.now()}-3`, fullName: '', role: 'Technical Evaluator', departmentOrAgency: 'OWEB Technical Directorate', specialization: '', phone: '', email: '', hasSignedDeclaration: false, declarationDate: new Date().toISOString().split('T')[0], notes: '' }
+            ]
         });
     };
     const roleColors = {
@@ -73,11 +77,11 @@ export const CommitteeBuilder = ({ committee, onChange }) => {
               Officially constituted tender evaluation body responsible for compliance verification, scoring, and award endorsement.
             </p>
           </div>
-          <button type="button" onClick={handleLoadDefaults} className="px-3.5 py-1.5 bg-white hover:bg-cyan-50 text-cyan-800 border border-cyan-300 rounded-xl text-xs font-semibold shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer" title="Populate with certified OWEB committee members">
+          <button type="button" onClick={handleLoadDefaults} className="px-3.5 py-1.5 bg-white hover:bg-cyan-50 text-cyan-800 border border-cyan-300 rounded-xl text-xs font-semibold shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer" title="Initialize standard statutory committee roles (Chairperson, Secretary, Technical Evaluator)">
             <svg className="w-3.5 h-3.5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            Pre-fill OWEB Certified BEC Roster
+            Initialize Standard BEC Roles
           </button>
         </div>
 

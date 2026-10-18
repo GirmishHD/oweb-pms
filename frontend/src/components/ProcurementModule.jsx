@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PROC_TYPES, PROCUREMENT_METHODS, DEFAULT_SAMPLE_COMMITTEE_MEMBERS, ZONES } from '../constants';
+import { PROC_TYPES, PROCUREMENT_METHODS, ZONES } from '../constants';
 import { formatCurrencyETB, validateProcurementThreshold, getBidSecurityStatus } from '../utils/procurementThresholds';
 import { getProcurementMethods, getProcurementTypes, getZones } from '../services/masterDataLookups';
 import { CommitteeBuilder } from './procurement/CommitteeBuilder';
@@ -69,7 +69,7 @@ export const ProcurementModule = ({ projects = [], allProjects, procurements = [
         committeeName: 'OWEB Water Works Bid Evaluation Committee',
         appointmentRefNumber: `OWEB/BEC/${Math.floor(100 + Math.random() * 900)}/2025`,
         formationDate: new Date().toISOString().split('T')[0],
-        members: DEFAULT_SAMPLE_COMMITTEE_MEMBERS.map(m => ({ ...m })),
+        members: [],
         evaluationMethod: 'Least Cost Evaluated Responsive (LCEB)',
         minimumTechnicalQualifyingScore: 70,
         status: 'In Evaluation'
@@ -127,102 +127,9 @@ export const ProcurementModule = ({ projects = [], allProjects, procurements = [
             else {
                 setProcurementMethod('National Competitive Bidding (NCB)');
             }
-            // Populate default prospective bidders
-            const defaultBidders = [
-                {
-                    id: `B-001-${Date.now().toString().slice(-4)}`,
-                    name: 'Oromia Water Works Construction Enterprise (OWWCE)',
-                    address: 'Kaliti, Finfinnee, Oromia',
-                    type: 'Company',
-                    evaluationStatus: 'Evaluated',
-                    readoutPrice: Math.round(pBudget * 0.98),
-                    correctedPrice: Math.round(pBudget * 0.97),
-                    currency: 'ETB',
-                    finalRank: 1,
-                    preliminaryCompliance: {
-                        tradeLicenseValid: true,
-                        taxClearanceValid: true,
-                        vatRegistrationValid: true,
-                        ppaSupplierRegistrationValid: true,
-                        bidSecuritySubmitted: true,
-                        bidSecurityAmount: Math.round(pBudget * 0.015),
-                        isEligibleAndResponsive: true
-                    },
-                    technicalScores: {
-                        methodologyScore: 28,
-                        keyPersonnelScore: 24,
-                        equipmentAvailabilityScore: 19,
-                        pastPerformanceScore: 9,
-                        workScheduleScore: 5,
-                        totalTechnicalScore: 85,
-                        technicalPassStatus: 'Pass'
-                    },
-                    financialRank: 1,
-                    committeeVerdict: 'Lowest Evaluated Responsive Bidder (Recommended for Award)'
-                },
-                {
-                    id: `B-002-${Date.now().toString().slice(-4)}`,
-                    name: 'Borena Hydro & Electromechanical Engineering JV',
-                    address: 'Adama, Oromia Special Zone',
-                    type: 'JV',
-                    evaluationStatus: 'Evaluated',
-                    readoutPrice: Math.round(pBudget * 1.04),
-                    correctedPrice: Math.round(pBudget * 1.04),
-                    currency: 'ETB',
-                    finalRank: 2,
-                    preliminaryCompliance: {
-                        tradeLicenseValid: true,
-                        taxClearanceValid: true,
-                        vatRegistrationValid: true,
-                        ppaSupplierRegistrationValid: true,
-                        bidSecuritySubmitted: true,
-                        bidSecurityAmount: Math.round(pBudget * 0.015),
-                        isEligibleAndResponsive: true
-                    },
-                    technicalScores: {
-                        methodologyScore: 25,
-                        keyPersonnelScore: 22,
-                        equipmentAvailabilityScore: 18,
-                        pastPerformanceScore: 8,
-                        workScheduleScore: 5,
-                        totalTechnicalScore: 78,
-                        technicalPassStatus: 'Pass'
-                    },
-                    financialRank: 2,
-                    committeeVerdict: 'Technically Responsive, Higher Readout Price'
-                }
-            ];
-            setBidders(defaultBidders);
-            // Auto-generate CPOs for sample bidders
-            const defaultSecurities = [
-                {
-                    id: `CPO-001-${Date.now().toString().slice(-4)}`,
-                    bidderId: defaultBidders[0].id,
-                    bidderName: defaultBidders[0].name,
-                    guaranteeType: 'Bank Guarantee / CPO',
-                    issuingBankOrInstitution: 'Commercial Bank of Ethiopia (CBE)',
-                    guaranteeNumber: `CPO-CBE-${Math.floor(100000 + Math.random() * 900000)}/25`,
-                    amountETB: Math.round(pBudget * 0.015),
-                    issueDate: today,
-                    expiryDate: new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
-                    status: 'Active / Valid',
-                    remarks: 'Verified by BEC during formal bid opening session.'
-                },
-                {
-                    id: `CPO-002-${Date.now().toString().slice(-4)}`,
-                    bidderId: defaultBidders[1].id,
-                    bidderName: defaultBidders[1].name,
-                    guaranteeType: 'Bank Guarantee / CPO',
-                    issuingBankOrInstitution: 'Cooperative Bank of Oromia (Coop)',
-                    guaranteeNumber: `CPO-COOP-${Math.floor(100000 + Math.random() * 900000)}/25`,
-                    amountETB: Math.round(pBudget * 0.015),
-                    issueDate: today,
-                    expiryDate: new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
-                    status: 'Active / Valid',
-                    remarks: 'Verified by BEC during formal bid opening session.'
-                }
-            ];
-            setBidSecurities(defaultSecurities);
+            // Prospective bidders and bid securities start empty until entered by procurement officer
+            setBidders([]);
+            setBidSecurities([]);
         }
     };
     // Reset Create Form

@@ -180,66 +180,12 @@ export const MetisHeader = ({
           {showNotifications && NotificationPanelComponent}
         </div>
 
-        {/* Persona & Scope Switcher Pill */}
-        <div ref={personaRef} className="position-relative">
-          <button
-            type="button"
-            onClick={() => setIsPersonaOpen(!isPersonaOpen)}
-            className="metis-btn metis-btn-outline metis-btn-sm"
-            title="Institutional Persona & Scope Switcher"
-          >
-            <span className="w-2 h-2 rounded-full bg-success d-inline-block"></span>
-            <span className="fw-bold">{user?.role}</span>
-            <span className="text-muted d-none d-sm-inline">({accessibleProjectsCount})</span>
-            <svg className={`w-3 h-3 transition-transform ${isPersonaOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {isPersonaOpen && (
-            <div className="position-absolute end-0 mt-2 bg-white rounded shadow-lg border p-2 z-3" style={{ width: '280px' }}>
-              <div className="px-2 py-1 border-bottom mb-1">
-                <p className="small fw-bold text-dark mb-0">Role Perspective Explorer</p>
-                <small className="text-muted">Simulate role-based scopes</small>
-              </div>
-              <div className="d-flex flex-column gap-1" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {[
-                  { username: 'admin', label: 'Girma Worku (Root Admin)', icon: '👑' },
-                  { username: 'testuser', label: 'Tolasa Bekele (Field Engineer)', icon: '👷' },
-                  { username: 'engineer_dawit', label: 'Eng. Dawit Alemu (Zonal Eng)', icon: '📐' },
-                  { username: 'supervisor', label: 'Eng. Hawi Kebede (Supervisor)', icon: '📋' },
-                  { username: 'team_leader_tigist', label: 'Eng. Tigist Mengistu (Team Leader)', icon: '📑' },
-                  { username: 'coordinator_kenenisa', label: 'Kenenisa Bekele (Coordinator)', icon: '🏛️' },
-                  { username: 'auditor', label: 'Merga Feyisa (Senior Auditor)', icon: '🛡️' },
-                  { username: 'finance_tadesse', label: 'Fikadu Tadesse (Finance Officer)', icon: '💰' },
-                ].map((persona) => (
-                  <button
-                    key={persona.username}
-                    onClick={() => {
-                      onSwitchPersona(persona.username);
-                      setIsPersonaOpen(false);
-                    }}
-                    className={`btn btn-sm text-start d-flex align-items-center justify-content-between p-2 rounded ${user?.username === persona.username ? 'btn-primary text-white' : 'btn-light'}`}
-                  >
-                    <span>{persona.icon} {persona.label}</span>
-                    {user?.username === persona.username && <span className="badge bg-white text-primary">Active</span>}
-                  </button>
-                ))}
-              </div>
-              {simulatedRole && (
-                <div className="pt-2 border-top mt-1">
-                  <button
-                    onClick={() => {
-                      onExitRoleSimulation();
-                      setIsPersonaOpen(false);
-                    }}
-                    className="btn btn-outline-danger btn-sm w-100"
-                  >
-                    Restore Primary Admin
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* User Institutional Role & Status Badge */}
+        <div className="d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-lg bg-light border text-xs font-semibold">
+          <span className="w-2 h-2 rounded-full bg-success d-inline-block"></span>
+          <span className="fw-bold text-dark">{user?.role || 'Staff'}</span>
+          {user?.assignedZone && (
+            <span className="text-muted d-none d-md-inline">&bull; {user.assignedZone}</span>
           )}
         </div>
 

@@ -160,15 +160,6 @@ const TRANSLATIONS = {
     }
 };
 
-const SAMPLE_PERSONAS = [
-    { username: 'admin', role: 'System Administrator', name: 'Girma Worku', category: 'Executive & Admin', cluster: 'Head Office (Finfinnee)', badgeColor: 'bg-indigo-100 text-indigo-700' },
-    { username: 'director_chaltu', role: 'Water Supply Director', name: 'Dr. Chaltu Desta', category: 'Executive & Admin', cluster: 'Regional HQ', badgeColor: 'bg-purple-100 text-purple-700' },
-    { username: 'coordinator_kenenisa', role: 'Project Coordinator (PIU)', name: 'Kenenisa Bekele', category: 'Coordination', cluster: 'Central Cluster', badgeColor: 'bg-sky-100 text-sky-700' },
-    { username: 'engineer_dawit', role: 'Resident Site Engineer', name: 'Eng. Dawit Alemu', category: 'Engineering', cluster: 'Eastern Cluster (Harar)', badgeColor: 'bg-emerald-100 text-emerald-700' },
-    { username: 'supervisor', role: 'Resident Supervisor', name: 'Eng. Hawi Kebede', category: 'Supervision', cluster: 'Southwestern Cluster (Jimma)', badgeColor: 'bg-teal-100 text-teal-700' },
-    { username: 'finance_tadesse', role: 'Senior Finance Officer', name: 'Fikadu Tadesse', category: 'Finance & Audit', cluster: 'Regional Finance Desk', badgeColor: 'bg-amber-100 text-amber-700' },
-];
-
 const CLUSTER_HELPDESKS = [
     { name: 'Central Cluster (Giddu Galeessa)', phone: '+251 11 369 8241', email: 'central.cluster.ict@oweb.gov.et' },
     { name: 'Western Cluster (Lixa Oromiyaa)', phone: '+251 57 775 1920', email: 'western.cluster.ict@oweb.gov.et' },
@@ -180,17 +171,14 @@ const CLUSTER_HELPDESKS = [
 
 export const Login = ({ onLogin, onOpenExternalPortal }) => {
     const [lang, setLang] = useState('EN');
-    const [username, setUsername] = useState('admin');
-    const [password, setPassword] = useState('password');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(true);
     const [capsLockActive, setCapsLockActive] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
-    const [showPersonaMenu, setShowPersonaMenu] = useState(false);
-    const [selectedPersonaCategory, setSelectedPersonaCategory] = useState('All');
-    const [appliedPersonaName, setAppliedPersonaName] = useState('');
     const [currentTime, setCurrentTime] = useState('');
     const [copiedHelpdesk, setCopiedHelpdesk] = useState(null);
 
@@ -232,9 +220,21 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
     const handleSignInSubmit = async (e) => {
         if (e) e.preventDefault();
         setError('');
-        setIsLoading(true);
+
         const cleanUsername = username.trim();
-        const cleanPassword = password.trim() || 'password';
+        const cleanPassword = password.trim();
+
+        if (!cleanUsername) {
+            setError(lang === 'OM' ? 'Maaloo maqaa fayyadamaa keessan galchaa.' : lang === 'AM' ? 'እባክዎ የተጠቃሚ ስምዎን ያስገቡ።' : 'Please enter your username or bureau email.');
+            return;
+        }
+
+        if (!cleanPassword) {
+            setError(lang === 'OM' ? 'Maaloo jecha icchiitii keessan galchaa.' : lang === 'AM' ? 'እባክዎ የይለፍ ቃልዎን ያስገቡ።' : 'Please enter your password.');
+            return;
+        }
+
+        setIsLoading(true);
 
         if (rememberMe) {
             localStorage.setItem('oweb_remembered_username', cleanUsername);
@@ -252,18 +252,6 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
     const handleKeyDetection = (e) => {
         if (e.getModifierState) {
             setCapsLockActive(e.getModifierState('CapsLock'));
-        }
-    };
-
-    const selectPersona = (p, autoSubmit = false) => {
-        setUsername(p.username);
-        setPassword('password');
-        setAppliedPersonaName(p.name);
-        setShowPersonaMenu(false);
-        if (autoSubmit) {
-            setTimeout(() => {
-                handleSignInSubmit();
-            }, 100);
         }
     };
 
@@ -289,10 +277,6 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
     };
 
     const pwdStrength = getPasswordStrength(password);
-
-    const filteredPersonas = selectedPersonaCategory === 'All' 
-        ? SAMPLE_PERSONAS 
-        : SAMPLE_PERSONAS.filter(p => p.category === selectedPersonaCategory);
 
     return (
         <div className="min-h-screen w-full relative flex items-center justify-center p-4 sm:p-6 lg:p-12 font-sans overflow-x-hidden bg-[#071927]">
@@ -570,13 +554,6 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                     <label className="block text-xs font-black uppercase tracking-wider text-slate-800">
                                         {t.passwordLabel}
                                     </label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPassword('password')}
-                                        className="text-xs font-bold text-sky-700 hover:text-sky-800 transition"
-                                    >
-                                        {t.defaultCredHint} <code className="font-mono bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-extrabold text-[11px]">password</code>
-                                    </button>
                                 </div>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -662,86 +639,6 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                 )}
                             </button>
                         </form>
-
-                        {/* 1-Click Persona Selector Drawer */}
-                        <div className="mt-6 pt-4 border-t border-slate-100">
-                            <button
-                                type="button"
-                                onClick={() => setShowPersonaMenu(!showPersonaMenu)}
-                                className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/90 text-slate-800 font-extrabold text-xs border border-slate-200/80 transition flex items-center justify-between shadow-sm"
-                            >
-                                <span className="flex items-center gap-1.5">
-                                    <Sparkles className="w-4 h-4 text-sky-600" />
-                                    <span>{t.quickPersonaButton}</span>
-                                </span>
-                                <span className="text-xs font-bold text-slate-600">{showPersonaMenu ? '▲ Hide' : '▼ Show'}</span>
-                            </button>
-
-                            {showPersonaMenu && (
-                                <div className="mt-3 p-3 bg-slate-50 rounded-2xl border border-slate-200 animate-fade-in shadow-inner space-y-2.5">
-                                    {/* Category Filter Pills */}
-                                    <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[10px] font-bold">
-                                        {['All', 'Executive & Admin', 'Engineering', 'Supervision', 'Coordination', 'Finance & Audit'].map(cat => (
-                                            <button
-                                                key={cat}
-                                                type="button"
-                                                onClick={() => setSelectedPersonaCategory(cat)}
-                                                className={`px-2 py-1 rounded-lg whitespace-nowrap transition ${
-                                                    selectedPersonaCategory === cat
-                                                        ? 'bg-sky-600 text-white'
-                                                        : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-                                                }`}
-                                            >
-                                                {cat}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Personas List */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
-                                        {filteredPersonas.map((p) => (
-                                            <div
-                                                key={p.username}
-                                                className="p-2.5 rounded-xl bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-400 transition text-xs shadow-sm flex flex-col justify-between"
-                                            >
-                                                <div>
-                                                    <div className="flex items-center justify-between gap-1 mb-1">
-                                                        <span className="font-extrabold text-slate-900 text-xs truncate">
-                                                            {p.name}
-                                                        </span>
-                                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${p.badgeColor}`}>
-                                                            {p.category.split(' ')[0]}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-[11px] font-semibold text-sky-700 truncate">
-                                                        {p.role}
-                                                    </div>
-                                                    <div className="text-[10px] text-slate-400 truncate mt-0.5">
-                                                        📍 {p.cluster}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-100">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => selectPersona(p, false)}
-                                                        className="flex-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] transition text-center"
-                                                    >
-                                                        Fill
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => selectPersona(p, true)}
-                                                        className="flex-1 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-[10px] transition text-center"
-                                                    >
-                                                        Launch ⚡
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
 
                         {/* Security Notice */}
                         <div className="mt-4 pt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500 font-semibold text-center">

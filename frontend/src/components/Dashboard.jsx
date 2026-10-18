@@ -162,10 +162,10 @@ const ProjectsByImplementingBodyChart = ({ data }) => {
         </ChartContainer>);
 };
 const ProjectLocationMap = ({ data }) => {
-    const mapData = data.map(p => ({
+    const mapData = (data || []).filter(p => p && p.gpsCoordinates && p.gpsCoordinates.long != null && p.gpsCoordinates.lat != null).map(p => ({
         x: p.gpsCoordinates.long,
         y: p.gpsCoordinates.lat,
-        z: p.estimatedBudget, // for bubble size
+        z: p.estimatedBudget || 0, // for bubble size
         ...p
     }));
     const projectsByStatus = Object.values(ProjectStatus).reduce((acc, status) => {

@@ -224,9 +224,6 @@ const ContractModule = ({ procurements, onAddContract, onUpdateContract, contrac
         }
         return deliverables.filter(d => d.priority === priorityFilter);
     }, [deliverables, priorityFilter]);
-    if (procurements.length === 0 && !isEditMode) {
-        return <div className="p-4 bg-primary-light text-primary rounded-lg">No awarded procurements available to create a contract.</div>;
-    }
     const TABS = [
         { id: 'formation', label: 'Formation' },
         { id: 'implementation', label: 'Implementation' },
@@ -299,17 +296,29 @@ const ContractModule = ({ procurements, onAddContract, onUpdateContract, contrac
                     </div>
                 </div>)}
 
-            <Section title={isEditMode ? `Editing Contract: ${contractToEdit.id}` : "Create New Contract"}>
-                {!isEditMode && (<div className="mb-6">
-                        <Select label="Select Awarded Procurement" value={selectedProcurementId} onChange={(e) => setSelectedProcurementId(e.target.value)} disabled={isEditMode}>
-                            <option value="">-- Select Record --</option>
-                            {procurements.map(p => <option key={p.id} value={p.id}>{p.id} (Project: {p.projectId})</option>)}
-                        </Select>
-                         {contractAmount > 0 &&
-                    <div className="mt-4 p-3 bg-primary-light rounded-md text-primary">
-                                Total Contract Amount: <strong>{contractAmount.toLocaleString()} ETB</strong>
-                            </div>}
-                    </div>)}
+            {procurements.length === 0 && !isEditMode ? (
+                <div className="bg-white p-12 rounded-3xl border border-sky-100 text-center shadow-xs">
+                    <div className="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        {React.cloneElement(ICONS.contract, { className: 'w-8 h-8' })}
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">No Awarded Procurements Available</h3>
+                    <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+                        Contracts are formalized following the conclusion of the procurement tender evaluation and statutory standstill period. 
+                        Once a tender in the <strong className="text-sky-700">Procurement &amp; Tenders</strong> module has been awarded, it will appear here for contract execution.
+                    </p>
+                </div>
+            ) : (
+                <Section title={isEditMode ? `Editing Contract: ${contractToEdit.id}` : "Create New Contract"}>
+                    {!isEditMode && (<div className="mb-6">
+                            <Select label="Select Awarded Procurement" value={selectedProcurementId} onChange={(e) => setSelectedProcurementId(e.target.value)} disabled={isEditMode}>
+                                <option value="">-- Select Record --</option>
+                                {procurements.map(p => <option key={p.id} value={p.id}>{p.id} (Project: {p.projectId})</option>)}
+                            </Select>
+                             {contractAmount > 0 &&
+                        <div className="mt-4 p-3 bg-primary-light rounded-md text-primary">
+                                    Total Contract Amount: <strong>{contractAmount.toLocaleString()} ETB</strong>
+                                </div>}
+                        </div>)}
                 
                  {selectedProcurementId && <>
                     <div className="border-b border-light-border mb-6">
@@ -538,6 +547,7 @@ const ContractModule = ({ procurements, onAddContract, onUpdateContract, contrac
                     </div>
                 </>}
             </Section>
+            )}
         </div>)}
     </div>);
 };

@@ -443,68 +443,7 @@ export const COMMITTEE_ROLES = [
 export const BIDDER_TYPES = ['Individual', 'JV', 'Company'];
 export const REJECTION_REASONS = ['Non-Compliant Bid', 'Late Submission', 'Technical Non-Conformity', 'Eligibility/Legal Disqualification'];
 export const CURRENCIES = ['ETB', 'USD', 'EURO'];
-export const DEFAULT_SAMPLE_COMMITTEE_MEMBERS = [
-    {
-        id: 'MEM-001',
-        fullName: 'Eng. Tadesse Bekele',
-        role: 'Chairperson',
-        departmentOrAgency: 'Study & Design Directorate (OWEB)',
-        specialization: 'Lead Water Supply & Hydraulic Engineer',
-        phone: '+251 911 445566',
-        email: 'tadesse.bekele@oweb.gov.et',
-        hasSignedDeclaration: true,
-        declarationDate: '2025-01-12',
-        notes: '15+ years experience in large-scale rural piped water systems.'
-    },
-    {
-        id: 'MEM-002',
-        fullName: 'Fatuma Mohammed',
-        role: 'Secretary',
-        departmentOrAgency: 'Procurement & Property Directorate (OWEB)',
-        specialization: 'Senior Procurement Specialist',
-        phone: '+251 912 778899',
-        email: 'fatuma.m@oweb.gov.et',
-        hasSignedDeclaration: true,
-        declarationDate: '2025-01-12',
-        notes: 'PPA & World Bank Procurement Regulations certified.'
-    },
-    {
-        id: 'MEM-003',
-        fullName: 'Eng. Desta Kebede',
-        role: 'Technical Evaluator',
-        departmentOrAgency: 'Water Supply & Sanitation Directorate (OWEB)',
-        specialization: 'Senior Electromechanical & Solar Pumping Specialist',
-        phone: '+251 913 223344',
-        email: 'desta.k@oweb.gov.et',
-        hasSignedDeclaration: true,
-        declarationDate: '2025-01-12',
-        notes: 'Expert in borehole submersible pump design & solar hybrid arrays.'
-    },
-    {
-        id: 'MEM-004',
-        fullName: 'Chala Gutema',
-        role: 'Technical Evaluator',
-        departmentOrAgency: 'Contract Administration Directorate (OWEB)',
-        specialization: 'Senior Civil & Structural Engineer',
-        phone: '+251 914 556677',
-        email: 'chala.g@oweb.gov.et',
-        hasSignedDeclaration: true,
-        declarationDate: '2025-01-12',
-        notes: 'Reservoir and pressure pipeline specifications lead.'
-    },
-    {
-        id: 'MEM-005',
-        fullName: 'Almaz Tola',
-        role: 'Financial Analyst',
-        departmentOrAgency: 'Finance & Budget Directorate (OWEB)',
-        specialization: 'Cost Estimation & Financial Auditor',
-        phone: '+251 915 889900',
-        email: 'almaz.t@oweb.gov.et',
-        hasSignedDeclaration: true,
-        declarationDate: '2025-01-12',
-        notes: 'Arithmetic error rectification & market price baseline verification.'
-    }
-];
+export const DEFAULT_SAMPLE_COMMITTEE_MEMBERS = [];
 export const AMENDMENT_TYPES = ['Change of Amount', 'Time Extension', 'Scope Change', 'Variation Order', 'Other'];
 export const VARIATION_STATUSES = ['Pending', 'Approved', 'Rejected'];
 export const CLAIM_SOURCES = ['Client', 'Contractor', 'Consultant'];
