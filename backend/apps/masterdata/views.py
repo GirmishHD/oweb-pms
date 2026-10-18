@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from .models import MasterDataStore
 from .serializers import MasterDataStoreSerializer
 from apps.authentication.models import ActivityLog
+from apps.authentication.permissions import IsAdminOrReadOnly
 
 class MasterDataViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
     def list(self, request):
         store = MasterDataStore.objects.last()

@@ -308,7 +308,17 @@ const generateLocalAssistantResponse = (message, data) => {
         `• "Active contracts and contractors"`;
 };
 const getApiKey = () => {
-    return process.env.GEMINI_API_KEY || process.env.API_KEY || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || '';
+    try {
+        if (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_GEMINI_API_KEY) {
+            return import.meta.env.VITE_GEMINI_API_KEY;
+        }
+        if (typeof process !== 'undefined' && process?.env) {
+            return process.env.GEMINI_API_KEY || process.env.API_KEY || '';
+        }
+    } catch {
+        // Fall back gracefully
+    }
+    return '';
 };
 // Fallback high-impact 1-paragraph summary generator
 const createStructuredOneParagraphSummary = (project) => {

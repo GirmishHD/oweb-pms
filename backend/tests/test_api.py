@@ -347,3 +347,96 @@ class PMSComprehensiveBackendTests(APITestCase):
         self.assertEqual(response.data['totalProjects'], Project.objects.count())
         self.assertEqual(response.data['totalContracts'], Contract.objects.count())
         self.assertEqual(response.data['totalTenders'], Procurement.objects.count())
+
+    # 10. Security & RBAC Privilege Escalation Tests
+    def test_unauthorized_user_cannot_delete_other_user(self):
+        # Authenticate as regular Field Engineer
+        self.client.force_authenticate(user=self.engineer)
+        # Attempt to delete Admin account (IDOR / Vertical Privilege Escalation)
+        response = self.client.delete(f'/api/auth/users/{self.admin.id}/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Verify admin still exists in database
+        self.assertTrue(User.objects.filter(id=self.admin.id).exists())
+
+    def test_unauthorized_engineer_cannot_review_project(self):
+        # Authenticate as regular Field Engineer
+        self.client.force_authenticate(user=self.engineer)
+        # Attempt to approve scheme
+        response = self.client.post(f'/api/projects/schemes/{self.project.id}/review/', {
+            'verdict': 'Approved',
+            'comments': 'Unauthorized self-approval attempt'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_unauthorized_engineer_cannot_modify_roles(self):
+        # Authenticate as regular Field Engineer
+        self.client.force_authenticate(user=self.engineer)
+        # Attempt to create new role definition
+        response = self.client.post('/api/auth/roles/', {
+            'code': 'SUPER_HACKER',
+            'name': 'Super Hacker Role',
+            'permissions': ['ALL_ACCESS']
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_unauthorized_engineer_cannot_overwrite_masterdata(self):
+        # Authenticate as regular Field Engineer
+        self.client.force_authenticate(user=self.engineer)
+        # Attempt to push master data catalog
+        response = self.client.post('/api/masterdata/store/', {
+            'version': '9.9.9',
+            'changeNotes': 'Malicious overwrite'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_can_review_and_manage_users(self):
+        # Authenticate as Admin
+        self.client.force_authenticate(user=self.admin)
+        # Admin approves scheme
+        review_res = self.client.post(f'/api/projects/schemes/{self.project.id}/review/', {
+            'verdict': 'Approved',
+            'comments': 'Authorized official approval'
+        }, format='json')
+        self.assertEqual(review_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(review_res.data['project']['status'], 'Approved')
+
+    # 11. Dual-Key Business Lookup & API Root Tests
+    def test_api_root_endpoint(self):
+        response = self.client.get('/api/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'online')
+        self.assertIn('documentation', response.data)
+        self.assertIn('modules', response.data)
+
+    def test_dual_key_project_lookup(self):
+        self.client.force_authenticate(user=self.admin)
+        # 1. Lookup by string business ID
+        res_string = self.client.get(f'/api/projects/schemes/{self.project.project_id}/')
+        self.assertEqual(res_string.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_string.data['name'], self.project.name)
+        # 2. Lookup by numeric primary key
+        res_numeric = self.client.get(f'/api/projects/schemes/{self.project.id}/')
+        self.assertEqual(res_numeric.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_numeric.data['id'], self.project.id)
+
+    def test_contract_dual_key_upsert(self):
+        self.client.force_authenticate(user=self.admin)
+        # First save contract
+        res = self.client.post('/api/contracts/agreements/', {
+            'contract_id': 'CONT-TEST-UPSERT-01',
+            'project_id': self.project.project_id,
+            'procurement_id': 'PROC-TEST-01',
+            'contract_manager': 'Manager One',
+            'supervisor': 'Supervisor One'
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        # Upsert with same contract_id should update, not throw 500 duplicate key error
+        res_update = self.client.post('/api/contracts/agreements/', {
+            'contract_id': 'CONT-TEST-UPSERT-01',
+            'contract_manager': 'Manager Updated'
+        }, format='json')
+        self.assertEqual(res_update.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_update.data['contract_manager'], 'Manager Updated')
+
+

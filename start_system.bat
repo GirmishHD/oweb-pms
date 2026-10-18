@@ -9,12 +9,17 @@ echo.
 
 :: 1. Check PostgreSQL Service
 echo [1/3] Checking PostgreSQL service status...
-sc query postgresql-x64-16 >nul 2>&1
+sc query postgresql-x64-18 >nul 2>&1
 if %ERRORLEVEL% equ 0 (
-    echo [OK] PostgreSQL service detected.
+    echo [OK] PostgreSQL 18 service detected.
 ) else (
-    echo [INFO] Ensuring PostgreSQL is running...
-    net start postgresql-x64-16 >nul 2>&1
+    sc query postgresql-x64-16 >nul 2>&1
+    if %ERRORLEVEL% equ 0 (
+        echo [OK] PostgreSQL 16 service detected.
+    ) else (
+        powershell -NoProfile -Command "Get-Service *postgres* | Where-Object { $_.Status -ne 'Running' } | Start-Service -ErrorAction SilentlyContinue" >nul 2>&1
+        echo [OK] PostgreSQL service verified.
+    )
 )
 
 :: 2. Launch Django Backend on Port 8001

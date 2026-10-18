@@ -228,11 +228,19 @@ class ApiClient {
         return data.results ? data.results : data;
     }
     async saveProcurement(procData) {
-        if (procData.id && typeof procData.id === 'number') {
-            return await this.request(`/procurement/tenders/${procData.id}/`, {
-                method: 'PUT',
-                body: procData
-            });
+        const lookupId = procData.id || procData.procurement_id;
+        if (lookupId) {
+            try {
+                return await this.request(`/procurement/tenders/${lookupId}/`, {
+                    method: 'PATCH',
+                    body: procData
+                });
+            } catch (patchErr) {
+                // If not found yet, create via POST
+                if (!patchErr.message || !patchErr.message.includes('404')) {
+                    throw patchErr;
+                }
+            }
         }
         return await this.request('/procurement/tenders/', {
             method: 'POST',
@@ -245,11 +253,19 @@ class ApiClient {
         return data.results ? data.results : data;
     }
     async saveContract(contractData) {
-        if (contractData.id && typeof contractData.id === 'number') {
-            return await this.request(`/contracts/agreements/${contractData.id}/`, {
-                method: 'PUT',
-                body: contractData
-            });
+        const lookupId = contractData.id || contractData.contract_id;
+        if (lookupId) {
+            try {
+                return await this.request(`/contracts/agreements/${lookupId}/`, {
+                    method: 'PATCH',
+                    body: contractData
+                });
+            } catch (patchErr) {
+                // If not found yet, create via POST
+                if (!patchErr.message || !patchErr.message.includes('404')) {
+                    throw patchErr;
+                }
+            }
         }
         return await this.request('/contracts/agreements/', {
             method: 'POST',
@@ -262,11 +278,18 @@ class ApiClient {
         return data.results ? data.results : data;
     }
     async saveInspection(logData) {
-        if (logData.id && typeof logData.id === 'number') {
-            return await this.request(`/inspections/logs/${logData.id}/`, {
-                method: 'PUT',
-                body: logData
-            });
+        const lookupId = logData.id || logData.inspection_id;
+        if (lookupId) {
+            try {
+                return await this.request(`/inspections/logs/${lookupId}/`, {
+                    method: 'PATCH',
+                    body: logData
+                });
+            } catch (patchErr) {
+                if (!patchErr.message || !patchErr.message.includes('404')) {
+                    throw patchErr;
+                }
+            }
         }
         return await this.request('/inspections/logs/', {
             method: 'POST',

@@ -17,7 +17,7 @@ const formatReadableDate = (date) => {
 const formatCurrency = (val) => {
     return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(val);
 };
-export const GanttTimelineChart = ({ projects, contracts, procurements = [], moduleMode = 'portfolio', customTitle, customSubtitle, defaultStatusFilter }) => {
+export const GanttTimelineChart = ({ projects = [], contracts = [], procurements = [], moduleMode = 'portfolio', customTitle, customSubtitle, defaultStatusFilter }) => {
     const [timeScale, setTimeScale] = useState('month');
     const [groupBy, setGroupBy] = useState('none');
     const [sortBy, setSortBy] = useState('startDate');
@@ -36,18 +36,18 @@ export const GanttTimelineChart = ({ projects, contracts, procurements = [], mod
     // Map contracts and procurements by projectId
     const contractsMap = useMemo(() => {
         const map = new Map();
-        contracts.forEach(c => map.set(c.projectId, c));
+        (Array.isArray(contracts) ? contracts : []).forEach(c => map.set(c?.projectId, c));
         return map;
     }, [contracts]);
     const procurementsMap = useMemo(() => {
         const map = new Map();
-        procurements.forEach(p => map.set(p.projectId, p));
+        (Array.isArray(procurements) ? procurements : []).forEach(p => map.set(p?.projectId, p));
         return map;
     }, [procurements]);
     // Parse and augment project timelines
     const timelineData = useMemo(() => {
         const now = new Date();
-        return projects.map(project => {
+        return (Array.isArray(projects) ? projects : []).filter(Boolean).map(project => {
             const contract = contractsMap.get(project.id);
             const procurement = procurementsMap.get(project.id);
             // Determine planned dates: prioritize project explicit dates, then contract/procurement baselines

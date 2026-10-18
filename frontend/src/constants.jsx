@@ -379,14 +379,13 @@ export const ENGINEERING_TEAMS = [
     'Community Engagement & WASHCO Support'
 ];
 export const PLANNING_STEPS = [
-    { id: 'info', name: 'Basic Information', description: 'Location and general details.' },
-    { id: 'classification', name: 'Project Classification', description: 'Type and intervention method.' },
-    { id: 'scope', name: 'Technical Scope', description: 'Population and system size.' },
-    { id: 'implementation', name: 'Implementation Details', description: 'Body, WASHCO, land status.' },
-    { id: 'financial', name: 'Financial & Risk', description: 'Budget, funding, and risks.' },
-    { id: 'ai-risk', name: 'AI Risk Assessment', description: 'Automated risk analysis.' },
-    { id: 'studies', name: 'Documents & Studies', description: 'Feasibility and EIA reports.' },
-    { id: 'summary', name: 'Summary & Submission', description: 'Final review and send-off.' },
+    { id: 'general', name: 'General Information', description: 'Identification, program, and classification.' },
+    { id: 'location', name: 'Location & Sizing', description: 'Administrative hierarchy & technical sizing.' },
+    { id: 'readiness', name: 'Institutional Readiness', description: 'Governance, WASHCO & assigned staff.' },
+    { id: 'financial', name: 'Cost & Financing', description: 'Budget, funding partner & contributions.' },
+    { id: 'feasibility', name: 'Feasibility & EIA', description: 'Technical studies & environmental clearances.' },
+    { id: 'risk', name: 'AI Risk Assessment', description: 'Automated vulnerability profiling.' },
+    { id: 'summary', name: 'Summary & Submission', description: 'Executive summary & proposal submission.' },
 ];
 export const OROMIA_HIERARCHY = {
     'Arsi': ['Amigna', 'Aseko', 'Asella town', 'Bale', 'Bekoji town', 'Boku', 'Chilalo', 'Cholé', 'Digeluna Tijo', 'Dodota', 'Enkelo Wabe', 'Gedeb Asasa', 'Guna', 'Hitosa', 'Jeju', 'Limu Bilbilo', 'Lude Hitosa', 'Merti', 'Munessa', 'Robe', 'Seru', 'Shirka', 'Siltʼe', 'Sire', 'Sude', 'Tena', 'Tiyo', 'Ziway Dugda'],

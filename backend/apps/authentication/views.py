@@ -30,17 +30,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         )
         return data
 
+from .permissions import CanManageUsers, IsAdminOrReadOnly
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
-
-    def get_permissions(self):
-        if self.action == 'create':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [CanManageUsers]
 
     @action(detail=False, methods=['get'])
     def me(self, request):
@@ -50,7 +48,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class RoleDefinitionViewSet(viewsets.ModelViewSet):
     queryset = RoleDefinition.objects.all().order_by('code')
     serializer_class = RoleDefinitionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer

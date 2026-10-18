@@ -337,29 +337,66 @@ const App = () => {
     // Load live records from Django REST Framework & PostgreSQL on initial mount
     const fetchInitialBackendData = useCallback(async () => {
         try {
-            // Fetch users
-            const remoteUsers = await apiClient.getUsers();
-            if (remoteUsers && Array.isArray(remoteUsers) && remoteUsers.length > 0) {
-                setUsers(remoteUsers.map((u) => ({
-                    ...u,
-                    id: String(u.id),
-                    fullName: u.full_name || u.fullName,
-                    secondaryRoles: u.secondary_roles || u.secondaryRoles,
-                    customRoleIds: u.custom_role_ids || u.customRoleIds,
-                    customPermissions: u.custom_permissions || u.customPermissions,
-                    assignedTeam: u.assigned_team || u.assignedTeam,
-                    assignedZone: u.assigned_zone || u.assignedZone,
-                    assignedWoreda: u.assigned_woreda || u.assignedWoreda,
-                    assignedProgram: u.assigned_program || u.assignedProgram,
-                    assignedPrograms: u.assigned_programs || u.assignedPrograms,
-                    assignedNgoId: u.assigned_ngo_id || u.assignedNgoId,
-                    assignedNgoName: u.assigned_ngo_name || u.assignedNgoName,
-                    staffProfileId: u.staff_profile_id || u.staffProfileId,
-                    assignedProjectIds: u.assigned_project_ids || u.assignedProjectIds,
-                    dataScopeOverride: u.data_scope_override || u.dataScopeOverride,
-                    lastLogin: u.last_login || u.lastLogin,
-                    createdAt: u.created_at || u.createdAt,
-                })));
+            // Restore user session if JWT token exists in storage
+            if (apiClient.token) {
+                try {
+                    const meData = await apiClient.getMe();
+                    if (meData && meData.id) {
+                        setAuthenticatedUser(prev => prev || {
+                            ...meData,
+                            id: String(meData.id),
+                            fullName: meData.full_name || meData.fullName,
+                            secondaryRoles: meData.secondary_roles || meData.secondaryRoles,
+                            customRoleIds: meData.custom_role_ids || meData.customRoleIds,
+                            customPermissions: meData.custom_permissions || meData.customPermissions,
+                            assignedTeam: meData.assigned_team || meData.assignedTeam,
+                            assignedZone: meData.assigned_zone || meData.assignedZone,
+                            assignedWoreda: meData.assigned_woreda || meData.assignedWoreda,
+                            assignedProgram: meData.assigned_program || meData.assignedProgram,
+                            assignedPrograms: meData.assigned_programs || meData.assignedPrograms,
+                            assignedNgoId: meData.assigned_ngo_id || meData.assignedNgoId,
+                            assignedNgoName: meData.assigned_ngo_name || meData.assignedNgoName,
+                            staffProfileId: meData.staff_profile_id || meData.staffProfileId,
+                            assignedProjectIds: meData.assigned_project_ids || meData.assignedProjectIds,
+                            dataScopeOverride: meData.data_scope_override || meData.dataScopeOverride,
+                            lastLogin: meData.last_login || meData.lastLogin || new Date().toISOString(),
+                        });
+                    }
+                } catch (authErr) {
+                    console.warn('Session check expired or invalid:', authErr?.message);
+                    apiClient.setTokens(null, null);
+                }
+            }
+
+            // Fetch users (if authenticated)
+            if (apiClient.token) {
+                try {
+                    const remoteUsers = await apiClient.getUsers();
+                    if (remoteUsers && Array.isArray(remoteUsers) && remoteUsers.length > 0) {
+                        setUsers(remoteUsers.map((u) => ({
+                            ...u,
+                            id: String(u.id),
+                            fullName: u.full_name || u.fullName,
+                            secondaryRoles: u.secondary_roles || u.secondaryRoles,
+                            customRoleIds: u.custom_role_ids || u.customRoleIds,
+                            customPermissions: u.custom_permissions || u.customPermissions,
+                            assignedTeam: u.assigned_team || u.assignedTeam,
+                            assignedZone: u.assigned_zone || u.assignedZone,
+                            assignedWoreda: u.assigned_woreda || u.assignedWoreda,
+                            assignedProgram: u.assigned_program || u.assignedProgram,
+                            assignedPrograms: u.assigned_programs || u.assignedPrograms,
+                            assignedNgoId: u.assigned_ngo_id || u.assignedNgoId,
+                            assignedNgoName: u.assigned_ngo_name || u.assignedNgoName,
+                            staffProfileId: u.staff_profile_id || u.staffProfileId,
+                            assignedProjectIds: u.assigned_project_ids || u.assignedProjectIds,
+                            dataScopeOverride: u.data_scope_override || u.dataScopeOverride,
+                            lastLogin: u.last_login || u.lastLogin,
+                            createdAt: u.created_at || u.createdAt,
+                        })));
+                    }
+                } catch (usersErr) {
+                    console.warn('User directory sync check:', usersErr?.message);
+                }
             }
             // Fetch projects
             const remoteProjects = await apiClient.getProjects();
@@ -916,6 +953,7 @@ const App = () => {
     };
     const handleLogout = () => {
         logActivity('User Logged Out');
+        apiClient.setTokens(null, null);
         setAuthenticatedUser(null);
         setSimulatedRole(null);
         setOriginalUser(null);

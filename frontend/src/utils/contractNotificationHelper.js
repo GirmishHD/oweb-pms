@@ -19,6 +19,15 @@ export const getDaysDifference = (targetDateStr, referenceDate = new Date()) => 
  * and Expected Completion Date.
  */
 export const evaluateContractDeadlines = (contract, project, referenceDate = new Date()) => {
+    if (!contract) {
+        return {
+            contract: {},
+            project: project || {},
+            bondStatus: { isWithin30Days: false, isExpired: false, daysRemaining: Infinity, date: '', amount: 0, currency: 'ETB' },
+            completionStatus: { isWithin30Days: false, isOverdue: false, daysRemaining: Infinity, date: '' },
+            flaggedReasons: []
+        };
+    }
     const bondDays = getDaysDifference(contract.performanceSecurityExpiryDate, referenceDate);
     const completionDays = getDaysDifference(contract.plannedCompletionDate, referenceDate);
     // Completed contracts with actual completionDate are exempted from completion alerts
@@ -75,14 +84,16 @@ export const evaluateContractDeadlines = (contract, project, referenceDate = new
  * @param referenceDate Optional date context (defaults to now)
  * @returns FlagContractsResult containing newly generated notifications and flagged stats
  */
-export const flagContractsWithin30Days = (contracts, projects, users, existingNotifications = [], referenceDate = new Date()) => {
+export const flagContractsWithin30Days = (contracts = [], projects = [], users = [], existingNotifications = [], referenceDate = new Date()) => {
     const newNotifications = [];
     const flaggedContracts = [];
     let bondExpiringCount = 0;
     let completionExpiringCount = 0;
-    const existingNotifKeys = new Set(existingNotifications.map(n => `${n.userId}-${n.link?.itemId}-${n.message.slice(0, 40)}`));
+    const safeNotifications = Array.isArray(existingNotifications) ? existingNotifications : [];
+    const existingNotifKeys = new Set(safeNotifications.filter(Boolean).map(n => `${n.userId}-${n.link?.itemId}-${(n.message || '').slice(0, 40)}`));
     (contracts || []).forEach(contract => {
-        const project = (projects || []).find(p => p && p.id === contract.projectId);
+        if (!contract) return;
+        const project = (projects || []).find(p => p && (p.id === contract.projectId || p.id === contract.id));
         const status = evaluateContractDeadlines(contract, project, referenceDate);
         if (status.bondStatus.isWithin30Days || status.completionStatus.isWithin30Days) {
             flaggedContracts.push(status);
@@ -98,8 +109,8 @@ export const flagContractsWithin30Days = (contracts, projects, users, existingNo
             if (contract.supervisor)
                 targetUsernames.add(contract.supervisor);
             // Also notify Administrators
-            users.filter(u => u.role === Role.ADMIN || u.role === Role.CONTRACT_MANAGER).forEach(u => {
-                targetUsernames.add(u.username);
+            (users || []).filter(u => u && (u.role === Role.ADMIN || u.role === Role.CONTRACT_MANAGER)).forEach(u => {
+                if (u.username) targetUsernames.add(u.username);
             });
             // 1. Generate notification for Performance Bond expiry within 30 days
             if (status.bondStatus.isWithin30Days) {
