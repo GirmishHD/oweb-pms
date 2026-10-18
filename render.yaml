@@ -40,11 +40,8 @@ services:
   # ============================================================================
   # 2. REACT VITE FRONTEND STATIC SITE
   # ============================================================================
-  - type: web
+  - type: static
     name: oweb-frontend
-    runtime: static
-    region: frankfurt
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
