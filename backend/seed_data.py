@@ -37,12 +37,17 @@ def seed_admin_user():
             'is_superuser': True,
         }
     )
+    admin.set_password(admin_password)
+    admin.is_staff = True
+    admin.is_superuser = True
+    admin.is_active = True
+    admin.role = 'Admin'
+    admin.status = 'Active'
+    admin.save()
     if created:
-        admin.set_password(admin_password)
-        admin.save()
         print(f"[+] Initial Administrator '{admin_username}' provisioned.")
     else:
-        print(f"[+] Administrator '{admin_username}' verified.")
+        print(f"[+] Administrator '{admin_username}' updated and verified with official password.")
 
 def seed_programs():
     print("Seeding Official WASH Programs...")

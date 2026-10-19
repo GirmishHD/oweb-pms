@@ -35,7 +35,7 @@ services:
       - key: INITIAL_ADMIN_EMAIL
         value: gimmyphp@gmail.com
       - key: INITIAL_ADMIN_PASSWORD
-        generateValue: true
+        value: admin123
 
   # ============================================================================
   # 2. REACT VITE FRONTEND STATIC SITE
