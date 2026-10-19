@@ -47,7 +47,7 @@ export const MetisLayout = ({
         <div className="bg-warning text-dark px-4 py-2 d-flex align-items-center justify-content-between font-weight-bold shadow-sm no-print" style={{ fontSize: '0.8125rem' }}>
           <div className="d-flex align-items-center gap-2">
             <span className="badge bg-dark text-white">SIMULATION</span>
-            <span>Viewing OWEB PB-PMS as <strong>{simulatedRole}</strong>. Action scoping active.</span>
+            <span>Viewing OWBPMIS as <strong>{simulatedRole}</strong>. Action scoping active.</span>
           </div>
           <button
             onClick={onExitRoleSimulation}

@@ -515,8 +515,8 @@ export const INITIAL_SYSTEM_CONFIGURATIONS = [
         key: 'APPLICATION_NAME',
         name: 'Application Display Name',
         category: 'General',
-        value: 'OWEB Program-Based Project Management System (PB-PMS)',
-        defaultValue: 'OWEB Program-Based Project Management System (PB-PMS)',
+        value: 'OWBPMIS — Oromia Water Bureau Program Management Information System',
+        defaultValue: 'OWBPMIS — Oromia Water Bureau Program Management Information System',
         dataType: 'string',
         description: 'Brand title displayed on navigation bars, report covers, and login headers.',
         updatedAt: new Date().toISOString()
@@ -1009,7 +1009,7 @@ export const INITIAL_MASTER_DATA = {
             changedBy: 'System Administrator (OWEB)',
             timestamp: new Date().toISOString(),
             previousValue: 'None',
-            newValue: 'OWEB Program-Based Project Management System (PB-PMS)',
+            newValue: 'OWBPMIS — Oromia Water Bureau Program Management Information System',
             changeSummary: 'Administrator established baseline Enterprise Master Data Catalog and centralized system configuration values.'
         }
     ],

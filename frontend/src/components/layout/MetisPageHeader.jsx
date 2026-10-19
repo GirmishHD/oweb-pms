@@ -16,7 +16,7 @@ export const MetisPageHeader = ({
             <li className="metis-breadcrumb-item font-semibold text-[#087EAD]">
               <a href="#/dashboard" className="text-decoration-none hover:underline flex items-center gap-1">
                 <span>💧</span>
-                <span>OWEB PB-PMS</span>
+                <span>OWBPMIS</span>
               </a>
             </li>
             <li className="metis-breadcrumb-separator text-[#A6EBF0]">&bull;</li>

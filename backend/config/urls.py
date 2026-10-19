@@ -19,11 +19,11 @@ def health_check(request):
 @permission_classes([AllowAny])
 def api_root(request):
     """
-    OWEB Program Management System (PMS) Root API Directory
+    OWBPMIS — Oromia Water Bureau Program Management Information System Root API
     """
     return Response({
         "status": "online",
-        "service": "OWEB Program Management System (PMS) Enterprise API",
+        "service": "OWBPMIS — Oromia Water Bureau Program Management Information System Enterprise API",
         "version": "2.0.0",
         "documentation": {
             "swagger": request.build_absolute_uri('/api/docs/'),

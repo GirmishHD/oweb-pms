@@ -91,7 +91,7 @@ export const getModuleSubtitle = (mod) => {
         case 'training': return 'Capacity building curriculum, standard operating procedures, and technical documentation';
         case 'masterdata': return 'Master data catalog, administrative registry, and institutional workflow rules';
         case 'dashboard': return 'Real-time regional water resource & infrastructure portfolio across 21 zones';
-        default: return 'Oromia Water Bureau (OWEB) Program Management System';
+        default: return 'OWBPMIS — Oromia Water Bureau Program Management Information System';
     }
 };
 const App = () => {
@@ -211,8 +211,8 @@ const App = () => {
             // Send corresponding email notification
             emailService.sendEmail({
                 to: `${user.username}@oweb.gov.et`,
-                subject: `[OWEB PB-PMS] New Notification: ${type.replace(/_/g, ' ').toUpperCase()}`,
-                body: `Hello ${user.username},\n\nYou have a new notification in the OWEB Program-Based Project Management System:\n\n"${message}"\n\nPlease log in to view the details.\n\nThank you,\nOWEB PB-PMS`,
+                subject: `[OWBPMIS] New Notification: ${type.replace(/_/g, ' ').toUpperCase()}`,
+                body: `Hello ${user.username},\n\nYou have a new notification in OWBPMIS (Oromia Water Bureau Program Management Information System):\n\n"${message}"\n\nPlease log in to view the details.\n\nThank you,\nOWBPMIS Administration`,
             });
         });
         setNotifications(prev => [...prev, ...newNotifs]);
@@ -743,7 +743,7 @@ const App = () => {
             window.location.hash = `#/${activeModule}`;
         }
         // Update document title dynamically
-        document.title = `${getModuleTitle(activeModule)} | OWEB Program Management System`;
+        document.title = `${getModuleTitle(activeModule)} | OWBPMIS`;
     }, [activeModule]);
     useEffect(() => {
         const handleHashChange = () => {

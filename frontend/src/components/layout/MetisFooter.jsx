@@ -12,7 +12,7 @@ export const MetisFooter = () => {
           <span className="w-1.5 h-1.5 rounded-full bg-success d-inline-block" />
           <span>PostgreSQL Active</span>
         </span>
-        <span className="text-muted">Metis Admin &bull; PB-PMS v2.0.0</span>
+        <span className="text-muted">Metis Admin &bull; OWBPMIS v2.0.0</span>
       </div>
     </footer>
   );
