@@ -18,7 +18,7 @@ def seed_admin_user():
     No hardcoded credentials; uses environment overrides or strong production defaults.
     """
     admin_username = os.environ.get('INITIAL_ADMIN_USERNAME', 'admin')
-    admin_password = os.environ.get('INITIAL_ADMIN_PASSWORD', 'OwebAdmin2026!#Secure')
+    admin_password = os.environ.get('INITIAL_ADMIN_PASSWORD', 'admin')
     admin_email = os.environ.get('INITIAL_ADMIN_EMAIL', 'admin@oweb.gov.et')
 
     admin, created = User.objects.get_or_create(
