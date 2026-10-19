@@ -1,8 +1,24 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
+const isDev = import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
+
+const CANDIDATE_BASE_URLS = [
+    import.meta.env.VITE_API_URL,
+    ...(isDev ? [
+        'http://localhost:8000/api',
+        'http://localhost:8001/api',
+        'http://127.0.0.1:8000/api',
+        'http://127.0.0.1:8001/api'
+    ] : [])
+].filter(Boolean);
+const BASE_URLS = Array.from(new Set(CANDIDATE_BASE_URLS.length ? CANDIDATE_BASE_URLS : ['/api']));
+let activeBaseIndex = 0;
+
 class ApiClient {
     constructor() {
         this.token = localStorage.getItem('oweb_jwt_access') || null;
         this.refreshToken = localStorage.getItem('oweb_jwt_refresh') || null;
+    }
+    getBaseUrl() {
+        return BASE_URLS[activeBaseIndex] || BASE_URLS[0];
     }
     setTokens(access, refresh) {
         this.token = access;
@@ -31,7 +47,6 @@ class ApiClient {
         return headers;
     }
     async request(endpoint, options = {}) {
-        const url = `${API_BASE_URL}${endpoint}`;
         const headers = this.getHeaders(options.isJson !== false);
         const config = {
             ...options,
@@ -43,45 +58,60 @@ class ApiClient {
         if (options.body && typeof options.body === 'object' && options.isJson !== false) {
             config.body = JSON.stringify(options.body);
         }
-        try {
-            const response = await fetch(url, config);
-            if (response.status === 401 && this.refreshToken && !options._retry) {
-                // Try refresh token
-                const refreshed = await this.refreshAccessToken();
-                if (refreshed) {
-                    options._retry = true;
-                    return this.request(endpoint, options);
+        
+        let lastError = null;
+        // Try active base URL and fallback to others if network connection fails
+        for (let attempt = 0; attempt < BASE_URLS.length; attempt++) {
+            const currentIdx = (activeBaseIndex + attempt) % BASE_URLS.length;
+            const baseUrl = BASE_URLS[currentIdx];
+            const url = `${baseUrl}${endpoint}`;
+            try {
+                const response = await fetch(url, config);
+                // Connected successfully, remember this working base URL
+                activeBaseIndex = currentIdx;
+                
+                if (response.status === 401 && this.refreshToken && !options._retry) {
+                    const refreshed = await this.refreshAccessToken();
+                    if (refreshed) {
+                        options._retry = true;
+                        return this.request(endpoint, options);
+                    }
+                }
+                if (!response.ok) {
+                    let errorData = null;
+                    try {
+                        errorData = await response.json();
+                    }
+                    catch (e) {
+                        errorData = { detail: response.statusText };
+                    }
+                    let message = errorData.detail || errorData.message;
+                    if (!message && typeof errorData === 'object' && errorData !== null) {
+                        message = Object.entries(errorData)
+                            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+                            .join('; ');
+                    }
+                    throw new Error(message || `API error: ${response.status}`);
+                }
+                if (response.status === 204) {
+                    return null;
+                }
+                return await response.json();
+            }
+            catch (fetchErr) {
+                lastError = fetchErr;
+                // Only retry on network failures (connection refused / failed to fetch)
+                const isNetworkError = fetchErr instanceof TypeError || fetchErr.message?.includes('Failed to fetch') || fetchErr.message?.includes('NetworkError');
+                if (!isNetworkError) {
+                    throw fetchErr;
                 }
             }
-            if (!response.ok) {
-                let errorData = null;
-                try {
-                    errorData = await response.json();
-                }
-                catch (e) {
-                    errorData = { detail: response.statusText };
-                }
-                let message = errorData.detail || errorData.message;
-                if (!message && typeof errorData === 'object' && errorData !== null) {
-                    message = Object.entries(errorData)
-                        .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
-                        .join('; ');
-                }
-                throw new Error(message || `API error: ${response.status}`);
-            }
-            if (response.status === 204) {
-                return null;
-            }
-            return await response.json();
         }
-        catch (err) {
-            console.error(`API Error [${endpoint}]:`, err);
-            throw err;
-        }
+        throw lastError || new Error("Unable to connect to the backend API.");
     }
     async refreshAccessToken() {
         try {
-            const res = await fetch(`${API_BASE_URL}/auth/refresh/`, {
+            const res = await fetch(`${this.getBaseUrl()}/auth/refresh/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refresh: this.refreshToken })

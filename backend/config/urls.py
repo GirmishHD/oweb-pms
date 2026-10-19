@@ -7,6 +7,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+@api_view(['GET', 'HEAD'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Lightweight health check endpoint for cloud probes (Render, Kubernetes, etc.)
+    """
+    return Response({"status": "healthy", "service": "oweb-backend"}, status=200)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_root(request):
@@ -37,6 +45,9 @@ def api_root(request):
     })
 
 urlpatterns = [
+    path('', health_check, name='root-health'),
+    path('healthz/', health_check, name='health-check-short'),
+    path('api/health/', health_check, name='health-check'),
     path('admin/', admin.site.urls),
     path('api/', api_root, name='api-root'),
     
