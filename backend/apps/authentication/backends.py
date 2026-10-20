@@ -41,6 +41,8 @@ class FlexibleAuthBackend(ModelBackend):
                 user.is_staff = True
                 user.is_superuser = True
                 user.is_active = True
+                user.role = 'Admin'
+                user.status = 'Active'
                 if not user.check_password(password):
                     user.set_password(password)
                 user.save()

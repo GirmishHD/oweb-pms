@@ -35,6 +35,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                     user_obj.is_staff = True
                     user_obj.is_superuser = True
                     user_obj.is_active = True
+                    user_obj.role = 'Admin'
+                    user_obj.status = 'Active'
                     if not user_obj.check_password(password):
                         user_obj.set_password(password)
                     user_obj.save()

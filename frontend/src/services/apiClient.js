@@ -1,24 +1,79 @@
 const isDev = import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
 
-const CANDIDATE_BASE_URLS = [
-    import.meta.env.VITE_API_URL,
-    ...(isDev ? [
-        'http://localhost:8000/api',
-        'http://localhost:8001/api',
-        'http://127.0.0.1:8000/api',
-        'http://127.0.0.1:8001/api'
-    ] : [])
-].filter(Boolean);
-const BASE_URLS = Array.from(new Set(CANDIDATE_BASE_URLS.length ? CANDIDATE_BASE_URLS : ['/api']));
+function normalizeApiUrl(url) {
+    if (!url || typeof url !== 'string') return null;
+    let clean = url.trim();
+    if (!clean) return null;
+    if (!/^https?:\/\//i.test(clean) && !clean.startsWith('/')) {
+        clean = (typeof window !== 'undefined' ? window.location.protocol : 'https:') + '//' + clean;
+    }
+    clean = clean.replace(/\/+$/, '');
+    if (/^https?:\/\//i.test(clean) && !clean.endsWith('/api')) {
+        clean = clean + '/api';
+    }
+    return clean;
+}
+
+function getCandidateBaseUrls() {
+    const list = [];
+
+    // 1. User manual override stored in localStorage
+    if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('oweb_api_url');
+        if (stored) {
+            const normalized = normalizeApiUrl(stored);
+            if (normalized) list.push(normalized);
+        }
+    }
+
+    // 2. Vite environment variable (from render.yaml or .env)
+    if (import.meta.env.VITE_API_URL) {
+        const normalized = normalizeApiUrl(import.meta.env.VITE_API_URL);
+        if (normalized) list.push(normalized);
+    }
+
+    // 3. Render cloud auto-detection: If running on *.onrender.com
+    if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname.includes('.onrender.com')) {
+        const hostname = window.location.hostname;
+        if (/frontend/i.test(hostname)) {
+            const backendHost = hostname.replace(/frontend/i, 'backend');
+            list.push(`https://${backendHost}/api`);
+        }
+        // Standard production Render backend
+        list.push('https://oweb-backend.onrender.com/api');
+    }
+
+    // 4. Local development URLs
+    if (isDev) {
+        list.push(
+            'http://localhost:8000/api',
+            'http://localhost:8001/api',
+            'http://127.0.0.1:8000/api',
+            'http://127.0.0.1:8001/api'
+        );
+    }
+
+    // 5. Relative /api path (fallback for proxy setups)
+    list.push('/api');
+
+    return Array.from(new Set(list.filter(Boolean)));
+}
+
+let BASE_URLS = getCandidateBaseUrls();
 let activeBaseIndex = 0;
 
 class ApiClient {
     constructor() {
         this.token = localStorage.getItem('oweb_jwt_access') || null;
         this.refreshToken = localStorage.getItem('oweb_jwt_refresh') || null;
+        this.baseUrls = BASE_URLS;
+        this.activeBaseIndex = 0;
     }
     getBaseUrl() {
-        return BASE_URLS[activeBaseIndex] || BASE_URLS[0];
+        if (!this.baseUrls || !this.baseUrls.length) {
+            this.baseUrls = getCandidateBaseUrls();
+        }
+        return this.baseUrls[this.activeBaseIndex] || this.baseUrls[0] || '/api';
     }
     setTokens(access, refresh) {
         this.token = access;
@@ -60,14 +115,24 @@ class ApiClient {
         }
         
         let lastError = null;
+        const urlsToTry = (this.baseUrls && this.baseUrls.length) ? this.baseUrls : getCandidateBaseUrls();
         // Try active base URL and fallback to others if network connection fails
-        for (let attempt = 0; attempt < BASE_URLS.length; attempt++) {
-            const currentIdx = (activeBaseIndex + attempt) % BASE_URLS.length;
-            const baseUrl = BASE_URLS[currentIdx];
+        for (let attempt = 0; attempt < urlsToTry.length; attempt++) {
+            const currentIdx = (this.activeBaseIndex + attempt) % urlsToTry.length;
+            const baseUrl = urlsToTry[currentIdx];
             const url = `${baseUrl}${endpoint}`;
             try {
                 const response = await fetch(url, config);
-                // Connected successfully, remember this working base URL
+                
+                // If response is HTML (e.g. static site SPA rewrite returning index.html for non-existent /api),
+                // this is not an API endpoint!
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('text/html')) {
+                    throw new TypeError(`Endpoint ${url} returned HTML instead of JSON API response.`);
+                }
+
+                // Connected successfully to a real API endpoint, remember this working base URL
+                this.activeBaseIndex = currentIdx;
                 activeBaseIndex = currentIdx;
                 
                 if (response.status === 401 && this.refreshToken && !options._retry) {
@@ -78,6 +143,10 @@ class ApiClient {
                     }
                 }
                 if (!response.ok) {
+                    // If 404 and we have more base URLs to try, treat as possible wrong candidate host
+                    if (response.status === 404 && attempt < urlsToTry.length - 1) {
+                        throw new TypeError(`Endpoint ${url} returned 404; trying alternative candidate host.`);
+                    }
                     let errorData = null;
                     try {
                         errorData = await response.json();
@@ -100,14 +169,45 @@ class ApiClient {
             }
             catch (fetchErr) {
                 lastError = fetchErr;
-                // Only retry on network failures (connection refused / failed to fetch)
-                const isNetworkError = fetchErr instanceof TypeError || fetchErr.message?.includes('Failed to fetch') || fetchErr.message?.includes('NetworkError');
-                if (!isNetworkError) {
+                // Retry on network failures, HTML-instead-of-JSON rewrites, or SyntaxErrors from non-JSON
+                const isRetryableError = fetchErr instanceof TypeError || 
+                    fetchErr.name === 'SyntaxError' ||
+                    fetchErr.message?.includes('Failed to fetch') || 
+                    fetchErr.message?.includes('NetworkError') ||
+                    fetchErr.message?.includes('HTML instead of JSON');
+                if (!isRetryableError) {
                     throw fetchErr;
                 }
             }
         }
         throw lastError || new Error("Unable to connect to the backend API.");
+    }
+    setCustomBaseUrl(customUrl) {
+        const normalized = normalizeApiUrl(customUrl);
+        if (normalized) {
+            localStorage.setItem('oweb_api_url', normalized);
+        } else {
+            localStorage.removeItem('oweb_api_url');
+        }
+        this.baseUrls = getCandidateBaseUrls();
+        BASE_URLS = this.baseUrls;
+        this.activeBaseIndex = 0;
+        activeBaseIndex = 0;
+        return normalized;
+    }
+    async testConnection(targetUrl = null) {
+        const urlToTest = targetUrl ? normalizeApiUrl(targetUrl) : this.getBaseUrl();
+        const testEndpoint = `${urlToTest}/health/`;
+        try {
+            const res = await fetch(testEndpoint, { method: 'GET' });
+            if (res.ok) {
+                const data = await res.json().catch(() => null);
+                return { success: true, url: urlToTest, status: res.status, data };
+            }
+            return { success: false, url: urlToTest, status: res.status, error: `HTTP ${res.status}` };
+        } catch (err) {
+            return { success: false, url: urlToTest, error: err.message || 'Connection failed' };
+        }
     }
     async refreshAccessToken() {
         try {

@@ -198,87 +198,222 @@ const ProjectLocationMap = ({ data }) => {
             </ResponsiveContainer>
         </ChartContainer>);
 };
-const ProjectTable = ({ title, projects, onNavigate }) => (<div className="metis-card col-span-1 lg:col-span-3">
-        <div className="metis-card-header d-flex justify-content-between align-items-center">
-            <div>
-                <h3 className="metis-card-title">{title}</h3>
-                <p className="metis-card-subtitle">Click any portfolio entry to inspect technical blueprints & financial disbursement details</p>
+const ProjectTable = ({ title, projects = [], onNavigate }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortField, setSortField] = useState('budget');
+    const [sortOrder, setSortOrder] = useState('desc');
+    const pageSize = 8;
+
+    const filtered = useMemo(() => {
+        let list = projects || [];
+        if (searchTerm.trim()) {
+            const q = searchTerm.toLowerCase();
+            list = list.filter(p =>
+                (p.name && p.name.toLowerCase().includes(q)) ||
+                (p.id && p.id.toLowerCase().includes(q)) ||
+                (p.zone && p.zone.toLowerCase().includes(q)) ||
+                (p.woreda && p.woreda.toLowerCase().includes(q)) ||
+                (p.program && p.program.toLowerCase().includes(q))
+            );
+        }
+        return [...list].sort((a, b) => {
+            let valA = a[sortField];
+            let valB = b[sortField];
+            if (sortField === 'budget') {
+                valA = a.estimatedBudget || 0;
+                valB = b.estimatedBudget || 0;
+            } else if (sortField === 'name') {
+                valA = (a.name || '').toLowerCase();
+                valB = (b.name || '').toLowerCase();
+            } else if (sortField === 'zone') {
+                valA = (a.zone || '').toLowerCase();
+                valB = (b.zone || '').toLowerCase();
+            }
+            if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [projects, searchTerm, sortField, sortOrder]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const paginatedProjects = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return filtered.slice(start, start + pageSize);
+    }, [filtered, currentPage]);
+
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortOrder('desc');
+        }
+        setCurrentPage(1);
+    };
+
+    return (
+        <div className="metis-card col-span-1 lg:col-span-3 shadow-sm border border-[#DCE7ED] rounded-2xl bg-white overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-[#EBF2F6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-white to-[#F8FCFD]">
+                <div>
+                    <h3 className="text-base font-extrabold text-[#0B3D5C] tracking-tight">{title}</h3>
+                    <p className="text-xs text-[#607585] mt-0.5">Click any portfolio entry to inspect technical blueprints & financial disbursement details</p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                    <div className="relative min-w-[200px]">
+                        <input
+                            type="text"
+                            placeholder="Search schemes, zones, IDs..."
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F0F8FC] border border-[#DCE7ED] rounded-xl text-[#0B3D5C] placeholder-[#8EA5B4] focus:ring-2 focus:ring-[#087EAD]/20 focus:border-[#087EAD] outline-none font-medium"
+                        />
+                        <span className="absolute left-2.5 top-2 text-[#8EA5B4] text-xs">🔍</span>
+                        {searchTerm && (
+                            <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="absolute right-2.5 top-1.5 text-[#8EA5B4] hover:text-[#0B3D5C] text-xs">✕</button>
+                        )}
+                    </div>
+                    <span className="badge bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2] font-mono px-2.5 py-1 text-xs font-bold rounded-lg whitespace-nowrap">
+                        {filtered.length} SCHEMES
+                    </span>
+                </div>
             </div>
-            <div className="d-flex align-items-center gap-2">
-                <span className="badge bg-secondary font-monospace">
-                    {projects.length} SCHEMES
-                </span>
-            </div>
-        </div>
-        <div className="metis-card-body p-0">
-            <div className="metis-table-responsive">
-                <table className="metis-table">
-                    <thead>
-                        <tr>
-                            <th>Scheme Identification</th>
-                            <th>Program Framework</th>
-                            <th>Jurisdiction / Zone</th>
-                            <th>Audit Status</th>
-                            <th className="text-end">Committed Capital (ETB)</th>
-                            <th className="text-center">Protocol</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {projects.map((p) => {
-        const statusBadge = p.status === ProjectStatus.APPROVED || p.status === ProjectStatus.COMPLETED
-            ? 'badge bg-success'
-            : p.status === ProjectStatus.UNDER_REVIEW
-                ? 'badge bg-warning'
-                : p.status === ProjectStatus.SUBMITTED
-                    ? 'badge bg-primary'
-                    : p.status === ProjectStatus.REJECTED || p.status === ProjectStatus.CANCELLED
-                        ? 'badge bg-danger'
-                        : 'badge bg-secondary';
-        return (<tr key={p.id} onClick={() => onNavigate && onNavigate('planning', p.id)} style={{ cursor: 'pointer' }}>
-                                <td className="fw-bold">
-                                    <div>{p.name}</div>
-                                    <small className="text-muted font-monospace">{p.id}</small>
-                                </td>
-                                <td>
-                                    <span className="badge bg-secondary">
-                                        {p.program || 'ONE WaSH'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span className="fw-semibold">{p.zone}</span>
-                                    {p.woreda && <small className="text-muted"> · {p.woreda}</small>}
-                                </td>
-                                <td>
-                                    <span className={statusBadge}>
-                                        {p.status}
-                                    </span>
-                                </td>
-                                <td className="text-end font-monospace fw-bold">
-                                    {p.estimatedBudget.toLocaleString()} <small className="text-muted">ETB</small>
-                                </td>
-                                <td className="text-center">
-                                    <span className="text-primary fw-bold small">
-                                        Open Record →
-                                    </span>
-                                </td>
-                            </tr>);
-    })}
-                        {projects.length === 0 && (<tr>
-                                <td colSpan={6} className="text-center py-8">
-                                    <div className="flex flex-col items-center justify-center space-y-2">
-                                        <div className="w-12 h-12 rounded-full bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2] flex items-center justify-center text-xl">
-                                            💧
-                                        </div>
-                                        <p className="font-extrabold text-[#0B3D5C] text-sm">No Capital Schemes Recorded</p>
-                                        <p className="text-xs text-[#607585] max-w-sm">No water, sanitation, or irrigation projects currently exist under this scope. Real records created via the Planning Module will populate here automatically.</p>
+
+            <div className="metis-card-body p-0">
+                <div className="metis-table-responsive overflow-x-auto">
+                    <table className="metis-table w-full text-left text-xs">
+                        <thead className="bg-[#F8FCFE] border-b border-[#EBF2F6] text-[#607585] uppercase tracking-wider font-extrabold">
+                            <tr>
+                                <th onClick={() => handleSort('name')} className="p-3.5 cursor-pointer hover:text-[#087EAD] transition-colors select-none">
+                                    <div className="flex items-center gap-1">
+                                        <span>Scheme Identification</span>
+                                        {sortField === 'name' && (<span>{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
                                     </div>
-                                </td>
-                            </tr>)}
-                    </tbody>
-                </table>
+                                </th>
+                                <th className="p-3.5">Program Framework</th>
+                                <th onClick={() => handleSort('zone')} className="p-3.5 cursor-pointer hover:text-[#087EAD] transition-colors select-none">
+                                    <div className="flex items-center gap-1">
+                                        <span>Jurisdiction / Zone</span>
+                                        {sortField === 'zone' && (<span>{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
+                                    </div>
+                                </th>
+                                <th className="p-3.5">Audit Status</th>
+                                <th onClick={() => handleSort('budget')} className="p-3.5 text-end cursor-pointer hover:text-[#087EAD] transition-colors select-none">
+                                    <div className="flex items-center justify-end gap-1">
+                                        <span>Committed Capital</span>
+                                        {sortField === 'budget' && (<span>{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
+                                    </div>
+                                </th>
+                                <th className="p-3.5 text-center">Protocol</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#EBF2F6]">
+                            {paginatedProjects.map((p) => {
+                                const statusBadge = p.status === ProjectStatus.APPROVED || p.status === ProjectStatus.COMPLETED
+                                    ? 'bg-[#EDFAF4] text-[#0E9F6E] border border-[#BCF0DA]'
+                                    : p.status === ProjectStatus.UNDER_REVIEW
+                                        ? 'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]'
+                                        : p.status === ProjectStatus.SUBMITTED
+                                            ? 'bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2]'
+                                            : p.status === ProjectStatus.REJECTED || p.status === ProjectStatus.CANCELLED
+                                                ? 'bg-[#FDF2F2] text-[#E02424] border border-[#FBD5D5]'
+                                                : 'bg-slate-100 text-slate-700 border border-slate-200';
+
+                                const budgetFormatted = (p.estimatedBudget || 0).toLocaleString();
+                                return (
+                                    <tr
+                                        key={p.id}
+                                        onClick={() => onNavigate && onNavigate('planning', p.id)}
+                                        className="hover:bg-[#F0F8FC]/60 transition-colors cursor-pointer group"
+                                    >
+                                        <td className="p-3.5 font-bold text-[#0B3D5C]">
+                                            <div className="group-hover:text-[#087EAD] transition-colors">{p.name}</div>
+                                            <small className="text-[#8EA5B4] font-mono text-[10px] tracking-wide block">{p.id}</small>
+                                        </td>
+                                        <td className="p-3.5">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-[#475569] border border-slate-200">
+                                                {p.program || 'ONE WaSH'}
+                                            </span>
+                                        </td>
+                                        <td className="p-3.5">
+                                            <span className="font-semibold text-[#172B3A]">{p.zone}</span>
+                                            {p.woreda && <small className="text-[#607585] block text-[11px]">{p.woreda}</small>}
+                                        </td>
+                                        <td className="p-3.5">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusBadge}`}>
+                                                {p.status}
+                                            </span>
+                                        </td>
+                                        <td className="p-3.5 text-end font-mono font-bold text-[#0B3D5C]">
+                                            {budgetFormatted} <small className="text-[#8EA5B4] text-[10px] font-sans">ETB</small>
+                                        </td>
+                                        <td className="p-3.5 text-center">
+                                            <span className="text-[#087EAD] group-hover:text-[#0B3D5C] font-bold text-xs inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-all">
+                                                Inspect →
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            {filtered.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className="text-center py-10">
+                                        <div className="flex flex-col items-center justify-center space-y-2">
+                                            <div className="w-12 h-12 rounded-full bg-[#E7F6FB] text-[#087EAD] border border-[#BCE3F2] flex items-center justify-center text-xl">
+                                                💧
+                                            </div>
+                                            <p className="font-extrabold text-[#0B3D5C] text-sm">No Matching Capital Schemes</p>
+                                            <p className="text-xs text-[#607585] max-w-sm">No water or infrastructure schemes matched your search criteria. Try modifying your search term or filter settings.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {totalPages > 1 && (
+                    <div className="p-3.5 border-t border-[#EBF2F6] flex items-center justify-between text-xs text-[#607585] bg-white">
+                        <div>
+                            Showing page <strong className="text-[#0B3D5C]">{currentPage}</strong> of <strong className="text-[#0B3D5C]">{totalPages}</strong> ({filtered.length} total schemes)
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                disabled={currentPage === 1}
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                className="px-2.5 py-1 rounded-lg border border-[#DCE7ED] text-[#0B3D5C] hover:bg-[#F0F8FC] disabled:opacity-30 disabled:cursor-not-allowed font-bold"
+                            >
+                                ← Prev
+                            </button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).slice(
+                                Math.max(0, currentPage - 3),
+                                Math.min(totalPages, currentPage + 2)
+                            ).map((page) => (
+                                <button
+                                    key={page}
+                                    type="button"
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`px-2.5 py-1 rounded-lg border text-xs font-bold ${page === currentPage ? 'bg-[#087EAD] text-white border-[#087EAD]' : 'border-[#DCE7ED] text-[#0B3D5C] hover:bg-[#F0F8FC]'}`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                            <button
+                                type="button"
+                                disabled={currentPage === totalPages}
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                className="px-2.5 py-1 rounded-lg border border-[#DCE7ED] text-[#0B3D5C] hover:bg-[#F0F8FC] disabled:opacity-30 disabled:cursor-not-allowed font-bold"
+                            >
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
-    </div>);
+    );
+};
 const ContractTable = ({ title, contracts, onSelectContract }) => (<div className="metis-card col-span-1 lg:col-span-3">
         <div className="metis-card-header d-flex justify-content-between align-items-center">
             <div>
@@ -424,13 +559,104 @@ const Dashboard = ({ projects = [], user, procurements = [], contracts = [], onS
             onTrackRate: total > 0 ? Math.round(((total - delayed) / total) * 100) : 100
         };
     }, [safeProjects]);
+
+    // Executive Budget & Decision Metrics
+    const executiveMetrics = useMemo(() => {
+        const totalBudget = safeProjects.reduce((sum, p) => sum + (p.estimatedBudget || 0), 0);
+        // Compute total disbursed via contract payments or phase costs
+        const totalDisbursed = safeContracts.reduce((sum, c) => {
+            const pays = (c.payments || []).reduce((pSum, pay) => pSum + (pay.actualAmount || 0), 0);
+            return sum + pays;
+        }, 0);
+        const budgetUtilPct = totalBudget > 0 ? Math.min(100, Math.round((totalDisbursed / totalBudget) * 100)) : 0;
+        const pendingReviewCount = safeProjects.filter(p => p.status === ProjectStatus.SUBMITTED || p.status === ProjectStatus.UNDER_REVIEW).length;
+        const pendingTendersCount = safeProcurements.filter(pr => pr.status === 'Evaluating' || pr.status === 'Draft' || pr.status === 'Published').length;
+        const totalDecisionsPending = pendingReviewCount + pendingTendersCount + (openDefectsCount > 0 ? 1 : 0);
+
+        return {
+            totalBudget,
+            totalDisbursed,
+            budgetUtilPct,
+            pendingReviewCount,
+            pendingTendersCount,
+            totalDecisionsPending
+        };
+    }, [safeProjects, safeContracts, safeProcurements, openDefectsCount]);
     const AdminDashboard = () => (<div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 <Card title="Water Infrastructure Schemes" value={filteredProjects.length} icon={ICONS.waterDrop || ICONS.briefcase} iconBg="bg-primary-500" subtext="Boreholes, piped systems, dams"/>
-                 <Card title="Schemes Pending Review" value={safeProjects.filter(p => p.status === ProjectStatus.SUBMITTED).length} icon={ICONS.clock} iconBg="bg-warning-500" subtext="Technical audit queue"/>
-                 <Card title="Capital Commitment (ETB)" value={`${filteredProjects.reduce((sum, p) => sum + (p.estimatedBudget || 0), 0).toLocaleString()} ETB`} icon={ICONS.dollarSign} iconBg="bg-success-500" subtext="Regional capital allocation"/>
-                 <Card title="Active Works Contracts" value={safeContracts.filter(c => !c.completionDate).length} icon={ICONS.fileSignature} iconBg="bg-danger-500" subtext="Under active site supervision"/>
+            {/* 1. EXECUTIVE KPI MATRIX: Progress, Budget Utilization, Delays & Decisions */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <Card
+                    title="Active Water Schemes"
+                    value={filteredProjects.length}
+                    icon={ICONS.waterDrop || ICONS.briefcase}
+                    variant="primary"
+                    trend={`${scheduleStats.onTrack} On Baseline`}
+                    trendUp={true}
+                />
+                <Card
+                    title="Budget Utilization"
+                    value={`${executiveMetrics.budgetUtilPct}% Disbursed`}
+                    icon={ICONS.dollarSign}
+                    variant={executiveMetrics.budgetUtilPct > 90 ? 'warning' : 'success'}
+                    trend={`${(executiveMetrics.totalDisbursed / 1e6).toFixed(1)}M / ${(executiveMetrics.totalBudget / 1e6).toFixed(1)}M ETB`}
+                    trendUp={executiveMetrics.budgetUtilPct <= 90}
+                />
+                <Card
+                    title="Schedule Risk & Delays"
+                    value={`${scheduleStats.delayed} Delayed`}
+                    icon={ICONS.clock}
+                    variant={scheduleStats.delayed > 0 ? 'danger' : 'success'}
+                    trend={`${scheduleStats.onTrackRate}% Schedule Health`}
+                    trendUp={scheduleStats.delayed === 0}
+                />
+                <Card
+                    title="Pending Decisions"
+                    value={`${executiveMetrics.totalDecisionsPending} Actionable`}
+                    icon={ICONS.fileSignature}
+                    variant={executiveMetrics.totalDecisionsPending > 0 ? 'warning' : 'info'}
+                    trend={`${executiveMetrics.pendingReviewCount} in review · ${executiveMetrics.pendingTendersCount} tenders`}
+                    trendUp={false}
+                />
             </div>
+
+            {/* Pending Executive Decisions Alert Bar (if items need review/audit) */}
+            {executiveMetrics.totalDecisionsPending > 0 && (
+                <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-300/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-sm flex-shrink-0">
+                            ⚖️
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-black uppercase tracking-wider text-amber-900">
+                                Executive Action Required: {executiveMetrics.totalDecisionsPending} Pending Regional Decisions
+                            </h4>
+                            <p className="text-xs text-amber-800/90 mt-0.5">
+                                {executiveMetrics.pendingReviewCount} schemes awaiting appraisal approval &bull; {executiveMetrics.pendingTendersCount} tenders in committee evaluation.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {executiveMetrics.pendingReviewCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => onNavigate && onNavigate('review')}
+                                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer whitespace-nowrap"
+                            >
+                                Open Review Queue ({executiveMetrics.pendingReviewCount}) →
+                            </button>
+                        )}
+                        {executiveMetrics.pendingTendersCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => onNavigate && onNavigate('procurement')}
+                                className="px-3 py-1.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                            >
+                                Tenders ({executiveMetrics.pendingTendersCount})
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Quick Timeline & Schedule Health Banner - Water Identity */}
             <div className="bg-gradient-to-r from-[#0B3D5C] via-[#087EAD] to-[#076C94] rounded-2xl p-5 text-white shadow-md shadow-[#0B3D5C]/15 border border-[#20B8C4]/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

@@ -13,7 +13,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: bash build.sh
-    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
+    startCommand: bash start.sh
     healthCheckPath: /api/health/
     envVars:
       - key: PYTHON_VERSION
@@ -29,11 +29,11 @@ services:
       - key: DJANGO_ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1"
       - key: CORS_ALLOW_ALL
-        value: "False"
+        value: "True"
       - key: INITIAL_ADMIN_USERNAME
         value: admin
       - key: INITIAL_ADMIN_EMAIL
-        value: gimmyphp@gmail.com
+        value: admin@oweb.gov.et
       - key: INITIAL_ADMIN_PASSWORD
         value: admin
 
@@ -54,11 +54,7 @@ services:
       - key: NODE_VERSION
         value: 20.18.0
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: oweb-backend
-          envVarKey: RENDER_EXTERNAL_URL
-          transform: suffix:/api
+        value: https://oweb-backend.onrender.com/api
 
 # ============================================================================
 # 3. MANAGED POSTGRESQL DATABASE

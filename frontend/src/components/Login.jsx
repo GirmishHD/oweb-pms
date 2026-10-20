@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Logo } from './Logo';
+import { apiClient } from '../services/apiClient';
 import { 
     Lock, User, Eye, EyeOff, AlertCircle, ArrowRight, ShieldCheck, 
     Droplets, Activity, Layers, CheckCircle2, Globe, HelpCircle, 
     X, KeyRound, Check, Sparkles, Building2, MapPin, Clock, Server, 
-    Radio, ChevronDown, ChevronUp, Copy, CheckCheck, RefreshCw, Zap
+    Radio, ChevronDown, ChevronUp, Copy, CheckCheck, RefreshCw, Zap,
+    Settings, ExternalLink, Database
 } from 'lucide-react';
 
 const TRANSLATIONS = {
@@ -181,11 +183,26 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
     const [showForgotModal, setShowForgotModal] = useState(false);
     const [currentTime, setCurrentTime] = useState('');
     const [copiedHelpdesk, setCopiedHelpdesk] = useState(null);
+    const [serverStatus, setServerStatus] = useState('checking'); // 'online' | 'offline' | 'checking'
+    const [showServerModal, setShowServerModal] = useState(false);
+    const [activeApiUrl, setActiveApiUrl] = useState(apiClient.getBaseUrl());
+    const [customApiInput, setCustomApiInput] = useState(apiClient.getBaseUrl());
+    const [isTestingApi, setIsTestingApi] = useState(false);
+    const [testResult, setTestResult] = useState(null);
 
     const usernameInputRef = useRef(null);
     const t = TRANSLATIONS[lang] || TRANSLATIONS.EN;
 
     useEffect(() => {
+        const currentUrl = apiClient.getBaseUrl();
+        setActiveApiUrl(currentUrl);
+        setCustomApiInput(currentUrl);
+
+        apiClient.testConnection().then(res => {
+            setServerStatus(res.success ? 'online' : 'offline');
+        }).catch(() => {
+            setServerStatus('offline');
+        });
         const saved = localStorage.getItem('oweb_remembered_username');
         if (saved) {
             setUsername(saved);
@@ -362,6 +379,26 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                         </div>
                     )}
 
+                    {/* Backend API Connection Status Button */}
+                    <button
+                        type="button"
+                        onClick={() => { setShowServerModal(true); setTestResult(null); }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition backdrop-blur-md cursor-pointer ${
+                            serverStatus === 'online'
+                                ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900/60'
+                                : serverStatus === 'offline'
+                                ? 'bg-amber-950/60 text-amber-300 border-amber-500/40 hover:bg-amber-900/60'
+                                : 'bg-slate-900/60 text-slate-300 border-slate-500/30'
+                        }`}
+                        title="Backend API Connection Status & Settings"
+                    >
+                        <Server className="w-3.5 h-3.5 text-cyan-400" />
+                        <span className="hidden sm:inline">Backend:</span>
+                        <span className={serverStatus === 'online' ? 'text-emerald-400 font-extrabold' : 'text-amber-400 font-extrabold'}>
+                            {serverStatus === 'online' ? 'Connected' : serverStatus === 'offline' ? 'Offline / Setup' : 'Checking...'}
+                        </span>
+                    </button>
+
                     {/* Language Switcher Pill */}
                     <div className="flex items-center gap-1 bg-slate-950/70 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-lg">
                         {['EN', 'OM', 'AM'].map((langCode) => (
@@ -493,11 +530,54 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
 
                         {/* Error Feedback */}
                         {error && (
-                            <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2 animate-shake">
-                                <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-                                <span className="font-bold leading-relaxed">{error}</span>
+                            <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex flex-col gap-2 animate-shake">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                                    <span className="font-bold leading-relaxed">{error}</span>
+                                </div>
+                                {(error.toLowerCase().includes('connect') || error.toLowerCase().includes('network') || error.toLowerCase().includes('api error')) && (
+                                    <div className="pt-2 border-t border-rose-200/70 flex items-center justify-between text-[11px]">
+                                        <span className="text-rose-700">Connecting to: <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-rose-200">{activeApiUrl}</code></span>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setShowServerModal(true); setTestResult(null); }}
+                                            className="font-black text-rose-900 hover:underline cursor-pointer ml-2"
+                                        >
+                                            Change API URL →
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
+
+                        {/* Official Admin Quick-Fill Banner */}
+                        <div className="mb-4 p-3 bg-gradient-to-r from-sky-50 via-cyan-50 to-teal-50 border border-sky-200/80 rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-600 to-teal-600 text-white flex items-center justify-center font-extrabold flex-shrink-0 shadow-xs text-xs tracking-wider">
+                                    OWEB
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="text-xs font-black text-sky-950 flex items-center gap-1.5">
+                                        <span>System Admin Credentials</span>
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+                                    </div>
+                                    <div className="text-[11px] text-sky-800 font-mono mt-0.5">
+                                        username: <strong className="text-sky-900 bg-white/90 px-1 py-0.5 rounded border border-sky-200">admin</strong> &bull; password: <strong className="text-sky-900 bg-white/90 px-1 py-0.5 rounded border border-sky-200">admin</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setUsername('admin');
+                                    setPassword('admin');
+                                    setError('');
+                                }}
+                                className="px-3 py-1.5 text-xs font-black uppercase tracking-wider bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl transition shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0"
+                            >
+                                Quick Fill
+                            </button>
+                        </div>
 
                         {/* Smart Form */}
                         <form onSubmit={handleSignInSubmit} className="space-y-4">
@@ -735,6 +815,137 @@ export const Login = ({ onLogin, onOpenExternalPortal }) => {
                                 className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-md"
                             >
                                 {t.closeModal}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Backend Server Configuration Modal */}
+            {showServerModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+                        <button
+                            type="button"
+                            onClick={() => setShowServerModal(false)}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                            title="Close"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2.5 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex-shrink-0">
+                                <Server className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-base sm:text-lg font-black text-slate-900">
+                                    Backend API Server Connection
+                                </h3>
+                                <p className="text-xs text-slate-500 font-semibold">
+                                    Manage Live Render or Localhost API Routing
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 mb-4 space-y-1.5">
+                            <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-600">Active API Endpoint:</span>
+                                <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${serverStatus === 'online' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                                    {serverStatus === 'online' ? '● Online & Reachable' : '○ Standby / Unreachable'}
+                                </span>
+                            </div>
+                            <div className="font-mono text-[11px] font-bold text-sky-900 break-all bg-white p-2 rounded-lg border border-slate-200">
+                                {activeApiUrl}
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 mb-5">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-800 mb-1">
+                                    Target Backend API URL:
+                                </label>
+                                <input
+                                    type="text"
+                                    value={customApiInput}
+                                    onChange={(e) => setCustomApiInput(e.target.value)}
+                                    placeholder="https://oweb-backend.onrender.com/api"
+                                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-500/20 outline-none"
+                                />
+                            </div>
+
+                            {/* Quick Presets */}
+                            <div>
+                                <span className="text-[11px] font-bold text-slate-500 block mb-1.5">Quick Presets:</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCustomApiInput('https://oweb-backend.onrender.com/api')}
+                                        className="text-[11px] px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 font-semibold border border-sky-200 cursor-pointer"
+                                    >
+                                        Production Render
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCustomApiInput('http://127.0.0.1:8000/api')}
+                                        className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold border border-slate-200 cursor-pointer"
+                                    >
+                                        Localhost (127.0.0.1:8000)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            apiClient.setCustomBaseUrl(null);
+                                            const resetUrl = apiClient.getBaseUrl();
+                                            setCustomApiInput(resetUrl);
+                                            setActiveApiUrl(resetUrl);
+                                        }}
+                                        className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold border border-amber-200 cursor-pointer"
+                                    >
+                                        Reset to Auto-Detect
+                                    </button>
+                                </div>
+                            </div>
+
+                            {testResult && (
+                                <div className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${
+                                    testResult.success ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+                                }`}>
+                                    {testResult.success ? <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />}
+                                    <span className="truncate">
+                                        {testResult.success ? `Success: Backend answered healthy (${testResult.url})` : `Failed: ${testResult.error}`}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                            <button
+                                type="button"
+                                disabled={isTestingApi}
+                                onClick={async () => {
+                                    setIsTestingApi(true);
+                                    const res = await apiClient.testConnection(customApiInput);
+                                    setIsTestingApi(false);
+                                    setTestResult(res);
+                                    if (res.success) setServerStatus('online');
+                                    else setServerStatus('offline');
+                                }}
+                                className="px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+                            >
+                                {isTestingApi ? 'Pinging...' : 'Test Connection'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const applied = apiClient.setCustomBaseUrl(customApiInput);
+                                    setActiveApiUrl(applied || apiClient.getBaseUrl());
+                                    setShowServerModal(false);
+                                    apiClient.testConnection().then(res => setServerStatus(res.success ? 'online' : 'offline'));
+                                }}
+                                className="px-4 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-md shadow-sky-600/30 transition cursor-pointer"
+                            >
+                                Save & Apply
                             </button>
                         </div>
                     </div>

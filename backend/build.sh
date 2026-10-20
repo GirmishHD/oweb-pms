@@ -9,10 +9,7 @@ pip install -r requirements.txt
 echo "[*] Step 2: Collecting static files for WhiteNoise..."
 python manage.py collectstatic --no-input
 
-echo "[*] Step 3: Applying database migrations..."
-python manage.py migrate --no-input
+echo "[*] Step 3: Preparing database migrations (if database is available during build)..."
+python manage.py migrate --no-input || echo "[!] Notice: Database not available during build step; migrations will run on service startup."
 
-echo "[*] Step 4: Seeding official administrative hierarchy and master data..."
-python seed_data.py
-
-echo "[+] OWEB PB-PMS backend build and initialization complete!"
+echo "[+] Backend build phase complete!"
